@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="board">
+  <compiler angle="radian" meshdir="assets" texturedir="assets" autolimits="true"/>
+  <asset>
+    <mesh file="board.obj"/>
+    <texture type="2d" name="board" file="board_basecolor.png"/>
+    <material name="board" specular="0.2" shininess="0.2" texture="board"/>
+  </asset>
+  <default>
+    <default class="board">
+      <default class="visual">
+        <geom type="mesh" mass="1" contype="0" conaffinity="0" group="2"/>
+      </default>
+      <default class="collision">
+        <geom type="mesh" mass="0" group="3" solimp="0.95 0.98 0.001" solref="0.004 1"/>
+      </default>
+    </default>
+  </default>
+  <worldbody>
+    <body name="board" childclass="board">
+      <geom name="mesh" mesh="board" class="visual" material="board" euler="1.5708 0 0"/>
+      <geom name="collider_1" type="box" size="0.142 0.182 0.0075" pos="0 0 0.0075" class="collision"/>
+      <geom name="collider_2" type="box" size="0.128 0.165 0.0075" pos="0 0 0.0225" class="collision"/>
+    </body>
+  </worldbody>
+</mujoco>

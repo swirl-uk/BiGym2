@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="soda">
+  <compiler angle="radian" meshdir="assets" texturedir="assets" autolimits="true"/>
+  <asset>
+    <mesh file="soda.obj"/>
+    <texture type="2d" name="soda" file="soda.png"/>
+    <material name="soda" specular="0.2" shininess="0.2" texture="soda"/>
+  </asset>
+  <default>
+    <default class="soda">
+      <geom type="mesh" mass="0.1" solimp="0.95 0.98 0.001" solref="0.004 1"/>
+      <default class="balance">
+        <geom group="3" type="sphere" mass="0.1" size="0.01" pos="0 0 -0.02" contype="0" conaffinity="0"/>
+      </default>
+    </default>
+  </default>
+  <worldbody>
+    <body name="soda" childclass="soda">
+      <geom name="soda" mesh="soda" material="soda" euler="1.5708 0 0"/>
+      <geom class="balance"/>
+    </body>
+  </worldbody>
+</mujoco>

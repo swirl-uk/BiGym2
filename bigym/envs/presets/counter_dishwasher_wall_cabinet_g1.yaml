@@ -1,0 +1,10 @@
+# G1 variant: the wall cabinet is lowered by 0.32 m and pulled 0.2 m toward
+# the robot (shelf bottom ~1.15 m, >=0.25 m above the counter for objects to
+# pass under; door handles ~1.2 m, below the G1 fingertip ceiling ~1.55 m).
+include:
+  - counter_dishwasher.yaml
+props:
+  - type: WallCabinet
+    position: [0.8, -0.6, -0.32]
+    euler: [0, 0, -90]
+    glass_doors_enable: true

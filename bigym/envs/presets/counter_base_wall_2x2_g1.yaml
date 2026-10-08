@@ -1,0 +1,18 @@
+# G1 variant: the wall cabinet and the open shelf are lowered by 0.26 m and
+# pulled 0.2 m toward the robot (shelf bottom 1.198 m, upper shelf 1.55 m,
+# door handles ~1.26 m).
+#
+# Not the 0.32 m drop of the other wall-cabinet presets: with the groceries
+# spawning at z=0.87, the 0.300 m wine bottle would start inside a 1.138 m
+# shelf bottom and be ejected. At -0.26 its top clears the shelf by 28 mm,
+# and the shelf front edge stays within reach holding a bottle.
+include:
+  - counter_base_2.yaml
+props:
+  - type: WallCabinet
+    position: [0.9, 0, -0.26]
+    euler: [0, 0, -90]
+    glass_doors_enable: true
+  - type: OpenShelf
+    position: [0.9, -0.6, -0.26]
+    euler: [0, 0, -90]

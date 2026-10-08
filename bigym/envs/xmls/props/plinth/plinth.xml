@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<mujoco model="plinth">
+  <!-- Static appliance plinth: raises the free-standing dishwasher by 0.25 m
+       for the G1 workspace (the fold-down door otherwise lies at 0.16-0.25 m,
+       below what the G1 reaches even at its 0.40 m minimum height with the
+       torso pitched). Footprint covers the dishwasher body (0.6 x 0.56 m),
+       not the door swing. -->
+  <compiler angle="radian" autolimits="true"/>
+  <default>
+    <default class="plinth">
+      <material specular="0.2" shininess="0.2"/>
+      <default class="visual">
+        <geom type="box" contype="0" conaffinity="0" group="2"/>
+      </default>
+      <default class="collision">
+        <geom type="box" group="3" solimp="0.95 0.98 0.001" solref="0.004 1"/>
+      </default>
+    </default>
+  </default>
+  <worldbody>
+    <body name="plinth" childclass="plinth">
+      <geom name="visual" pos="0 0 0.125" size="0.31 0.29 0.125" class="visual" rgba="0.82 0.82 0.80 1"/>
+      <geom name="collider" pos="0 0 0.125" size="0.31 0.29 0.125" class="collision"/>
+    </body>
+  </worldbody>
+</mujoco>

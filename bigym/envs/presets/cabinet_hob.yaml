@@ -1,0 +1,8 @@
+# Base cabinet with hob
+props:
+  - type: BaseCabinet
+    position: [1.2, 0, 0]
+    euler: [0, 0, -90]
+    door_left_enable: true
+    hob_enable: true
+    shelf_enable: true

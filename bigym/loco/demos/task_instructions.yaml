@@ -1,0 +1,37 @@
+# Language instructions stamped into LeRobot exports (bigym.loco.demos.lerobot_export).
+# One imperative sentence per task, seeded from the upstream BiGym README task
+# descriptions (NeuracoreAI/bigym); deviations noted inline. `_g1` task
+# variants resolve to their base entry automatically — add an explicit entry
+# here only when the G1 variant needs different wording.
+
+move_plate: Move the plate between two draining racks.
+move_two_plates: Move two plates simultaneously from one draining rack to the other.
+drawer_top_open: Open the top drawer of the kitchen cabinet.
+drawer_top_close: Close the top drawer of the kitchen cabinet.
+# README adds "initially positioned upside down on the table" — background
+# prose for readers, trimmed for instruction use.
+flip_cup: Flip the upside-down cup to an upright position.
+# README says "specific wrist"; the env class fixes HandSide.LEFT.
+reach_target_single: Reach the target with the left wrist.
+reach_target_dual: Reach the two targets, one with each wrist.
+# Maps to upstream ReachTarget ("either left or right wrist").
+reach_target_multi_modal: Reach the target with either wrist.
+dishwasher_load_cups: Move the cups from the table into the dishwasher's upper tray.
+sandwich_remove: Remove the sandwich from the frying pan.
+# From the upstream DishwasherClose class docstring.
+# The G1 variant only raises the dishwasher by 0.25 m
+# (dishwasher_g1_raised.yaml); the motion is the same, so one sentence.
+dishwasher_close: Push back all trays and close the door of the dishwasher.
+
+# Upstream PickBox. The G1 variant puts the box
+# on a low side table at 3 kg instead of 5 (Dex1 has no palm: the box is
+# hugged between the open grippers); the grasp semantics are the same.
+pick_box: Pick up the box from the side table and place it on the counter.
+dishwasher_load_cutlery: Move the cutlery from the holder on the table into the dishwasher's cutlery basket.
+dishwasher_load_plates: Move the plates from the rack into the dishwasher's lower tray.
+saucepan_to_hob: Take the saucepan from the closed cabinet and place it on the hob.
+flip_cutlery: Take the cutlery from the holder, flip it, and place it back.
+put_cups: Pick up the cups from the table and put them into the closed wall cabinet.
+wall_cupboard_close: Close the doors of the wall cabinet.
+stack_blocks: Move blocks across the table and stack them in the target area.
+wall_cupboard_open: Open the doors of the wall cabinet.

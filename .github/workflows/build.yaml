@@ -1,0 +1,75 @@
+name: build
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system libraries (headless MuJoCo rendering, xmllint hook)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libxml2-utils xvfb xauth ffmpeg \
+            libgl1 libglx-mesa0 libegl1 libgl1-mesa-dev libosmesa6-dev
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+
+      - name: Install the project (core + agent, and the dev group)
+        run: uv sync --extra agent
+
+      - name: Lint (pre-commit)
+        run: uv run pre-commit run --all-files --show-diff-on-failure
+
+      # The slow tests run whole GR00T-in-the-loop episodes and render them;
+      # with software rendering on a hosted runner that takes hours, so they
+      # are run on a GPU machine instead: MUJOCO_GL=egl pytest tests/ --run-slow
+      # xvfb-run provides the X display, so everything renders through GLFW:
+      # with MUJOCO_GL=osmesa the human-mode window (GLX) and MuJoCo's
+      # renderer (OSMesa) end up on different GL stacks and the window's
+      # framebuffer is incomplete.
+      - name: Test
+        env:
+          MUJOCO_GL: glfw
+        run: |
+          xvfb-run -a -s "-screen 0 1280x1024x24 -ac" \
+            uv run pytest tests/ -v --log-cli-level=INFO
+
+  typecheck:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install the project (core + vr + agent, and the dev group)
+        run: uv sync --extra vr --extra agent
+
+      - name: Check the MuJoCo stubs match the locked mujoco
+        run: |
+          bash typings/generate_mujoco_stubs.sh
+          if ! git diff --exit-code typings/mujoco; then
+            echo "::error::MuJoCo stubs are out of date. Run typings/generate_mujoco_stubs.sh and commit the result."
+            exit 1
+          fi
+
+      - name: Type check (ty)
+        run: uv run ty check --output-format github

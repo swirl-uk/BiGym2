@@ -1,0 +1,8 @@
+# Two tables for the "stack blocks" task
+props:
+  - type: Table
+    position: [0.7, 0, 0]
+    euler: [0, 0, -90]
+  - type: Table
+    position: [1.4, 0, 0]
+    euler: [0, 0, 90]

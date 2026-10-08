@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="plate">
+  <compiler angle="radian" meshdir="assets" texturedir="assets" autolimits="true"/>
+  <asset>
+    <material name="plate" specular="0.5" shininess="0.25"/>
+    <mesh file="plate_01.obj"/>
+    <mesh file="plate_01_collision_001.obj"/>
+    <mesh file="plate_01_collision_002.obj"/>
+    <mesh file="plate_01_collision_003.obj"/>
+    <mesh file="plate_01_collision_004.obj"/>
+    <mesh file="plate_01_collision_005.obj"/>
+    <mesh file="plate_01_collision_006.obj"/>
+    <mesh file="plate_01_collision_007.obj"/>
+    <mesh file="plate_01_collision_008.obj"/>
+    <mesh file="plate_01_collision_009.obj"/>
+    <mesh file="plate_01_collision_010.obj"/>
+    <mesh file="plate_01_collision_011.obj"/>
+    <mesh file="plate_01_collision_012.obj"/>
+  </asset>
+  <default>
+    <default class="plate">
+      <default class="visual">
+        <geom type="mesh" mass="0.4" contype="0" conaffinity="0" group="2" euler="1.5708 0 0" material="plate"/>
+      </default>
+      <default class="collision">
+        <geom type="mesh" mass="0" group="3" euler="1.5708 0 0" solimp="0.95 0.99 0.001" solref="0.004 1"/>
+      </default>
+    </default>
+  </default>
+  <worldbody>
+    <body name="plate" childclass="plate">
+      <geom name="mesh" mesh="plate_01" class="visual"/>
+      <geom name="collider_001" mesh="plate_01_collision_001" class="collision"/>
+      <geom name="collider_002" mesh="plate_01_collision_002" class="collision"/>
+      <geom name="collider_003" mesh="plate_01_collision_003" class="collision"/>
+      <geom name="collider_004" mesh="plate_01_collision_004" class="collision"/>
+      <geom name="collider_005" mesh="plate_01_collision_005" class="collision"/>
+      <geom name="collider_006" mesh="plate_01_collision_006" class="collision"/>
+      <geom name="collider_007" mesh="plate_01_collision_007" class="collision"/>
+      <geom name="collider_008" mesh="plate_01_collision_008" class="collision"/>
+      <geom name="collider_009" mesh="plate_01_collision_009" class="collision"/>
+      <geom name="collider_010" mesh="plate_01_collision_010" class="collision"/>
+      <geom name="collider_011" mesh="plate_01_collision_011" class="collision"/>
+      <geom name="collider_012" mesh="plate_01_collision_012" class="collision"/>
+    </body>
+  </worldbody>
+</mujoco>

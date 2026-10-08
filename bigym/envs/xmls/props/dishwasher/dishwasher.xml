@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="dishwasher">
+  <compiler angle="radian" meshdir="assets" texturedir="assets" autolimits="true"/>
+  <asset>
+    <texture type="2d" name="basket" file="basket.png"/>
+    <texture type="2d" name="body" file="body.png"/>
+    <texture type="2d" name="bottom" file="bottom.png"/>
+    <texture type="2d" name="door" file="door.png"/>
+    <texture type="2d" name="middle" file="middle.png"/>
+    <material name="dishwasher" rgba="0.3 0.3 0.3 1"/>
+    <material name="basket" texture="basket" rgba="0.3 0.3 0.3 1"/>
+    <material name="body" texture="body"/>
+    <material name="bottom" texture="bottom"/>
+    <material name="door" texture="door"/>
+    <material name="middle" texture="middle"/>
+    <!-- body -->
+    <mesh file="visual/dish_washer_body_001.obj"/>
+    <!-- door -->
+    <mesh file="visual/dish_washer_door_001.obj"/>
+    <mesh file="collision/collision_door_001.obj"/>
+    <mesh file="collision/collision_door_003.obj"/>
+    <mesh file="collision/collision_door_004.obj"/>
+    <mesh file="collision/collision_door_006.obj"/>
+    <mesh file="collision/collision_door_007.obj"/>
+    <mesh file="collision/collision_door_008.obj"/>
+    <mesh file="collision/collision_door_009.obj"/>
+    <!-- middle tray -->
+    <mesh file="visual/dish_washer_mid_001.obj"/>
+    <mesh file="collision/collision_tray_mid_001.obj"/>
+    <mesh file="collision/collision_tray_mid_002.obj"/>
+    <mesh file="collision/collision_tray_mid_003.obj"/>
+    <mesh file="collision/collision_tray_mid_004.obj"/>
+    <mesh file="collision/collision_tray_mid_005.obj"/>
+    <mesh file="collision/collision_tray_mid_006.obj"/>
+    <mesh file="collision/collision_tray_mid_007.obj"/>
+    <mesh file="collision/collision_tray_mid_008.obj"/>
+    <mesh file="collision/collision_tray_mid_009.obj"/>
+    <mesh file="collision/collision_tray_mid_010.obj"/>
+    <mesh file="collision/collision_tray_mid_011.obj"/>
+    <mesh file="collision/collision_tray_mid_012.obj"/>
+    <mesh file="collision/collision_tray_mid_013.obj"/>
+    <mesh file="collision/collision_tray_mid_014.obj"/>
+    <mesh file="collision/collision_tray_mid_015.obj"/>
+    <mesh file="collision/collision_tray_mid_016.obj"/>
+    <mesh file="collision/collision_tray_mid_017.obj"/>
+    <mesh file="collision/collision_tray_mid_018.obj"/>
+    <mesh file="collision/collision_tray_mid_019.obj"/>
+    <mesh file="collision/collision_tray_mid_020.obj"/>
+    <mesh file="collision/collision_tray_mid_021.obj"/>
+    <mesh file="collision/collision_tray_mid_022.obj"/>
+    <mesh file="collision/collision_tray_mid_023.obj"/>
+    <mesh file="collision/collision_tray_mid_024.obj"/>
+    <mesh file="collision/collision_tray_mid_025.obj"/>
+    <mesh file="collision/collision_tray_mid_026.obj"/>
+    <mesh file="collision/collision_tray_mid_027.obj"/>
+    <!-- middle tray plates holder -->
+    <mesh file="collision/collision_tray_mid_plates_holder.obj"/>
+    <!-- middle tray sprinkler -->
+    <mesh file="visual/dish_washer_mid_sprinkle.obj"/>
+    <mesh file="collision/collision_dish_washer_mid_sprinkle.obj"/>
+    <!-- bottom tray -->
+    <mesh file="visual/dish_washer_bottom_001.obj"/>
+    <mesh file="collision/collision_tray_001.obj"/>
+    <mesh file="collision/collision_tray_002.obj"/>
+    <mesh file="collision/collision_tray_003.obj"/>
+    <mesh file="collision/collision_tray_004.obj"/>
+    <mesh file="collision/collision_tray_005.obj"/>
+    <mesh file="collision/collision_tray_006.obj"/>
+    <mesh file="collision/collision_tray_007.obj"/>
+    <mesh file="collision/collision_tray_008.obj"/>
+    <mesh file="collision/collision_tray_009.obj"/>
+    <mesh file="collision/collision_tray_010.obj"/>
+    <mesh file="collision/collision_tray_011.obj"/>
+    <mesh file="collision/collision_tray_012.obj"/>
+    <mesh file="collision/collision_tray_013.obj"/>
+    <mesh file="collision/collision_tray_014.obj"/>
+    <mesh file="collision/collision_tray_015.obj"/>
+    <mesh file="collision/collision_tray_016.obj"/>
+    <mesh file="collision/collision_tray_017.obj"/>
+    <mesh file="collision/collision_tray_018.obj"/>
+    <mesh file="collision/collision_tray_019.obj"/>
+    <mesh file="collision/collision_tray_020.obj"/>
+    <mesh file="collision/collision_tray_021.obj"/>
+    <mesh file="collision/collision_tray_022.obj"/>
+    <mesh file="collision/collision_tray_023.obj"/>
+    <mesh file="collision/collision_tray_024.obj"/>
+    <mesh file="collision/collision_tray_025.obj"/>
+    <mesh file="collision/collision_tray_026.obj"/>
+    <mesh file="collision/collision_tray_027.obj"/>
+    <mesh file="collision/collision_tray_028.obj"/>
+    <mesh file="collision/collision_tray_029.obj"/>
+    <mesh file="collision/collision_tray_030.obj"/>
+    <mesh file="collision/collision_tray_031.obj"/>
+    <mesh file="collision/collision_tray_032.obj"/>
+    <mesh file="collision/collision_tray_033.obj"/>
+    <!-- bottom tray wheel -->
+    <mesh file="visual/dish_washer_bottom_wheel.obj"/>
+    <!-- bottom tray plates holder -->
+    <mesh file="visual/dish_washer_bottom_plates_holder_001.obj"/>
+    <mesh file="collision/collision_holder_001.obj"/>
+    <mesh file="collision/collision_holder_002.obj"/>
+    <mesh file="collision/collision_holder_003.obj"/>
+    <mesh file="collision/collision_holder_004.obj"/>
+    <mesh file="collision/collision_holder_005.obj"/>
+    <mesh file="collision/collision_holder_006.obj"/>
+    <mesh file="collision/collision_holder_007.obj"/>
+    <mesh file="collision/collision_holder_008.obj"/>
+    <mesh file="collision/collision_holder_009.obj"/>
+    <mesh file="collision/collision_holder_010.obj"/>
+    <mesh file="collision/collision_holder_011.obj"/>
+    <mesh file="collision/collision_holder_012.obj"/>
+    <mesh file="collision/collision_holder_013.obj"/>
+    <mesh file="collision/collision_holder_014.obj"/>
+    <!-- bottom tray basket -->
+    <mesh file="visual/dish_washer_bottom_cuttlery_basket_001.obj"/>
+    <mesh file="collision/collision_dish_washer_bottom_basket_001.obj"/>
+    <mesh file="collision/collision_dish_washer_bottom_basket_002.obj"/>
+    <mesh file="collision/collision_dish_washer_bottom_basket_003.obj"/>
+    <mesh file="collision/collision_dish_washer_bottom_basket_004.obj"/>
+    <mesh file="collision/collision_dish_washer_bottom_basket_005.obj"/>
+    <mesh file="collision/collision_dish_washer_bottom_basket_006.obj"/>
+    <mesh file="collision/collision_dish_washer_bottom_basket_007.obj"/>
+    <mesh file="collision/collision_dish_washer_bottom_basket_008.obj"/>
+    <mesh file="collision/collision_dish_washer_bottom_basket_009.obj"/>
+    <mesh file="collision/collision_dish_washer_bottom_basket_010.obj"/>
+    <mesh file="collision/collision_dish_washer_bottom_basket_011.obj"/>
+    <mesh file="collision/collision_dish_washer_bottom_basket_012.obj"/>
+    <mesh file="collision/collision_dish_washer_bottom_basket_013.obj"/>
+    <mesh file="collision/collision_dish_washer_bottom_basket_014.obj"/>
+    <mesh file="collision/collision_dish_washer_bottom_basket_015.obj"/>
+  </asset>
+  <default>
+    <default class="dishwasher">
+      <default class="visual">
+        <geom type="mesh" contype="0" conaffinity="0" group="2" mass="0"/>
+      </default>
+      <default class="collision">
+        <geom type="mesh" group="3" friction="0.1" solimp="0.998 0.998 0.001" solref="0.004 1" density="1"/>
+      </default>
+      <default class="collision_basket">
+        <geom type="mesh" group="3" friction="0.1" solimp="0.998 0.998 0.001" solref="0.004 1" density="1"/>
+      </default>
+      <default class="collision_holder">
+        <geom type="mesh" group="3" friction="0.1" solimp="0.998 0.998 0.001" solref="0.004 1" density="1"/>
+      </default>
+      <site size="0.001" rgba="0.5 0.5 0.5 0.3" group="4"/>
+    </default>
+  </default>
+  <worldbody>
+    <body name="dishwasher_body" childclass="dishwasher">
+      <geom material="body" mesh="dish_washer_body_001" class="visual" euler="1.5708 0 0"/>
+      <geom pos="0 -0.258 0.129" size="0.3 0.258 0.129" type="box" class="collision"/>
+      <geom pos="0 -0.278 0.269" size="0.3 0.278 0.011" type="box" class="collision"/>
+      <geom pos="0.286 -0.278 0.531" size="0.014 0.278 0.274" type="box" class="collision"/>
+      <geom pos="-0.286 -0.278 0.531" size="0.014 0.278 0.274" type="box" class="collision"/>
+      <geom pos="0 -0.008 0.531" size="0.3 0.008 0.274" type="box" class="collision"/>
+      <geom pos="0 -0.278 0.808" size="0.3 0.278 0.0128" type="box" class="collision"/>
+      <body name="door" pos="0 -0.57 0.245" euler="1.5708 0 0">
+        <joint name="door_hinge" axis="1 0 0" range="0 1.5708" damping="0.01" solimplimit="0.998 0.998 0.001" solreflimit="0.004 1"/>
+        <inertial mass="0.01" pos="0 0 0" quat="1 0 0 0" diaginertia="0.0001 0.0001 0.0001"/>
+        <geom material="door" mesh="dish_washer_door_001" class="visual"/>
+        <geom pos="0 0.517 0.086" size="0.019 0.28" type="cylinder" class="collision" euler="0 1.5708 0"/>
+        <geom pos="0.238 0.517 0.06" size="0.031 0.025 0.014" type="box" class="collision" euler="1.5708 0 0"/>
+        <geom pos="-0.238 0.517 0.06" size="0.031 0.025 0.014" type="box" class="collision" euler="1.5708 0 0"/>
+        <geom pos="0 0.261 0.03" size="0.295 0.016 0.295" type="box" class="collision" euler="1.5708 0 0"/>
+        <geom pos="0 0.546 0.0192" size="0.295 0.02603 0.019" type="box" class="collision" euler="1.5708 0 0"/>
+        <geom pos="0 0.0148 0.0192" size="0.295 0.02603 0.0584" type="box" class="collision" euler="1.5708 0 0"/>
+        <geom pos="0.275 0.2606 0.0192" size="0.0216 0.02603 0.295" type="box" class="collision" euler="1.5708 0 0"/>
+        <geom pos="-0.275 0.2606 0.0192" size="0.0216 0.02603 0.295" type="box" class="collision" euler="1.5708 0 0"/>
+        <geom mesh="collision_door_001" class="collision"/>
+        <geom mesh="collision_door_003" class="collision"/>
+        <geom mesh="collision_door_004" class="collision"/>
+        <geom mesh="collision_door_006" class="collision"/>
+        <geom mesh="collision_door_007" class="collision"/>
+        <geom mesh="collision_door_008" class="collision"/>
+        <geom mesh="collision_door_009" class="collision"/>
+      </body>
+      <body name="tray_mid" pos="0 -0.248 0.6" euler="1.5708 0 0">
+        <joint name="tray_mid_linear" type="slide" axis="0 0 1" range="0 0.45" damping="5" solimplimit="0.998 0.998 0.001" solreflimit="0.004 1"/>
+        <geom material="middle" mesh="dish_washer_mid_001" class="visual"/>
+        <geom mesh="collision_tray_mid_001" class="collision"/>
+        <geom mesh="collision_tray_mid_002" class="collision"/>
+        <geom mesh="collision_tray_mid_003" class="collision"/>
+        <geom mesh="collision_tray_mid_004" class="collision"/>
+        <geom mesh="collision_tray_mid_005" class="collision"/>
+        <geom mesh="collision_tray_mid_006" class="collision"/>
+        <geom mesh="collision_tray_mid_007" class="collision"/>
+        <geom mesh="collision_tray_mid_008" class="collision"/>
+        <geom mesh="collision_tray_mid_009" class="collision"/>
+        <geom mesh="collision_tray_mid_010" class="collision"/>
+        <geom mesh="collision_tray_mid_011" class="collision"/>
+        <geom mesh="collision_tray_mid_012" class="collision"/>
+        <geom mesh="collision_tray_mid_013" class="collision"/>
+        <geom mesh="collision_tray_mid_014" class="collision"/>
+        <geom mesh="collision_tray_mid_015" class="collision"/>
+        <geom mesh="collision_tray_mid_016" class="collision"/>
+        <geom mesh="collision_tray_mid_017" class="collision"/>
+        <geom mesh="collision_tray_mid_018" class="collision"/>
+        <geom mesh="collision_tray_mid_019" class="collision"/>
+        <geom mesh="collision_tray_mid_020" class="collision"/>
+        <geom mesh="collision_tray_mid_021" class="collision"/>
+        <geom mesh="collision_tray_mid_022" class="collision"/>
+        <geom mesh="collision_tray_mid_023" class="collision"/>
+        <geom mesh="collision_tray_mid_024" class="collision"/>
+        <geom mesh="collision_tray_mid_025" class="collision"/>
+        <geom mesh="collision_tray_mid_026" class="collision"/>
+        <geom mesh="collision_tray_mid_027" class="collision"/>
+        <!-- plates holders -->
+        <body name="dish_washer_mid_holder_1" pos="0.085 0.0025 0" euler="0 1.5708 0">
+          <geom material="dishwasher" mesh="dish_washer_bottom_plates_holder_001" class="visual"/>
+          <geom mesh="collision_holder_001" class="collision_holder"/>
+          <geom mesh="collision_holder_002" class="collision_holder"/>
+          <geom mesh="collision_holder_003" class="collision_holder"/>
+          <geom mesh="collision_holder_004" class="collision_holder"/>
+          <geom mesh="collision_holder_005" class="collision_holder"/>
+          <geom mesh="collision_holder_006" class="collision_holder"/>
+          <geom mesh="collision_holder_007" class="collision_holder"/>
+          <geom mesh="collision_holder_008" class="collision_holder"/>
+          <geom mesh="collision_holder_009" class="collision_holder"/>
+          <geom mesh="collision_holder_010" class="collision_holder"/>
+          <geom mesh="collision_holder_011" class="collision_holder"/>
+          <geom mesh="collision_holder_012" class="collision_holder"/>
+          <geom mesh="collision_holder_013" class="collision_holder"/>
+          <geom mesh="collision_holder_014" class="collision_holder"/>
+          <site name="tray_mid_holder_sites_1_1" pos="-0.165 0.1 0"/>
+          <site name="tray_mid_holder_sites_1_2" pos="-0.135 0.1 0"/>
+          <site name="tray_mid_holder_sites_1_3" pos="-0.105 0.1 0"/>
+          <site name="tray_mid_holder_sites_1_4" pos="-0.075 0.1 0"/>
+          <site name="tray_mid_holder_sites_1_5" pos="-0.045 0.1 0"/>
+          <site name="tray_mid_holder_sites_1_6" pos="-0.015 0.1 0"/>
+          <site name="tray_mid_holder_sites_1_7" pos="0.015 0.1 0"/>
+          <site name="tray_mid_holder_sites_1_8" pos="0.045 0.1 0"/>
+          <site name="tray_mid_holder_sites_1_9" pos="0.075 0.1 0"/>
+          <site name="tray_mid_holder_sites_1_10" pos="0.105 0.1 0"/>
+          <site name="tray_mid_holder_sites_1_11" pos="0.135 0.1 0"/>
+          <site name="tray_mid_holder_sites_1_12" pos="0.165 0.1 0"/>
+        </body>
+        <body name="dish_washer_mid_holder_2" pos="-0.085 0.0025 0" euler="0 1.5708 0">
+          <geom material="dishwasher" mesh="dish_washer_bottom_plates_holder_001" class="visual"/>
+          <geom mesh="collision_holder_001" class="collision_holder"/>
+          <geom mesh="collision_holder_002" class="collision_holder"/>
+          <geom mesh="collision_holder_003" class="collision_holder"/>
+          <geom mesh="collision_holder_004" class="collision_holder"/>
+          <geom mesh="collision_holder_005" class="collision_holder"/>
+          <geom mesh="collision_holder_006" class="collision_holder"/>
+          <geom mesh="collision_holder_007" class="collision_holder"/>
+          <geom mesh="collision_holder_008" class="collision_holder"/>
+          <geom mesh="collision_holder_009" class="collision_holder"/>
+          <geom mesh="collision_holder_010" class="collision_holder"/>
+          <geom mesh="collision_holder_011" class="collision_holder"/>
+          <geom mesh="collision_holder_012" class="collision_holder"/>
+          <geom mesh="collision_holder_013" class="collision_holder"/>
+          <geom mesh="collision_holder_014" class="collision_holder"/>
+          <site name="tray_mid_holder_sites_2_1" pos="-0.165 0.1 0"/>
+          <site name="tray_mid_holder_sites_2_2" pos="-0.135 0.1 0"/>
+          <site name="tray_mid_holder_sites_2_3" pos="-0.105 0.1 0"/>
+          <site name="tray_mid_holder_sites_2_4" pos="-0.075 0.1 0"/>
+          <site name="tray_mid_holder_sites_2_5" pos="-0.045 0.1 0"/>
+          <site name="tray_mid_holder_sites_2_6" pos="-0.015 0.1 0"/>
+          <site name="tray_mid_holder_sites_2_7" pos="0.015 0.1 0"/>
+          <site name="tray_mid_holder_sites_2_8" pos="0.045 0.1 0"/>
+          <site name="tray_mid_holder_sites_2_9" pos="0.075 0.1 0"/>
+          <site name="tray_mid_holder_sites_2_10" pos="0.105 0.1 0"/>
+          <site name="tray_mid_holder_sites_2_11" pos="0.135 0.1 0"/>
+          <site name="tray_mid_holder_sites_2_12" pos="0.165 0.1 0"/>
+        </body>
+        <!-- sprinkler -->
+        <body name="tray_mid_sprinkler" pos="0 -0.029338 0">
+          <joint name="tray_mid_sprinkler" axis="0 1 0" limited="false" damping="0.001"/>
+          <inertial mass="0.01" pos="0 0 0" quat="1 0 0 0" diaginertia="0.001 0.001 0.001"/>
+          <geom material="dishwasher" mesh="dish_washer_mid_sprinkle" class="visual"/>
+          <geom mesh="collision_dish_washer_mid_sprinkle" class="collision"/>
+        </body>
+      </body>
+      <body name="tray_bottom" pos="0 -0.309 0.35" euler="1.5708 0 0">
+        <joint name="tray_bottom_linear" type="slide" axis="0 0 1" range="0 0.5" damping="5" solimplimit="0.998 0.998 0.001" solreflimit="0.004 1"/>
+        <geom material="bottom" mesh="dish_washer_bottom_001" class="visual"/>
+        <geom mesh="collision_tray_001" class="collision"/>
+        <geom mesh="collision_tray_002" class="collision"/>
+        <geom mesh="collision_tray_003" class="collision"/>
+        <geom mesh="collision_tray_004" class="collision"/>
+        <geom mesh="collision_tray_005" class="collision"/>
+        <geom mesh="collision_tray_006" class="collision"/>
+        <geom mesh="collision_tray_007" class="collision"/>
+        <geom mesh="collision_tray_008" class="collision"/>
+        <geom mesh="collision_tray_009" class="collision"/>
+        <geom mesh="collision_tray_010" class="collision"/>
+        <geom mesh="collision_tray_011" class="collision"/>
+        <geom mesh="collision_tray_012" class="collision"/>
+        <geom mesh="collision_tray_013" class="collision"/>
+        <geom mesh="collision_tray_014" class="collision"/>
+        <geom mesh="collision_tray_015" class="collision"/>
+        <geom mesh="collision_tray_016" class="collision"/>
+        <geom mesh="collision_tray_017" class="collision"/>
+        <geom mesh="collision_tray_018" class="collision"/>
+        <geom mesh="collision_tray_019" class="collision"/>
+        <geom mesh="collision_tray_020" class="collision"/>
+        <geom mesh="collision_tray_021" class="collision"/>
+        <geom mesh="collision_tray_022" class="collision"/>
+        <geom mesh="collision_tray_023" class="collision"/>
+        <geom mesh="collision_tray_024" class="collision"/>
+        <geom mesh="collision_tray_025" class="collision"/>
+        <geom mesh="collision_tray_026" class="collision"/>
+        <geom mesh="collision_tray_027" class="collision"/>
+        <geom mesh="collision_tray_028" class="collision"/>
+        <geom mesh="collision_tray_029" class="collision"/>
+        <geom mesh="collision_tray_030" class="collision"/>
+        <geom mesh="collision_tray_031" class="collision"/>
+        <geom mesh="collision_tray_032" class="collision"/>
+        <geom mesh="collision_tray_033" class="collision"/>
+        <!-- plates holders -->
+        <body name="dish_washer_bottom_holder_1" pos="-0.047521 -0.048164 0.145" euler="0.523599 0 0">
+          <geom material="dishwasher" mesh="dish_washer_bottom_plates_holder_001" class="visual"/>
+          <geom mesh="collision_holder_001" class="collision_holder"/>
+          <geom mesh="collision_holder_002" class="collision_holder"/>
+          <geom mesh="collision_holder_003" class="collision_holder"/>
+          <geom mesh="collision_holder_004" class="collision_holder"/>
+          <geom mesh="collision_holder_005" class="collision_holder"/>
+          <geom mesh="collision_holder_006" class="collision_holder"/>
+          <geom mesh="collision_holder_007" class="collision_holder"/>
+          <geom mesh="collision_holder_008" class="collision_holder"/>
+          <geom mesh="collision_holder_009" class="collision_holder"/>
+          <geom mesh="collision_holder_010" class="collision_holder"/>
+          <geom mesh="collision_holder_011" class="collision_holder"/>
+          <geom mesh="collision_holder_012" class="collision_holder"/>
+          <geom mesh="collision_holder_013" class="collision_holder"/>
+          <geom mesh="collision_holder_014" class="collision_holder"/>
+        </body>
+        <body name="dish_washer_bottom_holder_2" pos="-0.047521 -0.048164 0.088794" euler="-0.523599 0 0">
+          <geom material="dishwasher" mesh="dish_washer_bottom_plates_holder_001" class="visual"/>
+          <geom mesh="collision_holder_001" class="collision_holder"/>
+          <geom mesh="collision_holder_002" class="collision_holder"/>
+          <geom mesh="collision_holder_003" class="collision_holder"/>
+          <geom mesh="collision_holder_004" class="collision_holder"/>
+          <geom mesh="collision_holder_005" class="collision_holder"/>
+          <geom mesh="collision_holder_006" class="collision_holder"/>
+          <geom mesh="collision_holder_007" class="collision_holder"/>
+          <geom mesh="collision_holder_008" class="collision_holder"/>
+          <geom mesh="collision_holder_009" class="collision_holder"/>
+          <geom mesh="collision_holder_010" class="collision_holder"/>
+          <geom mesh="collision_holder_011" class="collision_holder"/>
+          <geom mesh="collision_holder_012" class="collision_holder"/>
+          <geom mesh="collision_holder_013" class="collision_holder"/>
+          <geom mesh="collision_holder_014" class="collision_holder"/>
+        </body>
+        <body name="dish_washer_bottom_holder_3" pos="-0.047521 -0.048164 -0.1133" euler="0.523599 0 0">
+          <geom material="dishwasher" mesh="dish_washer_bottom_plates_holder_001" class="visual"/>
+          <geom mesh="collision_holder_001" class="collision_holder"/>
+          <geom mesh="collision_holder_002" class="collision_holder"/>
+          <geom mesh="collision_holder_003" class="collision_holder"/>
+          <geom mesh="collision_holder_004" class="collision_holder"/>
+          <geom mesh="collision_holder_005" class="collision_holder"/>
+          <geom mesh="collision_holder_006" class="collision_holder"/>
+          <geom mesh="collision_holder_007" class="collision_holder"/>
+          <geom mesh="collision_holder_008" class="collision_holder"/>
+          <geom mesh="collision_holder_009" class="collision_holder"/>
+          <geom mesh="collision_holder_010" class="collision_holder"/>
+          <geom mesh="collision_holder_011" class="collision_holder"/>
+          <geom mesh="collision_holder_012" class="collision_holder"/>
+          <geom mesh="collision_holder_013" class="collision_holder"/>
+          <geom mesh="collision_holder_014" class="collision_holder"/>
+        </body>
+        <body name="dish_washer_bottom_holder_4" pos="-0.047521 -0.048164 -0.189036" euler="-0.523599 0 0">
+          <geom material="dishwasher" mesh="dish_washer_bottom_plates_holder_001" class="visual"/>
+          <geom mesh="collision_holder_001" class="collision_holder"/>
+          <geom mesh="collision_holder_002" class="collision_holder"/>
+          <geom mesh="collision_holder_003" class="collision_holder"/>
+          <geom mesh="collision_holder_004" class="collision_holder"/>
+          <geom mesh="collision_holder_005" class="collision_holder"/>
+          <geom mesh="collision_holder_006" class="collision_holder"/>
+          <geom mesh="collision_holder_007" class="collision_holder"/>
+          <geom mesh="collision_holder_008" class="collision_holder"/>
+          <geom mesh="collision_holder_009" class="collision_holder"/>
+          <geom mesh="collision_holder_010" class="collision_holder"/>
+          <geom mesh="collision_holder_011" class="collision_holder"/>
+          <geom mesh="collision_holder_012" class="collision_holder"/>
+          <geom mesh="collision_holder_013" class="collision_holder"/>
+          <geom mesh="collision_holder_014" class="collision_holder"/>
+        </body>
+        <body name="tray_bottom_holder_sites_1" pos="-0.047521 -0.048164 0.1169">
+          <site name="tray_bottom_holder_1_1" pos="-0.165 0.1 0"/>
+          <site name="tray_bottom_holder_1_2" pos="-0.135 0.1 0"/>
+          <site name="tray_bottom_holder_1_3" pos="-0.105 0.1 0"/>
+          <site name="tray_bottom_holder_1_4" pos="-0.075 0.1 0"/>
+          <site name="tray_bottom_holder_1_5" pos="-0.045 0.1 0"/>
+          <site name="tray_bottom_holder_1_6" pos="-0.015 0.1 0"/>
+          <site name="tray_bottom_holder_1_7" pos="0.015 0.1 0"/>
+          <site name="tray_bottom_holder_1_8" pos="0.045 0.1 0"/>
+          <site name="tray_bottom_holder_1_9" pos="0.075 0.1 0"/>
+          <site name="tray_bottom_holder_1_10" pos="0.105 0.1 0"/>
+          <site name="tray_bottom_holder_1_11" pos="0.135 0.1 0"/>
+          <site name="tray_bottom_holder_1_12" pos="0.165 0.1 0"/>
+        </body>
+        <body name="tray_bottom_holder_sites_2" pos="-0.047521 -0.048164 -0.1512">
+          <site name="tray_bottom_holder_2_1" pos="-0.165 0.1 0"/>
+          <site name="tray_bottom_holder_2_2" pos="-0.135 0.1 0"/>
+          <site name="tray_bottom_holder_2_3" pos="-0.105 0.1 0"/>
+          <site name="tray_bottom_holder_2_4" pos="-0.075 0.1 0"/>
+          <site name="tray_bottom_holder_2_5" pos="-0.045 0.1 0"/>
+          <site name="tray_bottom_holder_2_6" pos="-0.015 0.1 0"/>
+          <site name="tray_bottom_holder_2_7" pos="0.015 0.1 0"/>
+          <site name="tray_bottom_holder_2_8" pos="0.045 0.1 0"/>
+          <site name="tray_bottom_holder_2_9" pos="0.075 0.1 0"/>
+          <site name="tray_bottom_holder_2_10" pos="0.105 0.1 0"/>
+          <site name="tray_bottom_holder_2_11" pos="0.135 0.1 0"/>
+          <site name="tray_bottom_holder_2_12" pos="0.165 0.1 0"/>
+        </body>
+        <!-- wheels -->
+        <body name="dish_washer_bottom_wheel_1_l" pos="0.250505 -0.049095 0.139046">
+          <geom material="dishwasher" mesh="dish_washer_bottom_wheel" class="visual"/>
+          <geom mesh="dish_washer_bottom_wheel" class="collision"/>
+        </body>
+        <body name="dish_washer_bottom_wheel_2_l" pos="0.250505 -0.049095 0.040992">
+          <geom material="dishwasher" mesh="dish_washer_bottom_wheel" class="visual"/>
+          <geom mesh="dish_washer_bottom_wheel" class="collision"/>
+        </body>
+        <body name="dish_washer_bottom_wheel_3_l" pos="0.250505 -0.049095 -0.087648">
+          <geom material="dishwasher" mesh="dish_washer_bottom_wheel" class="visual"/>
+          <geom mesh="dish_washer_bottom_wheel" class="collision"/>
+        </body>
+        <body name="dish_washer_bottom_wheel_4_l" pos="0.250505 -0.049095 -0.190549">
+          <geom material="dishwasher" mesh="dish_washer_bottom_wheel" class="visual"/>
+          <geom mesh="dish_washer_bottom_wheel" class="collision"/>
+        </body>
+        <body name="dish_washer_bottom_wheel_1_r" pos="-0.250505 -0.049095 0.139046" euler="0 3.14159 0">
+          <geom material="dishwasher" mesh="dish_washer_bottom_wheel" class="visual"/>
+          <geom mesh="dish_washer_bottom_wheel" class="collision"/>
+        </body>
+        <body name="dish_washer_bottom_wheel_2_r" pos="-0.250505 -0.049095 0.040992" euler="0 3.14159 0">
+          <geom material="dishwasher" mesh="dish_washer_bottom_wheel" class="visual"/>
+          <geom mesh="dish_washer_bottom_wheel" class="collision"/>
+        </body>
+        <body name="dish_washer_bottom_wheel_3_r" pos="-0.250505 -0.049095 -0.087648" euler="0 3.14159 0">
+          <geom material="dishwasher" mesh="dish_washer_bottom_wheel" class="visual"/>
+          <geom mesh="dish_washer_bottom_wheel" class="collision"/>
+        </body>
+        <body name="dish_washer_bottom_wheel_4_r" pos="-0.250505 -0.049095 -0.190549" euler="0 3.14159 0">
+          <geom material="dishwasher" mesh="dish_washer_bottom_wheel" class="visual"/>
+          <geom mesh="dish_washer_bottom_wheel" class="collision"/>
+        </body>
+        <!-- basket -->
+        <body name="cuttlery_basket" pos="0.218 0.030 -0.02">
+          <geom material="basket" mesh="dish_washer_bottom_cuttlery_basket_001" class="visual"/>
+          <geom mesh="collision_dish_washer_bottom_basket_001" class="collision_basket"/>
+          <geom mesh="collision_dish_washer_bottom_basket_002" class="collision_basket"/>
+          <geom mesh="collision_dish_washer_bottom_basket_003" class="collision_basket"/>
+          <geom mesh="collision_dish_washer_bottom_basket_004" class="collision_basket"/>
+          <geom mesh="collision_dish_washer_bottom_basket_005" class="collision_basket"/>
+          <geom mesh="collision_dish_washer_bottom_basket_006" class="collision_basket"/>
+          <geom mesh="collision_dish_washer_bottom_basket_007" class="collision_basket"/>
+          <geom mesh="collision_dish_washer_bottom_basket_008" class="collision_basket"/>
+          <geom mesh="collision_dish_washer_bottom_basket_009" class="collision_basket"/>
+          <geom mesh="collision_dish_washer_bottom_basket_010" class="collision_basket"/>
+          <geom mesh="collision_dish_washer_bottom_basket_011" class="collision_basket"/>
+          <geom mesh="collision_dish_washer_bottom_basket_012" class="collision_basket"/>
+          <geom mesh="collision_dish_washer_bottom_basket_013" class="collision_basket"/>
+          <geom mesh="collision_dish_washer_bottom_basket_014" class="collision_basket"/>
+          <geom mesh="collision_dish_washer_bottom_basket_015" class="collision_basket"/>
+          <site name="cuttlery_basket_1" pos="-0.018 0.05 -0.185"/>
+          <site name="cuttlery_basket_2" pos="-0.018 0.05 -0.115"/>
+          <site name="cuttlery_basket_3" pos="-0.018 0.05 -0.045"/>
+          <site name="cuttlery_basket_4" pos="-0.018 0.05 0.045"/>
+          <site name="cuttlery_basket_5" pos="-0.018 0.05 0.115"/>
+          <site name="cuttlery_basket_6" pos="-0.018 0.05 0.185"/>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <contact>
+    <exclude body1="dishwasher_body" body2="door"/>
+    <exclude body1="dishwasher_body" body2="tray_mid"/>
+    <exclude body1="dishwasher_body" body2="tray_bottom"/>
+    <exclude body1="dish_washer_bottom_wheel_1_l" body2="dishwasher_body"/>
+    <exclude body1="dish_washer_bottom_wheel_2_l" body2="dishwasher_body"/>
+    <exclude body1="dish_washer_bottom_wheel_3_l" body2="dishwasher_body"/>
+    <exclude body1="dish_washer_bottom_wheel_4_l" body2="dishwasher_body"/>
+    <exclude body1="dish_washer_bottom_wheel_1_r" body2="dishwasher_body"/>
+    <exclude body1="dish_washer_bottom_wheel_2_r" body2="dishwasher_body"/>
+    <exclude body1="dish_washer_bottom_wheel_3_r" body2="dishwasher_body"/>
+    <exclude body1="dish_washer_bottom_wheel_4_r" body2="dishwasher_body"/>
+  </contact>
+</mujoco>

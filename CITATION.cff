@@ -1,0 +1,89 @@
+cff-version: 1.2.0
+message: "If you use BiGym 2.0 or its demonstration datasets, please cite this software and the original BiGym paper (listed under `references`)."
+title: "BiGym 2.0"
+type: software
+abstract: >-
+  BiGym 2.0 is a hard fork of the BiGym demo-driven bi-manual manipulation
+  benchmark that replaces the floating-base robot with a whole-body,
+  controller-in-the-loop setup: a learned lower-body locomotion policy runs
+  inside the environment step, upper-body commands come from VR teleoperation
+  or a learned policy, and the benchmark protocol (episode budgets, warmup,
+  hold-to-succeed criteria, substrate fingerprints) is recorded per task.
+license: Apache-2.0
+repository-code: "https://github.com/swirl-uk/BiGym2"
+# `version` is the Python package version declared in pyproject.toml. "2.0" in
+# the title is the project generation (whole-body fork), not a semver version.
+version: "1.0.0"
+keywords:
+  - robotics
+  - humanoid
+  - bi-manual manipulation
+  - loco-manipulation
+  - whole-body control
+  - imitation learning
+  - benchmark
+  - MuJoCo
+
+authors:
+  - given-names: Zexi
+    family-names: Zhang
+  - given-names: Zecheng
+    family-names: Zhu
+  - given-names: Zidong
+    family-names: Chen
+  - given-names: Zulkhuu
+    family-names: Tuya
+  - given-names: Stephen
+    family-names: James
+
+preferred-citation:
+  type: article
+  title: "BiGym 2.0: Benchmarking Learned and Agent-Developed Policies for Humanoid Household Manipulation"
+  # Matches the BibTeX entry in README.md; add the venue and DOI once published.
+  journal: "arXiv preprint arXiv:2610.07594"
+  authors:
+    - given-names: Zexi
+      family-names: Zhang
+    - given-names: Zecheng
+      family-names: Zhu
+    - given-names: Zidong
+      family-names: Chen
+    - given-names: Zulkhuu
+      family-names: Tuya
+    - given-names: Stephen
+      family-names: James
+  year: 2026
+  url: "https://arxiv.org/abs/2610.07594"
+  repository-code: "https://github.com/swirl-uk/BiGym2"
+  identifiers:
+    - type: other
+      value: "arXiv:2610.07594"
+      description: "arXiv preprint identifier"
+
+references:
+  - type: article
+    title: "BiGym: A Demo-Driven Mobile Bi-Manual Manipulation Benchmark"
+    authors:
+      - given-names: Nikita
+        family-names: Chernyadev
+      - given-names: Nicholas
+        family-names: Backshall
+      - given-names: Xiao
+        family-names: Ma
+      - given-names: Yunfan
+        family-names: Lu
+      - given-names: Younggyo
+        family-names: Seo
+      - given-names: Stephen
+        family-names: James
+    year: 2024
+    journal: "arXiv preprint arXiv:2407.07788"
+    url: "https://arxiv.org/abs/2407.07788"
+    identifiers:
+      - type: other
+        value: "arXiv:2407.07788"
+        description: "arXiv preprint identifier"
+    notes: >-
+      The original BiGym benchmark that BiGym 2.0 forks from; published at the
+      8th Conference on Robot Learning (CoRL), 2024. This is the citation form
+      requested by the upstream repository.

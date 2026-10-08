@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="plate">
+  <compiler angle="radian" meshdir="assets" texturedir="assets" autolimits="true"/>
+  <asset>
+    <material name="plate" specular="0.5" shininess="0.25"/>
+    <mesh file="plate_01.obj"/>
+    <mesh file="plate_01_collision.obj"/>
+  </asset>
+  <default>
+    <default class="plate">
+      <default class="visual">
+        <geom type="mesh" mass="0.4" contype="0" conaffinity="0" group="2" euler="1.5708 0 0"/>
+      </default>
+      <default class="collision">
+        <geom type="mesh" mass="0" group="3" euler="1.5708 0 0" solimp=".95 .99 0.001" solref="0.004 1"/>
+      </default>
+    </default>
+  </default>
+  <worldbody>
+    <body name="plate" childclass="plate">
+      <geom name="mesh" material="plate" mesh="plate_01" class="visual"/>
+      <geom name="collider" mesh="plate_01_collision" class="collision"/>
+    </body>
+  </worldbody>
+</mujoco>

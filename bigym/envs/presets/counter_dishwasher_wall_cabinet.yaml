@@ -1,0 +1,8 @@
+# Dishwasher with kitchen counter and wall cabinet
+include:
+  - counter_dishwasher.yaml
+props:
+  - type: WallCabinet
+    position: [1, -0.6, 0]
+    euler: [0, 0, -90]
+    glass_doors_enable: true

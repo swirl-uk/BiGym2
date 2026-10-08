@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<mujoco model="dish_drainer">
+  <compiler angle="radian" meshdir="assets" texturedir="assets" autolimits="true"/>
+  <default>
+    <default class="dish_drainer">
+      <material specular="0.5" shininess="0.25"/>
+      <default class="visual">
+        <geom type="mesh" mass="0.1" contype="0" conaffinity="0" group="2" euler="1.5708 0 0"/>
+      </default>
+      <default class="collision">
+        <geom type="mesh" mass="0" group="3" friction="0.5" euler="1.5708 0 0" priority="1"/>
+      </default>
+      <site size="0.001" rgba="0.5 0.5 0.5 0.3" group="4"/>
+    </default>
+  </default>
+  <asset>
+    <texture type="2d" name="dish_drainer_diffuse" file="drying_rack.png"/>
+    <material name="dish_drainer" texture="dish_drainer_diffuse"/>
+    <mesh file="rack.obj"/>
+    <mesh file="rack_collision_001.obj"/>
+    <mesh file="rack_collision_002.obj"/>
+    <mesh file="rack_collision_003.obj"/>
+    <mesh file="rack_collision_004.obj"/>
+    <mesh file="rack_collision_005.obj"/>
+    <mesh file="rack_collision_006.obj"/>
+    <mesh file="rack_collision_007.obj"/>
+    <mesh file="rack_collision_008.obj"/>
+    <mesh file="rack_collision_009.obj"/>
+    <mesh file="rack_collision_010.obj"/>
+    <mesh file="rack_collision_011.obj"/>
+    <mesh file="rack_collision_012.obj"/>
+    <mesh file="rack_collision_013.obj"/>
+    <mesh file="rack_collision_014.obj"/>
+    <mesh file="rack_collision_015.obj"/>
+    <mesh file="rack_collision_016.obj"/>
+    <mesh file="rack_collision_017.obj"/>
+    <mesh file="rack_collision_018.obj"/>
+  </asset>
+  <worldbody>
+    <body name="dish_drainer" childclass="dish_drainer">
+      <geom material="dish_drainer" mesh="rack" class="visual"/>
+      <geom mesh="rack_collision_001" class="collision"/>
+      <geom mesh="rack_collision_002" class="collision"/>
+      <geom mesh="rack_collision_003" class="collision"/>
+      <geom mesh="rack_collision_004" class="collision"/>
+      <geom mesh="rack_collision_005" class="collision"/>
+      <geom mesh="rack_collision_006" class="collision"/>
+      <geom mesh="rack_collision_007" class="collision"/>
+      <geom mesh="rack_collision_008" class="collision"/>
+      <geom mesh="rack_collision_009" class="collision"/>
+      <geom mesh="rack_collision_010" class="collision"/>
+      <geom mesh="rack_collision_011" class="collision"/>
+      <geom mesh="rack_collision_012" class="collision"/>
+      <geom mesh="rack_collision_013" class="collision"/>
+      <geom mesh="rack_collision_014" class="collision"/>
+      <geom mesh="rack_collision_015" class="collision"/>
+      <geom mesh="rack_collision_016" class="collision"/>
+      <geom mesh="rack_collision_017" class="collision"/>
+      <geom mesh="rack_collision_018" class="collision"/>
+      <!--Use helpers below to align placement of objects in the rack-->
+      <site name="plate_slot_1" pos="0 0.105 0.15" euler="1.5708 0 0"/>
+      <site name="plate_slot_2" pos="0 0.063 0.15" euler="1.5708 0 0"/>
+      <site name="plate_slot_3" pos="0 0.021 0.15" euler="1.5708 0 0"/>
+      <site name="plate_slot_4" pos="0 -0.021 0.15" euler="1.5708 0 0"/>
+      <site name="plate_slot_5" pos="0 -0.063 0.15" euler="1.5708 0 0"/>
+      <site name="plate_slot_6" pos="0 -0.105 0.15" euler="1.5708 0 0"/>
+    </body>
+  </worldbody>
+</mujoco>

@@ -1,0 +1,25 @@
+# G1 variant: the wall cabinet is lowered by 0.32 m and pulled 0.2 m toward
+# the robot (shelf bottom ~1.15 m, >=0.25 m above the counter for objects to
+# pass under; door handles ~1.2 m, below the G1 fingertip ceiling ~1.55 m).
+props:
+  - type: BaseCabinet
+    position: [1.2, 0, 0]
+    euler: [ 0, 0, -90 ]
+    big_drawers_enable: [true, false]
+    small_drawers_enable: [false, false, true, true]
+    hob_enable: true
+  - type: BaseCabinet
+    position: [ 1.2, -0.6, 0 ]
+    euler: [ 0, 0, -90 ]
+    door_left_enable: true
+    shelf_enable: true
+  - type: BaseCabinet
+    position: [ 1.2, 0.6, 0 ]
+    euler: [ 0, 0, -90 ]
+    door_right_enable: true
+    shelf_enable: true
+  - type: WallCabinet
+    position: [ 1.0, 0, -0.32 ]
+    euler: [ 0, 0, -90 ]
+    doors_enable: true
+    vent_enable: true

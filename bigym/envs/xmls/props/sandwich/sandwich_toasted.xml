@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="sandwich">
+  <compiler angle="radian" meshdir="assets" texturedir="assets" autolimits="true"/>
+  <asset>
+    <mesh file="bread.obj"/>
+    <mesh file="cheese.obj"/>
+    <mesh file="tomatoes.obj"/>
+    <mesh file="sandwich_collision.obj"/>
+    <mesh file="sandwich_collision_rounded.obj"/>
+    <texture type="2d" name="bread" file="bread_toasted_diffuse.png"/>
+    <texture type="2d" name="cheese" file="cheese_diffuse.png"/>
+    <texture type="2d" name="tomato" file="tomato_diffuse.png"/>
+    <material name="bread" specular="0.2" shininess="0.2" texture="bread"/>
+    <material name="cheese" specular="0.2" shininess="0.2" texture="cheese"/>
+    <material name="tomato" specular="0.2" shininess="0.2" texture="tomato"/>
+  </asset>
+  <default>
+    <default class="sandwich">
+      <default class="visual">
+        <geom type="mesh" mass="0.1" contype="0" conaffinity="0" group="2"/>
+      </default>
+      <default class="collision">
+        <geom type="mesh" mass="0" group="3" solimp="0.95 0.98 0.001" solref="0.004 1" friction="0.3" priority="1"/>
+      </default>
+    </default>
+  </default>
+  <worldbody>
+    <body name="sandwich" childclass="sandwich">
+      <geom name="bread" mesh="bread" class="visual" material="bread" euler="1.5708 0 0"/>
+      <geom name="cheese" mesh="cheese" class="visual" material="cheese" euler="1.5708 0 0"/>
+      <geom name="tomatoes" mesh="tomatoes" class="visual" material="tomato" euler="1.5708 0 0"/>
+      <geom name="collider" mesh="sandwich_collision" class="collision" euler="1.5708 0 0"/>
+      <geom name="collider_rounded" mesh="sandwich_collision_rounded" class="collision" euler="1.5708 0 0"/>
+    </body>
+  </worldbody>
+</mujoco>

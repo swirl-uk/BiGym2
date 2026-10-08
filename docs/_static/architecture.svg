@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 540" font-family="'Virgil','Segoe Print','Comic Sans MS','Chalkboard SE',cursive">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 1 1.5 L 8.5 5 L 1 8.5" fill="none" stroke="#1e1e1e" stroke-width="1.6" stroke-linecap="round"/>
+    </marker>
+  </defs>
+  <!-- shapes (rough filter) -->
+  <g filter="url(#rough)">
+    <!-- agent -->
+    <rect x="40" y="52" width="210" height="96" rx="10" fill="#d0bfff" stroke="#1e1e1e" stroke-width="1.8"/>
+    <!-- env -->
+    <rect x="400" y="40" width="280" height="120" rx="10" fill="#ffec99" stroke="#1e1e1e" stroke-width="1.8"/>
+    <!-- controller -->
+    <rect x="400" y="242" width="280" height="96" rx="10" fill="#b2f2bb" stroke="#1e1e1e" stroke-width="1.8"/>
+    <!-- scene -->
+    <rect x="400" y="420" width="280" height="90" rx="10" fill="#ffc9c9" stroke="#1e1e1e" stroke-width="1.8"/>
+    <!-- arrows -->
+    <path d="M 250 78 L 396 78" fill="none" stroke="#1e1e1e" stroke-width="1.8" marker-end="url(#arrow)"/>
+    <path d="M 400 124 L 254 124" fill="none" stroke="#1e1e1e" stroke-width="1.8" marker-end="url(#arrow)"/>
+    <path d="M 500 160 L 500 238" fill="none" stroke="#1e1e1e" stroke-width="1.8" marker-end="url(#arrow)"/>
+    <path d="M 500 338 L 500 416" fill="none" stroke="#1e1e1e" stroke-width="1.8" marker-end="url(#arrow)"/>
+    <path d="M 680 100 L 740 100 L 740 465 L 684 465" fill="none" stroke="#1e1e1e" stroke-width="1.8" marker-end="url(#arrow)"/>
+    <!-- side cards (dashed) -->
+    <rect x="40" y="242" width="210" height="96" rx="10" fill="#ffffff" stroke="#1e1e1e" stroke-width="1.6" stroke-dasharray="7 5"/>
+    <rect x="770" y="242" width="180" height="96" rx="10" fill="#ffffff" stroke="#1e1e1e" stroke-width="1.6" stroke-dasharray="7 5"/>
+  </g>
+  <!-- text (crisp, outside the filter) -->
+  <text x="145" y="92" text-anchor="middle" font-size="19" fill="#1e1e1e">Your agent</text>
+  <text x="145" y="116" text-anchor="middle" font-size="13" fill="#6c6c6c">RL or BC</text>
+  <text x="323" y="62" text-anchor="middle" font-size="13" fill="#e8590c">action</text>
+  <text x="327" y="145" text-anchor="middle" font-size="13" fill="#6c6c6c">obs</text>
+  <text x="540" y="86" text-anchor="middle" font-size="18" fill="#1e1e1e">bigym.loco env</text>
+  <text x="540" y="112" text-anchor="middle" font-size="13" fill="#6c6c6c">splits the action:</text>
+  <text x="540" y="132" text-anchor="middle" font-size="13" fill="#6c6c6c">base command | arm targets</text>
+  <text x="510" y="198" font-size="13" fill="#e8590c">base velocity command</text>
+  <text x="540" y="282" text-anchor="middle" font-size="17" fill="#1e1e1e">Frozen lower-body</text>
+  <text x="540" y="303" text-anchor="middle" font-size="17" fill="#1e1e1e">controller</text>
+  <text x="540" y="325" text-anchor="middle" font-size="12.5" fill="#e8590c">NVIDIA GR00T-WBC</text>
+  <text x="510" y="382" font-size="13" fill="#6c6c6c">leg joint targets</text>
+  <text x="750" y="86" font-size="13" fill="#6c6c6c">arm + gripper targets</text>
+  <text x="540" y="458" text-anchor="middle" font-size="17" fill="#1e1e1e">MuJoCo scene</text>
+  <text x="540" y="484" text-anchor="middle" font-size="13" fill="#6c6c6c">20 tasks &#xB7; G1</text>
+  <text x="145" y="278" text-anchor="middle" font-size="15" fill="#1e1e1e">VR teleoperation</text>
+  <text x="145" y="301" text-anchor="middle" font-size="12.5" fill="#6c6c6c">human demos through</text>
+  <text x="145" y="319" text-anchor="middle" font-size="12.5" fill="#6c6c6c">the same action channel</text>
+  <text x="860" y="278" text-anchor="middle" font-size="15" fill="#1e1e1e">Eval protocol v1</text>
+  <text x="860" y="301" text-anchor="middle" font-size="12.5" fill="#6c6c6c">bit-exact replay</text>
+  <text x="860" y="319" text-anchor="middle" font-size="12.5" fill="#6c6c6c">physics fingerprint</text>
+</svg>

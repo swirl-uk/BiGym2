@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<mujoco model="pan">
+  <compiler angle="radian" meshdir="assets/" texturedir="assets/"/>
+  <default class="main">
+    <default class="pan">
+      <default class="visual">
+        <geom type="mesh" contype="0" conaffinity="0" group="2"/>
+      </default>
+      <default class="collision">
+        <geom type="mesh" group="3" solref="0.004" solimp="0.95 0.98"/>
+      </default>
+      <default class="collision_wall">
+        <geom size="0.004 0.028 0.018" type="box" group="3" solref="0.004" solimp="0.95 0.98"/>
+      </default>
+    </default>
+  </default>
+  <asset>
+    <texture type="2d" name="pan" file="pan_basecolor.png"/>
+    <material name="pan" texture="pan" specular="0.2" shininess="0.2"/>
+    <mesh name="pan" file="pan.obj"/>
+    <mesh name="pan_collision_handle_001" file="pan_collision_handle_001.obj"/>
+    <mesh name="pan_collision_handle_002" file="pan_collision_handle_002.obj"/>
+  </asset>
+  <worldbody>
+    <body name="pan" childclass="pan">
+      <geom name="mesh" class="visual" quat="0.707105 0.707108 0 0" mass="0.5" material="pan" mesh="pan"/>
+      <geom name="collider_handle_1" class="collision" quat="0.707105 0.707108 0 0" mass="0" mesh="pan_collision_handle_001"/>
+      <geom name="collider_handle_2" class="collision" quat="0.707105 0.707108 0 0" mass="0" mesh="pan_collision_handle_002"/>
+      <geom class="collision" size="0.112 0.003" pos="0 0 0.003" type="cylinder" mass="0"/>
+      <geom class="collision_wall" pos="-0.105 0 0.02" mass="0"/>
+      <geom class="collision_wall" pos="-0.0909116 -0.0525365 0.02" quat="0.965874 0 0 0.259013" mass="0"/>
+      <geom class="collision_wall" pos="-0.052427 -0.0909748 0.02" quat="0.865825 0 0 0.500347" mass="0"/>
+      <geom class="collision_wall" pos="0.000126386 -0.105 0.02" quat="0.706681 0 0 0.707532" mass="0"/>
+      <geom class="collision_wall" pos="0.0526459 -0.0908483 0.02" quat="0.499305 0 0 0.866426" mass="0"/>
+      <geom class="collision_wall" pos="0.0910378 -0.0523175 0.02" quat="0.25785 0 0 0.966185" mass="0"/>
+      <geom class="collision_wall" pos="0.105 0.000252771 0.02" quat="-0.00120367 0 0 0.999999" mass="0"/>
+      <geom class="collision_wall" pos="0.0907849 0.0527552 0.02" quat="-0.260175 0 0 0.965561" mass="0"/>
+      <geom class="collision_wall" pos="0.0522079 0.0911007 0.02" quat="-0.501389 0 0 0.865222" mass="0"/>
+      <geom class="collision_wall" pos="-0.000379156 0.104999 0.02" quat="-0.708382 0 0 0.705829" mass="0"/>
+      <geom class="collision_wall" pos="-0.0528644 0.0907213 0.02" quat="-0.867027 0 0 0.498262" mass="0"/>
+      <geom class="collision_wall" pos="-0.0911635 0.0520982 0.02" quat="-0.966495 0 0 0.256687" mass="0"/>
+    </body>
+  </worldbody>
+</mujoco>

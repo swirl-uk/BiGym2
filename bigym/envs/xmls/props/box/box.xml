@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="box">
+  <compiler angle="radian" meshdir="assets" texturedir="assets" autolimits="true"/>
+  <asset>
+    <texture type="cube" name="box" file="cardboard_procedural.png"/>
+    <material name="box" specular="0.2" shininess="0.2" texture="box" texuniform="true" texrepeat="4 4"/>
+  </asset>
+  <default>
+    <default class="box">
+      <default class="visual">
+        <geom type="mesh" mass="5" contype="0" conaffinity="0" group="2"/>
+      </default>
+      <default class="collision">
+        <geom type="mesh" mass="0" group="3" solimp="0.95 0.98 0.001" solref="0.004 1" friction="1.5"/>
+      </default>
+    </default>
+  </default>
+  <worldbody>
+    <body name="box" childclass="box">
+      <geom name="visual" size="0.125 0.1 0.06" type="box" class="visual" material="box"/>
+      <geom name="collider" size="0.125 0.1 0.06" type="box" class="collision"/>
+    </body>
+  </worldbody>
+</mujoco>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="spoon">
+  <compiler angle="radian" meshdir="assets" texturedir="assets" autolimits="true"/>
+  <asset>
+    <mesh file="spoon.obj"/>
+    <mesh file="spoon_collision_001.obj"/>
+    <mesh file="spoon_collision_002.obj"/>
+    <texture type="2d" name="spoon" file="spoon.png"/>
+    <material name="spoon" texture="spoon" specular="0.9" shininess="0.9" rgba="0.55 0.56 0.58 1"/>
+  </asset>
+  <default>
+    <default class="spoon">
+      <default class="visual">
+        <geom type="mesh" mass="0.032" contype="0" conaffinity="0" group="2" material="spoon"/>
+      </default>
+      <default class="collision">
+        <geom type="mesh" mass="0" group="3" solimp="0.98 0.99 0.001" solref="0.004 1"/>
+      </default>
+    </default>
+  </default>
+  <worldbody>
+    <body name="spoon" childclass="spoon">
+      <geom name="mesh" mesh="spoon" class="visual"/>
+      <geom name="collider_001" mesh="spoon_collision_001" class="collision"/>
+      <geom name="collider_002" mesh="spoon_collision_002" class="collision"/>
+    </body>
+  </worldbody>
+</mujoco>

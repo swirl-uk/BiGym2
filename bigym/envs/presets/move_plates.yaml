@@ -1,0 +1,9 @@
+# Table for the "move plates" task
+props:
+  - type: Table
+    position: [0.7, 0, 0]
+    euler: [0, 0, -90]
+  - type: DishDrainer
+    position: [0.7, 0.3, 0.95]
+  - type: DishDrainer
+    position: [0.7, -0.3, 0.95 ]

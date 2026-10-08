@@ -1,0 +1,7 @@
+# Base cabinets with door
+props:
+  - type: BaseCabinet
+    position: [1.2, 0, 0]
+    euler: [0, 0, -90]
+    door_left_enable: true
+    shelf_enable: true

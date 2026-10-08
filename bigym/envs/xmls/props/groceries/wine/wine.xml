@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="wine">
+  <compiler angle="radian" meshdir="assets" texturedir="assets" autolimits="true"/>
+  <asset>
+    <mesh file="wine_bottle.obj"/>
+    <mesh file="wine_bottle_collision_001.obj"/>
+    <mesh file="wine_bottle_collision_002.obj"/>
+    <texture type="2d" name="wine" file="wine_bottle_basecolor.png"/>
+    <material name="wine" specular="0.2" shininess="0.2" texture="wine"/>
+  </asset>
+  <default>
+    <default class="wine">
+      <default class="visual">
+        <geom type="mesh" mass="0.5" contype="0" conaffinity="0" group="2"/>
+      </default>
+      <default class="collision">
+        <geom type="mesh" mass="0" group="3" solimp="0.998 0.998 0.001" solref="0.004 1"/>
+      </default>
+      <default class="balance">
+        <geom group="3" type="sphere" mass="0.1" size="0.01" pos="0 0 -0.02" contype="0" conaffinity="0"/>
+      </default>
+    </default>
+  </default>
+  <worldbody>
+    <body name="wine" childclass="wine">
+      <geom name="mesh" mesh="wine_bottle" class="visual" material="wine" euler="1.5708 0 0"/>
+      <geom name="collider_1" mesh="wine_bottle_collision_001" class="collision" euler="1.5708 0 0"/>
+      <geom name="collider_2" mesh="wine_bottle_collision_002" class="collision" euler="1.5708 0 0"/>
+      <geom class="balance"/>
+    </body>
+  </worldbody>
+</mujoco>

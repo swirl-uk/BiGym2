@@ -1,0 +1,11 @@
+# 1 base and 1 wall cabinet
+props:
+  - type: BaseCabinet
+    position: [1.2, 0, 0]
+    euler: [0, 0, -90]
+    door_left_enable: true
+    shelf_enable: true
+  - type: WallCabinet
+    position: [ 1.2, 0, 0 ]
+    euler: [ 0, 0, -90 ]
+    glass_doors_enable: true

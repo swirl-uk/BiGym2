@@ -1,0 +1,17 @@
+# G1 PickBox: the base cabinet is sunk by 0.15 m (counter top 0.86 -> 0.71 m)
+# so placing the upright 0.25 m box on the counter keeps the hands near the
+# G1's relaxed hand height (~0.83 m) instead of shoulder height. The box
+# starts on a side table sunk by 0.45 m (top ~0.50 m), 0.10 m inside its front
+# edge: the G1 cannot reach the floor and its knees swing ~0.3 m forward when
+# it squats, so the box sits low but close to the edge; the pick is a moderate
+# squat plus torso pitch. store_box keeps the unsunk cabinet_door.yaml: its
+# target is the shelf inside the cabinet.
+props:
+  - type: BaseCabinet
+    position: [1.2, 0, -0.15]
+    euler: [0, 0, -90]
+    door_left_enable: true
+    shelf_enable: true
+  - type: Table
+    position: [0.9, -1.0, -0.45]
+    euler: [0, 0, -90]

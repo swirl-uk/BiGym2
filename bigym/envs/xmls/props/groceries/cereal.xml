@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="cereal">
+  <compiler angle="radian" meshdir="assets" texturedir="assets" autolimits="true"/>
+  <asset>
+    <mesh file="cereal.obj"/>
+    <texture type="2d" name="cereal" file="cereal.png"/>
+    <material name="cereal" specular="0.2" shininess="0.2" texture="cereal"/>
+  </asset>
+  <default>
+    <default class="cereal">
+      <geom type="mesh" mass="0.5" solimp="0.95 0.98 0.001" solref="0.004 1"/>
+    </default>
+  </default>
+  <worldbody>
+    <body name="cereal" childclass="cereal">
+      <geom name="cereal" mesh="cereal" material="cereal" euler="1.5708 0 0"/>
+    </body>
+  </worldbody>
+</mujoco>

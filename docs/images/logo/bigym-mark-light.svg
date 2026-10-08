@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="256" height="256">
+  <title>BiGym</title>
+  <path fill="#1b1e23" fill-rule="evenodd" d="M8 4H20V24H44A12 12 0 0 1 56 36V60H8ZM20 32V52H44V36A4 4 0 0 0 40 32Z"/>
+  <circle cx="50" cy="10" r="6" fill="#0072B2"/>
+</svg>

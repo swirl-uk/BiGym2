@@ -1,0 +1,11 @@
+# Free-standing dishwasher on a 0.25 m plinth for the G1. Same dishwasher pose
+# as dishwasher.yaml, lifted so the open door sits at 0.41-0.50 m instead of
+# 0.16-0.25 m: the G1 cannot reach the floor-level door even at its 0.40 m
+# minimum height with the torso pitched. The plinth covers the appliance body
+# only, never the door swing.
+props:
+  - type: Plinth
+    position: [0.92, 0, 0]
+  - type: Dishwasher
+    position: [1.2, 0, 0.25]
+    euler: [0, 0, -90]

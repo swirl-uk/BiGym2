@@ -1,0 +1,11 @@
+# G1 variant of the "stack blocks" tables: both tables sunk by 0.25 m so the
+# 0.95 m tops land at 0.70 m (the G1 normal-manipulation band, same move
+# as move_plates_g1.yaml). Block/target spawn heights follow in
+# StackBlocksG1.
+props:
+  - type: Table
+    position: [0.7, 0, -0.25]
+    euler: [0, 0, -90]
+  - type: Table
+    position: [1.4, 0, -0.25]
+    euler: [0, 0, 90]

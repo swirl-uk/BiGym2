@@ -1,0 +1,11 @@
+# Dishwasher with kitchen counter and cabinet with cutlery tray
+include:
+  - counter_dishwasher.yaml
+props:
+  - type: BaseCabinet
+    position: [1, -1.2, 0]
+    euler: [0, 0, -90]
+    small_drawers_enable: [true, true, true, true]
+    children:
+    - type: CutleryTray
+      parent_site: "drawer_small_4"

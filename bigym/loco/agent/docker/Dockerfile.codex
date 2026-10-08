@@ -1,0 +1,23 @@
+# Agent container for the coding-agent policy row (protocol v1), Codex CLI.
+# The agent sees only: this image (python + numpy/scipy/OpenCV/pillow, ffmpeg,
+# ripgrep, node + Codex CLI), its own sandbox directory (bind-mounted rw at
+# /work) and the environment socket inside it. The BiGym environment server
+# runs on the host; no host filesystem (bigym source, other sessions, demos)
+# is visible inside.
+FROM python:3.12-slim
+# The latest CLI by default, so new models work. run.json records the CLI
+# version of every session; --build-arg CODEX_VERSION=<version> pins one.
+ARG CODEX_VERSION=latest
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg ripgrep ca-certificates curl \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && npm install -g @openai/codex@${CODEX_VERSION} \
+    && apt-get purge -y curl && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir numpy==2.2.6 scipy==1.15.3 opencv-python-headless==4.10.0.84 pillow==12.3.0 && rm -f /usr/local/bin/pip* /usr/local/bin/wheel
+# no pip, no curl, no git inside; the sandbox's ./python wrapper points at this interpreter
+# Switches off the "recommended plugins" list (uninstalled connectors) that
+# newer CLIs add to the developer message.
+COPY codex_system_config.toml /etc/codex/config.toml
+RUN useradd -m -u 1002 agent
+USER agent
+WORKDIR /work

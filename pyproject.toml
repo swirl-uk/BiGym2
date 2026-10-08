@@ -1,0 +1,191 @@
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
+
+[project]
+name = "bigym"
+version = "1.0.0"
+description = "BiGym 2.0: a humanoid household-manipulation benchmark for learned and coding-agent policies"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md"]
+requires-python = ">=3.10"
+keywords = ["robotics", "humanoid", "benchmark", "manipulation", "mujoco", "imitation-learning", "coding-agents"]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+authors = [
+    { name = "Zexi Zhang", email = "jesse.zhang25@imperial.ac.uk" },
+    { name = "Zecheng Zhu" },
+    { name = "Zidong Chen" },
+    { name = "Zulkhuu Tuya" },
+    { name = "Stephen James" },
+]
+dependencies = [
+    # >=1.0: BiGymRenderer passes the offscreen width/height explicitly.
+    "gymnasium>=1.0.0",
+    # gymnasium's MuJoCo rendering imports packaging without declaring it.
+    "packaging>=23",
+    # Works with both 1.26 and 2.x.
+    "numpy>=1.26,<3",
+    # WARNING: recorded demos might break when updating Mujoco.
+    # 3.8.x satisfies mink>=1.2.
+    "mujoco>=3.8.1,<3.9",
+    # StepType and specs of the TimeStep API (bigym.loco).
+    "dm-env>=1.6",
+    "imageio",
+    "pyquaternion",
+    "pyyaml",
+    # Demonstrations: lazy per-task download from the Hugging Face Hub
+    # (bigym.loco.demos.hub) and the LeRobot v3 lossless reader
+    # (bigym.loco.demos.dataset: parquet + PNG frames).
+    "huggingface_hub>=0.25",
+    "pyarrow>=15",
+    "pillow>=10",
+    # The official lower-body controller (GR00T-WBC) runs its ONNX policy
+    # pair with onnxruntime; the runtime code is vendored
+    # (bigym/loco/adapters/_groot) and the weights ship in bigym/loco/assets.
+    # onnxruntime 1.24 dropped Python 3.10 wheels.
+    "onnxruntime>=1.18,<1.24; python_version < '3.11'",
+    "onnxruntime>=1.18; python_version >= '3.11'",
+    # Spectator / demo-viewer browser frontends (bigym.vr.viewer.spectator,
+    # mjviser_compat, view_demos) — consumed here, so declared here.
+    "viser>=1.0.30",
+    "mjviser>=0.0.14",
+    # The agent viewer's policy-code panel highlights with it.
+    "pygments",
+    # Every command line: settings dataclasses as flags.
+    "tyro>=0.9",
+]
+
+[project.urls]
+Homepage = "https://github.com/swirl-uk/BiGym2"
+Paper = "https://arxiv.org/abs/2610.07594"
+Repository = "https://github.com/swirl-uk/BiGym2"
+Dataset = "https://huggingface.co/datasets/SWIRL-Lab/bigym-g1-native60"
+Changelog = "https://github.com/swirl-uk/BiGym2/blob/main/CHANGELOG.md"
+
+[project.scripts]
+bigym-collect = "bigym.vr.collect.cli:main"
+bigym-view = "bigym.vr.viewer.view_demos:main"
+bigym-download = "bigym.loco.demos.hub:main"
+bigym-export-lerobot = "bigym.loco.demos.lerobot_export:main"
+bigym-rerender-lerobot = "bigym.loco.demos.rerender:main"
+bigym-agent = "bigym.loco.agent.cli:main"
+
+[project.optional-dependencies]
+# VR teleoperation runtime (`bigym-collect`, bigym.vr.collect / bigym.vr.ik /
+# the OpenXR viewer modules). Every `xr` and `mink` import lives in modules
+# reached only from that path, so core `import bigym` / `bigym-view` /
+# `bigym-export-lerobot` / `bigym-rerender-lerobot` never need these.
+vr = [
+    # 1.1.5101 is the first with ContextObject in xr.utils.gl, taking a
+    # context_provider, and the GLFW offscreen provider xr_context.py uses.
+    "pyopenxr>=1.1.5101,<1.2",
+    # pyopenxr imports pkg_resources, which setuptools>=70 no longer ships.
+    "setuptools<70",
+    # bigym/vr/ik upper-body solvers (differential IK for the arms).
+    "mink>=1.2",
+]
+# Coding-agent benchmark (`bigym-agent`, bigym.loco.agent): the environment
+# server, the hidden-seed evaluator and the sandbox templates. opencv and scipy
+# are what a submitted policy.py may use, installed here so the evaluator runs
+# the same policies the agent wrote; mink backs the `tools` interface's IK and
+# is imported lazily, so the default `strict` interface never needs it.
+agent = ["opencv-python-headless>=4.10", "scipy>=1.12", "mink>=1.2"]
+# LeRobot export/re-render (`bigym-export-lerobot`, `bigym-rerender-lerobot`);
+# imported lazily inside the entry points, so core stays lerobot-free.
+# lerobot>=0.6 only ships for Python>=3.12; the extra is empty below that.
+lerobot = ["lerobot>=0.6; python_version >= '3.12'"]
+
+# Contributor-only dependency groups (PEP 735, uv-native): not part of the
+# published package metadata. `uv sync` installs `dev`; build docs with:
+#   uv run --group docs sphinx-build -b html docs docs/_build/html
+[dependency-groups]
+dev = [
+  "pre-commit",
+  "pytest",
+  "ruff>=0.16.10",
+  "ty>=0.0.84",
+]
+docs = [
+  "sphinx>=7",
+  "sphinx-book-theme>=1.1",
+  "myst-parser",
+  "sphinx-copybutton",
+  "sphinx-design",
+  "sphinxcontrib-bibtex",
+]
+
+[tool.uv]
+# `lerobot` cannot share an environment with `vr` (pyopenxr's pkg_resources
+# needs setuptools<70; lerobot>=0.6 needs setuptools>=71). Declaring the
+# conflict lets `uv lock` resolve each extra on its own; export demos from a
+# separate `bigym[lerobot]` environment.
+conflicts = [
+    [{ extra = "vr" }, { extra = "lerobot" }],
+]
+
+# The package sits at the repository root (no src/ layout). Every file under
+# bigym/ ships (MJCF scenes, meshes, ONNX weights, agent templates).
+[tool.uv.build-backend]
+module-root = ""
+wheel-exclude = ["**/.DS_Store"]
+
+# Type checking: `uv run ty check`. It resolves imports from the repo's .venv.
+# "." is the repository root, where bigym lives; typings/ holds generated
+# stubs for mujoco's C++ bindings (typings/generate_mujoco_stubs.sh). The vendored NVIDIA runtime is kept
+# byte-identical to upstream, so it is not checked.
+[tool.ty.environment]
+python = ".venv"
+python-version = "3.10"
+extra-paths = [".", "typings"]
+
+[tool.ty.src]
+include = ["bigym", "scripts", "tests", "examples"]
+exclude = ["bigym/loco/adapters/_groot"]
+
+# Optional imports that no extra installs: torch (examples/train_act.py),
+# unitree_sdk2py (real-robot deployment) and imageio-ffmpeg (an optional
+# encoder backend).
+[tool.ty.analysis]
+allowed-unresolved-imports = ["torch.**", "unitree_sdk2py.**", "imageio_ffmpeg"]
+
+# Lint and format: `uv run ruff check --fix` and `uv run ruff format` (the
+# pre-commit hooks run the same). The vendored NVIDIA runtime is kept
+# byte-identical to upstream and typings/ is generated, so neither is touched.
+[tool.ruff]
+extend-exclude = ["bigym/loco/adapters/_groot", "typings"]
+
+[tool.ruff.format]
+# Python only, as black was: the docs align their sample comments by hand and
+# the agent prompt templates are kept verbatim.
+exclude = ["*.md"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "B", "D"]
+ignore = ["B011"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# Docstrings are required of the package and the examples only; `python -m`
+# entry points are two lines with nothing to document.
+"!{bigym,examples}/**" = ["D"]
+"__main__.py" = ["D"]
+
+# Slow tests (whole GR00T-in-the-loop episodes, rendering) are skipped unless
+# `--run-slow` is given (tests/conftest.py).
+[tool.pytest.ini_options]
+markers = [
+  "slow: marks tests as slow (run them with --run-slow)",
+]
+addopts = "--strict-markers"

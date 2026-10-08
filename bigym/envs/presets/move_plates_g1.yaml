@@ -1,0 +1,13 @@
+# Table for the G1 variants of the "move plates" tasks.
+# The table mesh has a fixed ~0.93m top; sinking it by 0.25m puts the
+# tabletop at ~0.68m, a comfortable G1 manipulation height. Drainer positions
+# here are only initial placements; the env re-sets them from
+# _RACK_POSITION_* on reset.
+props:
+  - type: Table
+    position: [0.7, 0, -0.25]
+    euler: [0, 0, -90]
+  - type: DishDrainer
+    position: [0.55, 0.24, 0.70]
+  - type: DishDrainer
+    position: [0.55, -0.24, 0.70]

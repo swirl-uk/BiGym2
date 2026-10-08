@@ -1,0 +1,7 @@
+# Allowlist: the model endpoints of the shipped harnesses and nothing else.
+# tinyproxy FilterExtended regexes, one per line; the proxy denies every other host.
+^(.*\.)?anthropic\.com$
+^(.*\.)?claude\.ai$
+^(.*\.)?openai\.com$
+^(.*\.)?chatgpt\.com$
+^(.*\.)?oaistatic\.com$

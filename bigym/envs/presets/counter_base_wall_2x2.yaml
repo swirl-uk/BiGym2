@@ -1,0 +1,11 @@
+# 2 base and 2 wall cabinets
+include:
+  - counter_base_2.yaml
+props:
+  - type: WallCabinet
+    position: [1.1, 0, 0]
+    euler: [0, 0, -90]
+    glass_doors_enable: true
+  - type: OpenShelf
+    position: [1.1, -0.6, 0]
+    euler: [0, 0, -90]

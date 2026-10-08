@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="mug">
+  <compiler angle="radian" meshdir="assets" texturedir="assets" autolimits="true"/>
+  <asset>
+    <texture type="2d" name="mug" file="mug.png"/>
+    <material name="mug" specular="0.8" shininess="0.5" rgba="1 1 1 1" texture="mug"/>
+    <mesh file="mug.obj"/>
+    <mesh file="mug_collision_001.obj"/>
+    <mesh file="mug_collision_002.obj"/>
+    <mesh file="mug_collision_003.obj"/>
+    <mesh file="mug_collision_004.obj"/>
+    <mesh file="mug_collision_005.obj"/>
+    <mesh file="mug_collision_006.obj"/>
+    <mesh file="mug_collision_007.obj"/>
+    <mesh file="mug_collision_008.obj"/>
+    <mesh file="mug_collision_009.obj"/>
+    <mesh file="mug_collision_010.obj"/>
+    <mesh file="mug_collision_011.obj"/>
+    <mesh file="mug_collision_012.obj"/>
+    <mesh file="mug_collision_013.obj"/>
+    <mesh file="mug_collision_014.obj"/>
+    <mesh file="mug_collision_015.obj"/>
+    <mesh file="mug_collision_016.obj"/>
+    <mesh file="mug_collision_017.obj"/>
+    <mesh file="mug_collision_018.obj"/>
+  </asset>
+  <default>
+    <default class="mug">
+      <default class="visual">
+        <geom type="mesh" mass="0.3" contype="0" conaffinity="0" group="2" euler="1.5708 0 0" material="mug"/>
+      </default>
+      <default class="collision">
+        <geom type="mesh" mass="0" group="3" euler="1.5708 0 0" solimp="0.95 0.99 0.001" solref="0.004 1"/>
+      </default>
+    </default>
+  </default>
+  <worldbody>
+    <body name="mug" childclass="mug">
+      <geom name="mesh" mesh="mug" class="visual"/>
+      <geom name="collider_001" mesh="mug_collision_001" class="collision"/>
+      <geom name="collider_002" mesh="mug_collision_002" class="collision"/>
+      <geom name="collider_003" mesh="mug_collision_003" class="collision"/>
+      <geom name="collider_004" mesh="mug_collision_004" class="collision"/>
+      <geom name="collider_005" mesh="mug_collision_005" class="collision"/>
+      <geom name="collider_006" mesh="mug_collision_006" class="collision"/>
+      <geom name="collider_007" mesh="mug_collision_007" class="collision"/>
+      <geom name="collider_008" mesh="mug_collision_008" class="collision"/>
+      <geom name="collider_009" mesh="mug_collision_009" class="collision"/>
+      <geom name="collider_010" mesh="mug_collision_010" class="collision"/>
+      <geom name="collider_011" mesh="mug_collision_011" class="collision"/>
+      <geom name="collider_012" mesh="mug_collision_012" class="collision"/>
+      <geom name="collider_013" mesh="mug_collision_013" class="collision"/>
+      <geom name="collider_014" mesh="mug_collision_014" class="collision"/>
+      <geom name="collider_015" mesh="mug_collision_015" class="collision"/>
+      <geom name="collider_016" mesh="mug_collision_016" class="collision"/>
+      <geom name="collider_017" mesh="mug_collision_017" class="collision"/>
+      <geom name="collider_018" mesh="mug_collision_018" class="collision"/>
+    </body>
+  </worldbody>
+</mujoco>

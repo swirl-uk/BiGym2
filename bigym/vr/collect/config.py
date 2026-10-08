@@ -42,7 +42,7 @@ class CollectConfig:
     collect_success_hold_seconds: float = 3.0
     """How long the success predicate must hold before an attempt succeeds.
     It is longer than the training hold, so every demo ends with a stay-still
-    tail, and the training view is trimmed back to the env's hold."""
+    tail, and the training view is cut back to the env's hold."""
     episode_steps: int | None = None
     """Episode cap in recorded steps; None uses the task budget, but at
     least 6000 steps (2 min at 50 Hz)."""

@@ -47,7 +47,7 @@ lower-body controller; no released demonstrations were recorded in it.
 | Action | 20 floats, or 21 with the pitch command | `env.wholebody_action_layout()` |
 | Outer floating DoFs | `enable_all_floating_dof=True` → 4 base slots (`vx, vy, height, wz`); the pitch command adds a fifth | `EnvConfig.enable_all_floating_dof` |
 | Success hold | the task predicate holds for **1.0 s** (50 consecutive control steps) before the task reward is given; see [Evaluation protocol](#evaluation-protocol) | `EnvConfig.success_hold_seconds` |
-| Success hold during collection | **3.0 s** hold (stricter; every demo tail carries ~3 s of stay-still supervision), trimmed to 1.0 s for training | `CollectConfig.collect_success_hold_seconds` (`bigym.vr.collect.config`) |
+| Success hold during collection | **3.0 s** hold (stricter; every demo tail carries ~3 s of stay-still supervision), cut to the 1.0 s latch for training | `CollectConfig.collect_success_hold_seconds` (`bigym.vr.collect.config`) |
 | Reach tolerance | **0.05 m** for `reach_target_single` / `_dual` / `_multi_modal` (the target-ball radius: the pinch centre must be inside the ball), instead of the class constant 0.1 | `EnvConfig.reach_tolerance`, set per task in `bigym.loco.tasks.TASKS` and applied in `bigym/envs/reach_target.py` |
 | Demo downsample rate | 10 (one outer step per 10 env steps) | `EnvConfig.demo_down_sample_rate` |
 | Reset warmup | **200** control steps before the agent engages | `ControllerConfig.reset_warmup_steps` |

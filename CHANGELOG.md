@@ -52,9 +52,10 @@ and replaces its floating-base robots with a walking humanoid.
 - **VR collection and viewing** (`bigym.vr`): `bigym-collect` (extra `vr`)
   records in the official env and judges an attempt with the evaluation's
   `is_success`, with session settings in `CollectConfig` (command-line
-  flags); `bigym.loco.demos.success_hold` trims a raw batch
-  to the training hold. `bigym-view` plays the published demonstrations,
-  your own batches and agent sessions, and compares policies side by side.
+  flags); `bigym.loco.demos.success_hold` cuts a raw batch on the step the
+  official env latches success. `bigym-view` plays the published
+  demonstrations, your own batches and agent sessions, and compares policies
+  side by side.
 - **LeRobot export** (`bigym-export-lerobot`, `bigym-rerender-lerobot`,
   extra `lerobot`).
 - **`examples/train_act.py`**: the paper's ACT training loop, ending in the

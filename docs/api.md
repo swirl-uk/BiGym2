@@ -75,7 +75,7 @@
    :members:
 
 .. automodule:: bigym.loco.demos.success_hold
-   :members: plan_trim, write_batch, trim_batch
+   :members: latch_batch, latch_steps, latch_step, cut_batch
 ```
 
 ## Demo collection

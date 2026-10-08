@@ -93,17 +93,18 @@ task's success predicate for **3.0 s** (`collect_success_hold_seconds`) where
 training and evaluation require **1.0 s** (`success_hold_seconds`). Every
 demo tail therefore carries roughly three seconds of stay-still supervision in
 the raw batch.
-Before training, trim the batch to the training hold: the collector prints
+Before training, cut the batch to the training hold: the collector prints
 the command when it exits, and runs it itself with `--export-lerobot`.
 
 ```bash
-python -m bigym.loco.demos.success_hold trim --demo-dir <raw batch>
+python -m bigym.loco.demos.success_hold --demo-dir <raw batch>
 ```
 
-The trim writes `<raw batch>_hold1s` and never modifies the raw batch. It
-drops the surplus terminal frames, moves the single terminal reward to the
-new last frame and sets `success_hold_seconds` in the metadata (both the
-flat `task` block and `env_config`) to the training hold.
+The cut writes `<raw batch>_hold1s` and never modifies the raw batch. It
+replays every episode from its engage snapshot on the task's official env,
+ends it on the control step where that env latches success, moves the single
+terminal reward to the new last frame and sets `success_hold_seconds` in the
+metadata (both the flat `task` block and `env_config`) to the training hold.
 
 Read the actual attempts and keeps from `metadata.json.collection`,
 including `sessions` for resumed batches and `unaccounted_episodes` for

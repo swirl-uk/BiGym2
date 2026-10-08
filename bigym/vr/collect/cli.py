@@ -58,22 +58,19 @@ def _post_process(
     collection_hold: float,
     training_hold: float,
 ) -> None:
-    """Trim the raw batch to the training hold and optionally export it.
+    """Cut the raw batch to the training hold and optionally export it.
 
     The raw batch is never modified; a failure here leaves it intact and
     prints the command to finish by hand.
     """
     from bigym.loco.demos import success_hold
 
-    trim_cmd = [
+    cut_cmd = [
         "python",
         "-m",
         "bigym.loco.demos.success_hold",
-        "trim",
         "--demo-dir",
         str(out_dir),
-        "--target-hold-seconds",
-        f"{training_hold:g}",
     ]
     training_dir: Path | None = out_dir
     if collection_hold > training_hold + 1e-9:
@@ -81,13 +78,11 @@ def _post_process(
             f"[training-view] raw reward is at {collection_hold:g}s; "
             f"train/eval terminate at {training_hold:g}s"
         )
-        print(f"[training-view] {shlex.join(trim_cmd)}")
+        print(f"[training-view] {shlex.join(cut_cmd)}")
         training_dir = None
         if config.export_lerobot:
             try:
-                training_dir = success_hold.trim_batch(
-                    out_dir, target_hold_seconds=training_hold
-                )
+                training_dir = success_hold.latch_batch(out_dir)
                 print(f"[training-view] wrote {training_dir}")
             except Exception as exc:
                 print(

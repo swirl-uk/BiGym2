@@ -157,7 +157,7 @@ env = make("move_plate", controller={"backend": "hold_pose"})
 | `make`, `make_gym` | name or reference | name or reference |
 | `python -m bigym.loco.eval.runner` | `--task my_lab.tasks:TASK` | `--overrides '{"controller": {"backend": "my_lab.wbc:HOLD_POSE"}}'`, or pinned by the `TaskSpec` |
 | `bigym-collect` | `--task my_lab.tasks:TASK` | `groot_wbc_g1` only |
-| `python -m bigym.loco.demos.success_hold trim`, `bigym-view`, `bigym-export-lerobot`, `bigym-rerender-lerobot` | read from the batch metadata | read from the batch metadata |
+| `python -m bigym.loco.demos.success_hold`, `bigym-view`, `bigym-export-lerobot`, `bigym-rerender-lerobot` | read from the batch metadata | read from the batch metadata |
 | `env.get_demos()` | from a dataset repo you publish (below) | — |
 | `bigym-agent` | BiGym's built-in tasks only | `groot_wbc_g1` only |
 
@@ -184,7 +184,7 @@ uv run bigym-collect --task my_lab.tasks:TASK --export-lerobot \
 
 The batch goes to `./bigym_demos/my_lab.tasks-TASK/<timestamp>`: file and
 directory names replace the colon with a dash, and the batch metadata keeps
-the exact task name. After the session the collector trims a training view
+the exact task name. After the session the collector cuts a training view
 to the task's success hold (`<timestamp>_hold1s` for a 1 s hold) and
 exports it to LeRobot in `<timestamp>_hold1s_lerobot`. `--task-text` is the
 language instruction written to the LeRobot dataset; BiGym's instruction

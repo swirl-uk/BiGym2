@@ -27,9 +27,10 @@ stay on the cache. `BIGYM_DATASET_REPO` / `BIGYM_DATASET_REVISION` point the
 loader at another repository or pin a revision.
 
 Each published episode ends with a 1 s success hold, the same hold
-evaluation scores: the demonstrations were recorded with a 3 s hold and
-trimmed before release (`metadata.json` → `success_hold_trim`), so they are
-ready to train on as downloaded.
+evaluation scores: the demonstrations were recorded with a 3 s hold and cut
+before release on the step where the official env latches success
+(`metadata.json` → `success_hold_trim`), so replaying one ends on its last
+row and they are ready to train on as downloaded.
 
 The dataset covers the 20 benchmark tasks. `bigym-download --list` shows
 them along with the registered tasks whose demonstrations come in a later

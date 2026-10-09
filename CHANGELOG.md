@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `get_demos()` with `frame_stack=1` no longer copies demo frames.
+
 ### Fixed
 
 - `make_gym(..., normalize_low_dim_obs=True).get_demos()` now sets the low-dim

@@ -487,16 +487,19 @@ class BiGym:
         reward. ``num_demos < 0`` loads every episode.
         """
         episodes = self.load_demo_episodes(num_demos)
+        num_episodes = len(episodes)
         demos = []
         num_successful = 0
-        for episode in episodes:
-            timesteps, successful = self._episode_to_timesteps(episode)
+        # Free each raw episode once converted.
+        episodes.reverse()
+        while episodes:
+            timesteps, successful = self._episode_to_timesteps(episodes.pop())
             num_successful += int(successful)
             if successful or not only_successful:
                 demos.append(timesteps)
-        print(f"Number of successful demos: {num_successful}/{len(episodes)}")
+        print(f"Number of successful demos: {num_successful}/{num_episodes}")
         if only_successful:
-            print(f"Using successful demos only: {len(demos)}/{len(episodes)}")
+            print(f"Using successful demos only: {len(demos)}/{num_episodes}")
         if not demos:
             raise RuntimeError("No demonstrations available after filtering")
         return demos
@@ -516,18 +519,41 @@ class BiGym:
         """Stack (and normalize) one episode's frames the way the env observes them.
 
         Returns ``(rgb, low_dim)`` with shapes ``[T, cams, 3 * frame_stack, H, W]``
-        and ``[T, D * frame_stack]``. The env's own frame-stack deques are
-        reset first, as at ``reset()``.
+        and ``[T, D * frame_stack]``, the first frame padding the start as
+        after ``reset()``.
         """
-        rgb_frames = np.asarray(episode["rgb_obs"], dtype=np.uint8)
+        stack = self.config.frame_stack
         low_dims = np.asarray(episode["low_dim_obs"], dtype=np.float32)
-        self._clear_frame_stacks()
-        rgb_out, low_out = [], []
-        for t in range(len(low_dims)):
-            obs = self._stack_observation(rgb_frames[t], low_dims[t])
-            rgb_out.append(obs["rgb_obs"])
-            low_out.append(obs["low_dim_obs"])
-        return np.stack(rgb_out), np.stack(low_out)
+        if self.config.normalize_low_dim_obs:
+            mean, std = self._low_dim_obs_stats["mean"], self._low_dim_obs_stats["std"]
+            low_dims = (low_dims - mean) / (std + 1e-8)
+        if self.config.camera_keys:
+            rgb_frames = np.asarray(episode["rgb_obs"], dtype=np.uint8)
+            rgb = self._stack_demo_frames(rgb_frames, stack, axis=2)
+        else:
+            rgb = np.zeros(
+                (len(low_dims), 0, 3 * stack, *self.config.camera_shape), dtype=np.uint8
+            )
+        return rgb, self._stack_demo_frames(low_dims, stack, axis=1)
+
+    @staticmethod
+    def _stack_demo_frames(frames: np.ndarray, stack: int, axis: int) -> np.ndarray:
+        """Stack ``stack`` consecutive rows along ``axis``, padding with row 0."""
+        if stack == 1:
+            return frames
+        length, width = len(frames), frames.shape[axis]
+        shape = list(frames.shape)
+        shape[axis] = width * stack
+        out = np.empty(shape, dtype=frames.dtype)
+        for j in range(stack):
+            shift = min(stack - 1 - j, length)
+            index: list[Any] = [slice(None)] * frames.ndim
+            index[axis] = slice(j * width, (j + 1) * width)
+            dst = out[tuple(index)]
+            dst[shift:] = frames[: length - shift]
+            if shift:
+                dst[:shift] = frames[0]
+        return out
 
     def _stack_observation(
         self, rgb_frames, low_dim_obs: np.ndarray

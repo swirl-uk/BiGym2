@@ -55,12 +55,16 @@ def test_stacking_parity_with_live_observations(stacked_env):
         ),
         "low_dim_obs": np.stack([bigym._extract_low_dim_from_obs(obs) for obs in raw]),
     }
-    rgb, low_dim = bigym.demo_observations(episode)
-    assert rgb.shape[1:] == tuple(bigym.rgb_observation_spec().shape)
-    assert low_dim.shape[1:] == tuple(bigym.low_dim_observation_spec().shape)
-    for t, ref in enumerate(reference):
-        np.testing.assert_array_equal(rgb[t], ref["rgb_obs"])
-        np.testing.assert_array_equal(low_dim[t], ref["low_dim_obs"])
+    # The full episode, and ones shorter than the stack (all padding).
+    for length in (len(raw), 2, 1):
+        prefix = {key: value[:length] for key, value in episode.items()}
+        rgb, low_dim = bigym.demo_observations(prefix)
+        assert rgb.shape[1:] == tuple(bigym.rgb_observation_spec().shape)
+        assert low_dim.shape[1:] == tuple(bigym.low_dim_observation_spec().shape)
+        assert len(rgb) == len(low_dim) == length
+        for t, ref in enumerate(reference[:length]):
+            np.testing.assert_array_equal(rgb[t], ref["rgb_obs"])
+            np.testing.assert_array_equal(low_dim[t], ref["low_dim_obs"])
 
 
 def test_episode_to_timesteps_layout(stacked_env):

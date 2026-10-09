@@ -120,7 +120,8 @@ class Agent:
 
         self.policy = Policy().to(self.device)
         self.opt = torch.optim.AdamW(self.policy.parameters(), lr=lr, weight_decay=1e-4)
-        self.rgb: np.ndarray | None = None  # demo frames, (N, cams, C, H, W)
+        self.rgb: list[np.ndarray] | None = None  # per demo, (T + 1, cams, C, H, W)
+        self.frames: np.ndarray | None = None  # (demo, t) of each training frame
         self.state: np.ndarray | None = None
         self.chunks: np.ndarray | None = (
             None  # (N, chunk, A), padded with the last action
@@ -132,8 +133,8 @@ class Agent:
     # -- paper API -------------------------------------------------------
     def ingest(self, demos):
         """Index every demo frame with the chunk of actions that follows it."""
-        rgb, state, chunks = [], [], []
-        for demo in demos:
+        frames, state, chunks = [], [], []
+        for d, demo in enumerate(demos):
             actions = demo["action"]
             for t in range(len(actions)):
                 window = actions[t : t + self.chunk]
@@ -141,13 +142,14 @@ class Agent:
                     window = np.concatenate(
                         [window, np.repeat(window[-1:], self.chunk - len(window), 0)]
                     )
-                rgb.append(demo["obs"]["rgb"][t])
+                frames.append((d, t))
                 state.append(demo["obs"]["state"][t])
                 chunks.append(window)
-        self.rgb = np.stack(rgb)
+        self.rgb = [demo["obs"]["rgb"] for demo in demos]
+        self.frames = np.asarray(frames)
         self.state = np.stack(state).astype(np.float32)
         self.chunks = np.stack(chunks).astype(np.float32)
-        print(f"ingested {len(demos)} demos -> {len(self.rgb)} training frames")
+        print(f"ingested {len(demos)} demos -> {len(self.frames)} training frames")
 
     def act(self, obs):
         """Return the action for one gymnasium observation (temporal ensembling)."""
@@ -179,11 +181,13 @@ class Agent:
         """One L1 gradient step on a demonstration batch (behaviour cloning)."""
         if self.rgb is None:
             return
-        assert self.state is not None and self.chunks is not None  # set with rgb
+        assert self.frames is not None and self.state is not None  # set with rgb
+        assert self.chunks is not None
         torch = self.torch
         self.policy.train()
-        idx = np.random.randint(0, len(self.rgb), self.batch)
-        rgb = torch.as_tensor(self.rgb[idx], device=self.device)
+        idx = np.random.randint(0, len(self.frames), self.batch)
+        batch_rgb = np.stack([self.rgb[d][t] for d, t in self.frames[idx]])
+        rgb = torch.as_tensor(batch_rgb, device=self.device)
         state = torch.as_tensor(self.state[idx], device=self.device)
         target = torch.as_tensor(self.chunks[idx], device=self.device)
         loss = torch.nn.functional.l1_loss(self.policy(rgb, state), target)

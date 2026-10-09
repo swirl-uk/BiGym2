@@ -202,7 +202,10 @@ class GymnasiumEnv(gymnasium.Env):
         inner = self.bigym_env
         episodes = inner.load_demo_episodes(num_demos)
         trajectories: list[dict[str, Any]] = []
-        for episode in episodes:
+        # Free each raw episode once converted.
+        episodes.reverse()
+        while episodes:
+            episode = episodes.pop()
             success = bool(inner.demo_is_successful(episode))
             if only_successful and not success:
                 continue

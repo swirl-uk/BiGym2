@@ -14,28 +14,26 @@
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache_2.0-blue.svg"></a>
 </p>
 
-**BiGym 2.0** brings [BiGym](https://github.com/NeuracoreAI/bigym) to a walking humanoid. A Unitree G1 performs 20 household tasks while NVIDIA's frozen GR00T-WBC policy keeps it balanced and walking inside every environment step. The same controller is used for VR data collection, training and evaluation.
+BiGym 2.0 brings [BiGym](https://github.com/NeuracoreAI/bigym) to a walking humanoid. A Unitree G1 performs household tasks while NVIDIA's frozen GR00T-WBC policy keeps it balanced and walking inside every environment step. The same controller runs during VR data collection, training and evaluation.
 
-<p align="center"><img alt="From BiGym to BiGym 2.0: the H1 pelvis is commanded directly while its legs play back animations; the G1 walks and balances under GR00T-WBC" src="https://bigym2.github.io/readme/fig2_bigym_to_bigym2.gif" width="100%"></p>
+<p align="center"><img alt="Left, BiGym: the H1 pelvis is commanded directly and the legs play back an animation. Right, BiGym 2.0: GR00T-WBC walks and balances the G1." src="https://bigym2.github.io/readme/fig2_bigym_to_bigym2.gif" width="100%"></p>
 
-- **20 tasks** across reaching, table-top, dishwasher and kitchen-counter scenes.
-- **60 human VR demonstrations per task**, with full simulator state so every frame can be re-rendered.
-- **One evaluation protocol**: 100 fixed seeds, bit-exact replay, and results stamped with a physics fingerprint.
-- **Learned policies and coding agents** are scored through the same observation and action interface.
+- 20 tasks across reaching, table-top, dishwasher and kitchen-counter scenes.
+- 60 human VR demonstrations per task, with full simulator state so every frame can be re-rendered.
+- 100 fixed evaluation seeds, bit-exact replay and a physics fingerprint on every result.
+- Learned policies and coding agents are scored through the same observation and action interface.
 
 ## Installation
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh     # uv, if you don't have it yet
 git clone https://github.com/swirl-uk/BiGym2.git && cd BiGym2
-uv sync --extra agent
+uv sync
 ```
 
-This installs the environments, the GR00T-WBC lower body, the demonstration loader, the evaluation protocol and the coding-agent benchmark. The GR00T-WBC weights ship with the package and run on onnxruntime, so there is no torch dependency. For a minimal install, VR teleoperation or LeRobot export, see [Getting started](docs/getting_started.md#install).
+This installs the environments, the GR00T-WBC lower body, the demonstration loader and the evaluation protocol. The coding-agent benchmark, VR teleoperation and LeRobot export need extras, listed in [Installation](docs/installation.md).
 
 ## Tasks
-
-The benchmark has 20 tasks in four scene groups: reaching, table-top, dishwasher and kitchen counter.
 
 <details>
 <summary><b>All 20 tasks</b>: instructions and source</summary>
@@ -69,17 +67,17 @@ The benchmark has 20 tasks in four scene groups: reaching, table-top, dishwasher
 </table>
 </details>
 
-The demonstrations are on Hugging Face at [`SWIRL-Lab/bigym-g1-native60`](https://huggingface.co/datasets/SWIRL-Lab/bigym-g1-native60), one LeRobot v3 dataset per task. `env.get_demos()` downloads a task's demonstrations the first time it is called; to fetch them ahead of time:
+The demonstrations are on Hugging Face at [`SWIRL-Lab/bigym-g1-native60`](https://huggingface.co/datasets/SWIRL-Lab/bigym-g1-native60), one LeRobot v3 dataset per task. `env.get_demos()` downloads a task's demonstrations on first use. To fetch them ahead of time:
 
 ```bash
 uv run bigym-download --list                            # published tasks
-uv run bigym-download --task move_plate pick_box        # just these tasks
+uv run bigym-download --task move_plate pick_box        # these tasks only
 uv run bigym-download --all                             # every task
 ```
 
-Both use the Hugging Face cache (`~/.cache/huggingface`), so nothing is downloaded twice; details in [Getting the demonstrations](docs/demos_eval.md#getting-the-demonstrations).
+Both go through the Hugging Face cache (`~/.cache/huggingface`), so nothing downloads twice. `bigym-download --local-dir PATH` writes to a folder instead.
 
-To watch them, `uv run bigym-view` opens a browser viewer with a task dropdown (`--task move_plate` picks the first one). `bigym-download --local-dir PATH` downloads into a folder instead of the cache, and `bigym-view --demo-dir PATH` (or the viewer's *Demo directory* panel, a folder browser) opens it.
+`uv run bigym-view` opens a browser viewer with a task dropdown. `--task move_plate` picks the task it opens first, and `--demo-dir PATH` opens a local folder. More in [Demonstrations](docs/demonstrations.md).
 
 ## Coding-agent benchmark
 
@@ -90,14 +88,14 @@ To watch them, `uv run bigym-view` opens a browser viewer with a task dropdown (
   </picture>
 </p>
 
-A coding agent gets a one-sentence task description, a video of one human demonstration and 101k environment steps. It writes `policy.py` by hand, and the program is then scored on the same 100 hidden seeds as the learned policies.
+A coding agent gets a one-sentence task description, a video of one human demonstration and 101k environment steps. It writes `policy.py`, which is scored on the same 100 evaluation seeds as the learned policies.
 
 ```bash
 export OPENAI_API_KEY=<your-key>
 uv run bigym-agent run --task move_plate --harness codex --model <model-id>
 ```
 
-The harness runs in Docker, so the host only needs Docker, ffmpeg and an API key (`OPENAI_API_KEY`, or `ANTHROPIC_API_KEY` with `--harness claude`). See [docs/agent.md](docs/agent.md) for setup.
+The harness runs in Docker. The host needs Docker, ffmpeg and an API key (`OPENAI_API_KEY`, or `ANTHROPIC_API_KEY` with `--harness claude`). Setup is in [Coding-agent benchmark](docs/agent.md).
 
 ## Documentation
 
@@ -105,16 +103,24 @@ The harness runs in Docker, so the host only needs Docker, ffmpeg and an API key
 |---|---|
 | [Getting started](docs/getting_started.md) | First environment, action layout, demonstrations |
 | [Tasks](docs/tasks.md) | Success conditions, reset randomisation, episode budgets |
-| [Evaluation protocol](docs/official_configuration.md) | Official configuration, seeds, result records |
+| [Official configuration](docs/official_configuration.md) | Configuration, evaluation protocol, seeds, result records |
+| [Demonstrations](docs/demonstrations.md) | Downloading, loading and converting the demos |
 | [Coding-agent benchmark](docs/agent.md) | Sandbox, harnesses, scoring |
 | [Demo collection](docs/demo_collection.md) | Recording your own VR demonstrations |
-| [Building on BiGym](docs/extending.md) | Your own tasks and controllers in a separate package |
+| [Building on BiGym 2.0](docs/extending.md) | Your own tasks and controllers in a separate package |
+| [FAQ](docs/faq.md) | Common errors and their fixes |
+
+The documentation is also published at <https://swirl-uk.github.io/BiGym2/>.
 
 ## Roadmap
 
-- [ ] WebXR teleoperation, so demonstrations can be collected from macOS, Apple Vision Pro or the Quest browser
+- [ ] WebXR teleoperation from macOS, Apple Vision Pro or the Quest browser
 - [ ] PyPI release
 - [ ] Public leaderboard
+
+## Built on BiGym 2.0
+
+Papers and projects that use BiGym 2.0 are listed on the [Research](https://swirl-uk.github.io/BiGym2/research.html) page. Open a pull request or an issue to add yours.
 
 ## Citation
 
@@ -127,7 +133,7 @@ The harness runs in Docker, so the host only needs Docker, ffmpeg and an API key
 }
 ```
 
-BiGym 2.0 builds on [BiGym](https://arxiv.org/abs/2407.07788); please consider citing it as well:
+Please also cite [BiGym](https://arxiv.org/abs/2407.07788):
 
 ```bibtex
 @article{chernyadev2024bigym,
@@ -142,10 +148,6 @@ BiGym 2.0 builds on [BiGym](https://arxiv.org/abs/2407.07788); please consider c
 
 The code is released under the [Apache 2.0 License](LICENSE). Bundled third-party components keep their own licenses:
 
-- **Robot model**: the Unitree G1 description (BSD-3-Clause), in the MuJoCo packaging of [AMO](https://github.com/OpenTeleVision/AMO) (Apache-2.0); see [`bigym/envs/xmls/g1/`](bigym/envs/xmls/g1/).
-- **Scene props** are CC0 or CC BY 4.0; see [the attributions](bigym/envs/xmls/3D_MODELS_ATTRIBUTION.md).
-- **GR00T-WBC weights** are NVIDIA's, redistributed under the NVIDIA Open Model License; see [`NOTICE`](NOTICE) and [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
-
-## Acknowledgements
-
-BiGym 2.0 builds on [BiGym](https://github.com/NeuracoreAI/bigym) by Chernyadev et al. The lower-body controller is NVIDIA's [GR00T-WBC](https://github.com/NVlabs/GR00T-WholeBodyControl).
+- Robot model: the Unitree G1 description (BSD-3-Clause) in the MuJoCo packaging of [AMO](https://github.com/OpenTeleVision/AMO) (Apache-2.0). See [`bigym/envs/xmls/g1/`](bigym/envs/xmls/g1/).
+- Scene props: CC0 or CC BY 4.0. See [the attributions](bigym/envs/xmls/3D_MODELS_ATTRIBUTION.md).
+- GR00T-WBC weights: NVIDIA's, redistributed under the NVIDIA Open Model License. See [`NOTICE`](NOTICE) and [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

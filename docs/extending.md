@@ -1,10 +1,8 @@
-# Building on BiGym
+# Building on BiGym 2.0
 
 Your own tasks and lower-body controllers can live in a separate package
-that depends on `bigym`; nothing in BiGym has to change. This page sets up
-such a package, adds a task and a controller to it, and runs them with
-BiGym's tools. The code samples come from
-[`tests/fixtures/external_extension.py`](https://github.com/swirl-uk/BiGym2/blob/main/tests/fixtures/external_extension.py),
+that depends on `bigym`, with no change to BiGym 2.0. The code samples below come
+from [`tests/fixtures/external_extension.py`](https://github.com/swirl-uk/BiGym2/blob/main/tests/fixtures/external_extension.py),
 which the test suite builds and steps.
 
 ## Structure
@@ -18,7 +16,7 @@ my_lab/
     wbc.py                # lower-body controller and its BackendBinding
 ```
 
-## 1. Depend on bigym
+## Depend on bigym
 
 ```bash
 uv init --package my_lab
@@ -42,18 +40,17 @@ uv add --editable /path/to/BiGym2
 
 ::::
 
-Extras go in the requirement as usual, e.g.
+Extras go in the requirement, e.g.
 `"bigym[vr] @ git+https://github.com/swirl-uk/BiGym2"` for `bigym-collect`
-(see [Install](getting_started.md#install) for what each extra adds). Keep
-the `[build-system]` table that `uv init --package` writes: without it your
-package is not installed into the environment, and BiGym's command-line
-tools cannot import `my_lab`.
+(see [Installation](installation.md#extras)). Keep the `[build-system]`
+table that `uv init --package` writes. Without it your package is not
+installed into the environment, and the BiGym 2.0 command-line tools cannot
+import `my_lab`.
 
-## 2. Configure an existing task
+## Configure an existing task
 
 Keyword overrides or an {class}`~bigym.loco.config.EnvConfig` change any
-setting of a task; `env.config_overrides` lists what differs from the
-task's own configuration:
+setting of a task (see [Overrides](getting_started.md#overrides)):
 
 ```python
 from bigym.loco import make
@@ -61,16 +58,13 @@ from bigym.loco import make
 env = make("move_plate", camera_keys=("head",), controller={"cmd_clip": 0.5})
 ```
 
-[First environment](getting_started.md#first-environment) and the
-[API reference](api.md#configuration) list the fields.
+## Add a task
 
-## 3. Add a task
-
-A task is a {class}`~bigym.loco.tasks.TaskSpec`: a `BiGymEnv` subclass,
-an episode budget in env steps, and the `EnvConfig` fields where the task
-departs from the defaults (in `make`'s override form). The shortest route is to subclass a task you
-start from and change its class attributes or its `_initialize_env`,
-`_on_reset`, `_success` and `_fail` hooks
+A task is a {class}`~bigym.loco.tasks.TaskSpec`: a `BiGymEnv` subclass, an
+episode budget in env steps, and the `EnvConfig` fields where the task
+departs from the defaults (in `make`'s override form). The shortest route is
+to subclass an existing task and change its class attributes or its
+`_initialize_env`, `_on_reset`, `_success` and `_fail` hooks
 ([`bigym/envs/move_plates.py`](https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/move_plates.py)
 shows all four):
 
@@ -80,7 +74,7 @@ shows all four):
 ```
 
 `_initialize_env` adds props to the scene's `mujoco.MjSpec` (`self.spec`),
-which is compiled once afterwards; the other hooks read and write the
+which is compiled once afterwards. The other hooks read and write the
 compiled arrays through `self.model.bind(element)` and
 `self.data.bind(element)`. Element names are full scene names, such as
 `"dishwasher/door"`. After writing state, call `self.simulation.forward()`
@@ -100,14 +94,14 @@ env = make("my_lab.tasks:TASK")  # imported on first use, no registration
 
 A registered name exists only in processes that ran `register_task`. The
 reference works in any process with `my_lab` installed, including the ones
-BiGym's tools start, and it is the name the env records in its metadata,
+the BiGym 2.0 tools start. It is also the name the env records in its metadata,
 so a recorded batch rebuilds the same task. Use the reference on the
 command line.
 
 A `TaskSpec` can also pin the task's controller:
 `overrides={"controller": {"backend": "my_lab.wbc:HOLD_POSE"}}`.
 
-## 4. Add a lower-body controller
+## Add a lower-body controller
 
 A controller subclasses {class}`~bigym.loco.base.LowerBodyBase` (the
 contract is in [Adding a backend](backends.md#adding-a-backend)). This one
@@ -119,11 +113,9 @@ holds the legs and waist at a standing pose:
 :end-before: class HoldPoseBinding
 ```
 
-`STATEFUL` maps snapshot keys to the attributes that shape future targets, so
-`get_state` / `set_state` restore the controller bit-exactly on replay. A
-learned controller loads its policy in `__init__`, runs it in `step()`,
-and returns its weight files from `weight_files()`, which puts their
-SHA-256 in the substrate fingerprint;
+A learned controller loads its policy in `__init__`, runs it in `step()`,
+and returns its weight files from `weight_files()`. The substrate
+fingerprint records their SHA-256.
 [`bigym/loco/adapters/groot_wbc.py`](https://github.com/swirl-uk/BiGym2/blob/main/bigym/loco/adapters/groot_wbc.py)
 does all three.
 
@@ -150,7 +142,7 @@ register_backend("hold_pose", HOLD_POSE)
 env = make("move_plate", controller={"backend": "hold_pose"})
 ```
 
-## 5. Use them with BiGym's tools
+## Use them with the BiGym 2.0 tools
 
 | Tool | Your task | Your controller |
 |---|---|---|
@@ -158,8 +150,8 @@ env = make("move_plate", controller={"backend": "hold_pose"})
 | `python -m bigym.loco.eval.runner` | `--task my_lab.tasks:TASK` | `--overrides '{"controller": {"backend": "my_lab.wbc:HOLD_POSE"}}'`, or pinned by the `TaskSpec` |
 | `bigym-collect` | `--task my_lab.tasks:TASK` | `groot_wbc_g1` only |
 | `python -m bigym.loco.demos.success_hold`, `bigym-view`, `bigym-export-lerobot`, `bigym-rerender-lerobot` | read from the batch metadata | read from the batch metadata |
-| `env.get_demos()` | from a dataset repo you publish (below) | — |
-| `bigym-agent` | BiGym's built-in tasks only | `groot_wbc_g1` only |
+| `env.get_demos()` | from a dataset repo you publish (below) | n/a |
+| `bigym-agent` | built-in tasks only | `groot_wbc_g1` only |
 
 `bigym-agent` needs a one-sentence brief and published demonstrations for
 each task it runs, and both exist for the built-in tasks only.
@@ -182,13 +174,13 @@ uv run bigym-collect --task my_lab.tasks:TASK --export-lerobot \
     --task-text "Move the plate into the other rack."
 ```
 
-The batch goes to `./bigym_demos/my_lab.tasks-TASK/<timestamp>`: file and
+The batch goes to `./bigym_demos/my_lab.tasks-TASK/<timestamp>`. File and
 directory names replace the colon with a dash, and the batch metadata keeps
 the exact task name. After the session the collector cuts a training view
 to the task's success hold (`<timestamp>_hold1s` for a 1 s hold) and
 exports it to LeRobot in `<timestamp>_hold1s_lerobot`. `--task-text` is the
-language instruction written to the LeRobot dataset; BiGym's instruction
-table covers only its own tasks.
+language instruction written to the LeRobot dataset. The built-in instruction
+table covers only the built-in tasks.
 
 `env.get_demos()` reads demonstrations from a Hugging Face dataset repo with
 one folder per task. Upload the export as the folder `my_lab.tasks-TASK/`

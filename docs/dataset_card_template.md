@@ -1,19 +1,16 @@
-# Dataset Card Template — BiGym 2.0 Demonstrations
+# Dataset card template
 
 Copy this file to the root of a demonstration release as `README.md`, fill in
-every `<...>` placeholder, and delete the instruction blocks marked
-`<!-- how to fill -->`. Most values can be read straight out of the batch's
-`metadata.json` (replay-format npz) or `meta/info.json` +
-`meta/source_metadata.json` (LeRobot v3 export); the field-by-field pointers
-below say which.
-
-Keep the front matter valid YAML — Hugging Face parses it.
+every `<...>` placeholder, and delete the `<!-- how to fill -->` blocks. Most
+values come from the batch's `metadata.json`, or from `meta/info.json` and
+`meta/source_metadata.json` in a LeRobot v3 export. The pointers below name
+the field.
 
 ---
 
 ```yaml
 ---
-pretty_name: "BiGym 2.0 — <task> (<robot>, <n> demos)"
+pretty_name: "BiGym 2.0: <task> (<robot>, <n> demos)"
 license: cc-by-4.0
 language:
   - en
@@ -36,110 +33,77 @@ configs:
 ---
 ```
 
-# BiGym 2.0 — `<task_name>`
+# BiGym 2.0: `<task_name>`
 
 `<one or two sentences: what the operator does in this task, and what counts
 as success.>`
 
-- **Homepage / code**: <https://github.com/swirl-uk/BiGym2>
-- **Collected with**: `bigym-collect` (BiGym 2.0 VR collector)
-- **Format**: LeRobot v3, lossless PNG image mode
-  <!-- how to fill: video-mode exports are visualization-only and are rejected
-       by the training loader. Only release the lossless export. -->
+- Homepage and code: <https://github.com/swirl-uk/BiGym2>
+- Format: LeRobot v3, lossless PNG image mode
+  <!-- how to fill: the training loader rejects video-mode exports. Release
+       the lossless export. -->
 
 ## At a glance
 
 | Field | Value | Source |
 |-------|-------|--------|
-| Task | `<task_name>` | `metadata.json` → `task.task_name` |
-| Robot model | `g1_dex1` | `task.robot_model` (also `info.json` → `robot_type`) |
-| Lower-body backend | `groot_wbc_g1` | `env_config.controller.backend` / `substrate_fingerprint.lowerbody_backend` |
-| Lower-body weights | `<file names and sha256>` | `substrate_fingerprint.lowerbody_weights` |
-| Substrate version | `<bigym2-mj381-v1>` | `substrate_fingerprint.substrate_version` |
-| Substrate fingerprint | see [Substrate fingerprint](#substrate-fingerprint) | `substrate_fingerprint` |
-| Episodes released | `<60>` | `info.json` → `total_episodes` |
+| Episodes | `<60>` | `info.json` → `total_episodes` |
 | Frames | `<37705>` | `info.json` → `total_frames` |
-| Control rate | `<50>` Hz (`control_step_seconds = <0.02>`) | `metadata.json` → `control_step_seconds` |
-| Attempts / kept | `<attempts>` / `<kept>` (`<xx>%`) | `collection.attempts/kept`; inspect `unaccounted_episodes` |
-| Operator(s) | `<name or anonymous id>` | `collection.sessions[].operator`; top-level operator is the latest session |
-| Collection dates | `<YYYY-MM-DD>` – `<YYYY-MM-DD>` | `collection.sessions[].started_at/finished_at` |
+| Operator(s) | `<name or anonymous id, and how episodes split between several>` | `collection.sessions[].operator` |
+| Collection dates | `<YYYY-MM-DD>` to `<YYYY-MM-DD>` | `collection.sessions[].started_at/finished_at` |
 | Data license | CC BY 4.0 | this card |
 
 ## Task and success criterion
 
-- **Task name**: `<task_name>`
-- **Success criterion**: the task predicate must hold for
-  `<success_hold_seconds>` consecutive seconds
-  (`metadata.json` → `task.success_hold_seconds`).
-- **Collection hold**: `<collect_success_hold_seconds>` s
-  (`task.collect_success_hold_seconds`) — demos are recorded with a *stricter*
-  hold than training/eval scores at, so every demo tail carries deliberate
-  stay-still supervision.
-- **Reach tolerance** (reach-family tasks only): `<0.05 | null>`
-  (`task.reach_tolerance`; `null` means the 0.1 class constant).
-- **Episode budget**: collected at `<episode_length>` env steps
-  (`episode_length / demo_down_sample_rate` outer steps);
-  recommended budget for training/eval is `<recommended_episode_length>`
-  (`metadata.json` → `recommended_episode_length`, derived by
-  `bigym.loco.tasks.BUDGET_RULE`; the rule used is recorded in
-  `recommended_episode_length_rule`).
-- **Demo down-sample rate**: `<demo_down_sample_rate>`.
+- Success: the task predicate holds for `<success_hold_seconds>` consecutive
+  seconds and the robot never falls (`task.success_hold_seconds`).
+- Collection hold: `<collect_success_hold_seconds>` s
+  (`task.collect_success_hold_seconds`).
+- Reach tolerance (reach tasks only): `<0.05>` m
+  (`task.reach_tolerance`).
+- Episode budget for training and evaluation: `<episode_length>` env steps,
+  the length `bigym.loco.make(task)` sets.
+- Demo down-sample rate: `<demo_down_sample_rate>`.
 
-<!-- how to fill: raw collector task.success_hold_seconds describes the
-     collection hold; task.training_success_hold_seconds records the intended
-     training hold. Identify whether this release is the raw or hold-trimmed
-     view and read its own metadata. env.get_demos() refuses a dataset whose
-     robot_model / backend / demo_down_sample_rate / cameras / observation and
-     action dimensions differ from the env. Quote the values here so users do
-     not have to open the JSON. -->
+<!-- how to fill: say whether this release is the raw batch or the training
+     view cut by bigym.loco.demos.success_hold (its metadata has
+     success_hold_trim), and read that release's own metadata. -->
 
 ## Robot, controller and action space
 
-- **Robot**: `<robot_model>` — `<Unitree G1, 29 DoF, Dex1-1 parallel grippers>`
-- **Lower body**: `<backend>` policy running inside the environment step, at
-  the same rate as the outer control loop. The agent never actuates the legs
-  directly; it sends a base velocity command.
-- **Upper body**: `<upperbody_ik_backend>` inverse kinematics from VR
-  controller poses (`metadata.json` → `action_semantics`).
-- **Outer action** (`action`, dimension `<outer_action_dim>`):
-  `<4>` base slots (`<pelvis_x, pelvis_y, pelvis_z, pelvis_rz>`) +
-  `<14>` arm joints + `<2>` gripper scalars.
-  Bounds are in `fullbody_layout.outer_action_low/high`.
-- **Base action mode**: `<lowerbody_cmd>`
-  (`action_semantics.base_action_mode`) — demos record **velocity commands**,
-  not position deltas.
-- **Base velocity scale used during collection**:
-  `vx = <0.35>`, `vy = <0.25>`, `wz = <0.5>`
-  (`action_semantics.base_velocity_scale`, `right_stick_x`).
-- **Height command range**: `<[0.4, 1.0]>` metres in the raw outer action;
-  backend default `<0.74>` m. The stored `action` is normalized using the
-  collector's `action_stats.min/max`; raw and normalized zero need not match.
-- **Action statistics**: `action_stats` with top-level
-  `action_stats_mode=<collector_envelope>` defines the collector's
-  raw-to-normalized transform. Disclose any downstream training
-  normalization separately.
-- **Pitch/layout**: state whether `enable_pitch_cmd` is enabled and copy
-  the complete `outer_action_floating_dofs` and resolved bounds. The
-  example dimensions here are placeholders, not a universal G1 layout.
+- Robot: `<robot_model>`: `<Unitree G1, 29 DoF, Dex1-1 two-finger grippers>`
+- Lower body: `<backend>` policy, stepped inside the environment at the
+  outer control rate. The agent sends base velocity and height commands and
+  never actuates the legs directly.
+- Upper body: `<upperbody_ik_backend>` inverse kinematics from VR controller
+  poses (`metadata.json` → `action_semantics`).
+- Outer action (`action`, dimension `<outer_action_dim>`): `<4>` base slots
+  (`<pelvis_x, pelvis_y, pelvis_z, pelvis_rz>`), `<14>` arm joints and `<2>`
+  gripper scalars. Copy `outer_action_floating_dofs` and the bounds in
+  `fullbody_layout.outer_action_low/high`, and say whether the pitch slot is
+  enabled.
+- Base velocity scale during collection: `vx = <0.35>`, `vy = <0.25>` m/s
+  (`action_semantics.base_velocity_scale`). The yaw scale is the collector's
+  `--base-wz-scale` (default 0.5 rad/s) and is not recorded.
+- Normalization: the stored `action` is the raw outer action normalized with
+  the collector's `action_stats.min/max` (`action_stats_mode =
+  <collector_envelope>`). Disclose any further training normalization
+  separately.
 
 ## Reset semantics
 
-Reproducing this data requires reproducing the reset, not just the task:
+Reproducing this data requires reproducing the reset
+(`metadata.json` → `reset_semantics`):
 
 - `init_stance`: `<keyframe>`
-- `init_pelvis_z`: `<0.75>` m
-- `reset_warmup_steps`: `<200>` (`<4.0>` s) — episodes settle before the
-  operator engages
+- `init_pelvis_z`: `<0.74>` m
+- `reset_warmup_steps`: `<200>` (`<4.0>` s). Episodes settle before the
+  operator engages.
 - `demo_start`: `<post_warmup_vr_engage_state>`
-- Per-episode engage snapshot fields: `init_qpos`, `init_qvel`, `init_ctrl`,
-  `init_qacc_warmstart`, `lb_state.*`
-
-All of the above are in `metadata.json` → `reset_semantics`.
 
 ## Substrate fingerprint
 
-The fingerprint pins the physics/embodiment world an episode was collected in.
-Episodes with different fingerprints are **not** numerically comparable.
+Results are comparable when `substrate_version` matches. The main fields:
 
 ```text
 {
@@ -148,19 +112,13 @@ Episodes with different fingerprints are **not** numerically comparable.
   "robot_model": "<g1_dex1>",
   "lowerbody_backend": "<groot_wbc_g1>",
   "lowerbody_weights": <{"<file>": "<sha256>", ...}>,
-  "lowerbody_init_stance": "<keyframe>",
-  "lowerbody_base_action_mode": "<lowerbody_cmd>",
   "g1_passive_base_tilt": <true>,
   "solver": <2>,
-  "contact_signature": "<a3972624f79d3e98>",
-  "control_step_seconds": <0.02>,
-  "demo_down_sample_rate": <10>,
-  "episode_length": <60000>,
-  "success_hold_seconds": <3.0>,
-  "action_dim": <20>,
-  "task": "<move_plate>"
+  "contact_signature": "<a3972624f79d3e98>"
 }
 ```
+
+The full fingerprint is in `metadata.json` → `substrate_fingerprint`.
 
 Package versions at collection time (`metadata.json` → `package_versions`):
 `bigym <1.0.0>`, `mujoco <3.8.1>`, `mink <1.2.0>`, `numpy <2.2.6>`,
@@ -168,126 +126,82 @@ Package versions at collection time (`metadata.json` → `package_versions`):
 
 ## Collection
 
-- **Method**: VR teleoperation (`bigym-collect`), operator wearing
-  `<headset>`, `<wired USB | Air Link>` link.
-- **Operator(s)**: `<name or anonymous id; say if more than one and how
-  episodes are split between them>`
-- **Attempts / kept**: `<attempts>` attempts, `<kept>` kept
-  (`<xx>%` keep rate).
-  <!-- how to fill: the collector records attempts and kept counts per session.
-       An attempt ends when the operator presses finish; successful attempts go
-       to pending and are kept, failures are discarded. Report the totals over
-       the whole batch, and say whether discarded attempts are released. -->
-- **Discarded attempts**: `<not released | released under data/discarded/>`
-- **Success rate of released episodes**: `<100%>` — `<all released episodes
-  are successful demonstrations>`
-- **VR space**: mode `<follow_head>`, heading alignment
-  `<current_hmd_forward_to_robot_forward>` (`metadata.json` → `vr_space`).
+- Method: VR teleoperation with `bigym-collect`, operator wearing
+  `<headset>`.
+- Attempts and kept: `<attempts>` attempts, `<kept>` kept (`<xx>%`), from
+  `collection.attempts` and `collection.kept`.
+  <!-- how to fill: report the totals over the whole batch. -->
+- Discarded attempts: `<not released | released under data/discarded/>`
 
 ## Dataset structure
 
-LeRobot v3 layout:
+Standard LeRobot v3 layout, plus these files:
 
 ```
 <dataset>/
   meta/
-    info.json                  # feature schema, fps, episode/frame counts
-    tasks.parquet              # task index -> natural-language task string
-    stats.json                 # per-feature statistics
-    episodes/                  # per-episode index
-    episode_init_states.json   # engage snapshots (BiGym sidecar, not LeRobot)
+    episode_init_states.json   # engage snapshots (BiGym sidecar)
     alignment.json             # action alignment version (BiGym sidecar)
-    source_metadata.json       # copy of the collector metadata.json
-  data/chunk-000/file-000.parquet
-  images/<camera>/...
+    source_metadata.json       # the collector's metadata.json
   metadata.json                # root copy of source_metadata.json
 ```
 
 ### Per-frame fields
 
-<!-- how to fill: this table is the feature list from meta/info.json. Delete
-     rows your export does not contain — the exporter intersects the optional
-     extras over every episode, so a batch collected before a field existed
-     simply lacks it. -->
+<!-- how to fill: this table comes from the features in meta/info.json.
+     Delete rows your export does not contain. -->
 
 | Field | dtype | shape | Notes |
 |-------|-------|-------|-------|
-| `observation.state` | float32 | (`<50>`,) | low-dim observation; component slices in `substrate_fingerprint.low_dim_component_slices` (`proprioception`, `proprioception_grippers`, `proprioception_floating_base`) |
+| `observation.state` | float32 | (`<50>`,) | low-dim observation, slices in `substrate_fingerprint.low_dim_component_slices` |
 | `observation.images.head` | image | (3, `<84>`, `<84>`) | head camera, RGB, lossless PNG |
 | `observation.images.left_wrist` | image | (3, `<84>`, `<84>`) | left wrist camera |
 | `observation.images.right_wrist` | image | (3, `<84>`, `<84>`) | right wrist camera |
-| `action` | float32 | (`<20>`,) | **normalized outer action** — the training target |
+| `action` | float32 | (`<20>`,) | normalized outer action, the training target |
 | `raw_outer_action` | float32 | (`<20>`,) | outer action before normalization |
 | `expanded_action` | float32 | (`<35>`,) | outer action expanded to the full joint set |
 | `lowerbody_action` | float32 | (`<15>`,) | lower-body policy output |
-| `leg_joint_targets` | float32 | (`<15>`,) | leg + waist position targets sent to the actuators |
+| `leg_joint_targets` | float32 | (`<15>`,) | leg and waist position targets sent to the actuators |
 | `torso_target` | float32 | (1,) | torso yaw target |
 | `lowerbody_command` | float32 | (3,) | base velocity command `(vx, vy, wz)` |
-| `height_command` | float32 | (1,) | pelvis height command, metres |
+| `height_command` | float32 | (1,) | pelvis height command, m |
 | `full_qpos` | float64 | (`<46>`,) | full MuJoCo `qpos` |
 | `full_qvel` | float64 | (`<45>`,) | full MuJoCo `qvel` |
 | `reward` | float32 | (1,) | task reward |
-| `event_progress` | float32 | (1,) | per-task sub-goal progress; all-`NaN` on eventless tasks |
+| `event_progress` | float32 | (1,) | per-task sub-goal progress, all `NaN` on tasks without events |
 | `discount` | float32 | (1,) | |
-| `demo` | float32 | (1,) | demo flag (1 for every frame here) |
-| `is_expert` | float32 | (1,) | expert flag |
-| `wall_clock` | float64 | (1,) | **diagnostic only** — seconds since collector start. The sim time axis is `k * control_step_seconds` by construction; `wall_clock` exists to expose capture-rate jitter (XR frame stalls) and is never used for training or replay. |
-| `timestamp` | float32 | (1,) | LeRobot-synthesized: `frame_index / fps` |
-| `frame_index` | int64 | (1,) | |
-| `episode_index` | int64 | (1,) | |
-| `index` | int64 | (1,) | global frame index |
-| `task_index` | int64 | (1,) | |
+| `wall_clock` | float64 | (1,) | seconds since collector start, a diagnostic never used for training or replay |
 
 ### Action alignment
 
-`meta/alignment.json` records `action_alignment_version` 2: frame `k`'s
-observation is paired with the transition executed *from* it, for every
-transition feature; the final frame repeats the last real transition, and
-source index 0 lives in `meta/episode_init_states.json` → `first_transition`.
+Frame `k` pairs its observation with the transition executed from it
+(`meta/alignment.json`, version 2). The final frame repeats the last
+transition.
 
-### Per-episode engage snapshots
+### Engage snapshots
 
-`meta/episode_init_states.json` stores, per episode, the state needed to replay
-it deterministically. Each entry has `source_file` and an `arrays` map where
-every entry carries explicit `dtype`, `shape` and `data`:
-
-- `seed`, `pre_engage_steps`
-- `init_qpos` (`<46>`), `init_qvel` (`<45>`), `init_ctrl` (`<37>`),
-  `init_qacc_warmstart` (`<45>`)
-- `lb_state.*` — the full lower-body controller state (observation histories,
-  last actions, rate-limiter anchors, torso yaw target, height command)
-
-This sidecar is **not** part of the LeRobot schema; consumers that ignore it
-still get valid trajectories, but cannot reproduce the simulation bit-exactly.
+`meta/episode_init_states.json` stores each episode's engage snapshot: the
+seed and the simulator and controller state needed to replay it bit-exactly.
+Consumers that ignore it still get valid trajectories.
 
 ## Intended use and limitations
 
-- **Intended use**: imitation learning and offline RL for whole-body humanoid
-  loco-manipulation; benchmarking against the BiGym 2.0 evaluation protocol.
-- **Reproducibility boundary**: results are only comparable across datasets
-  with the same [substrate fingerprint](#substrate-fingerprint). A change to
-  the physics version, lower-body weights, control rate, base DoF set or
-  success criterion changes the fingerprint.
-- **Task coverage**: `<list the tasks actually present in this release>`;
-  do not infer coverage from the simulator task list.
-- **Scale**: `<n>` episodes from `<one operator>`; this is a demo-driven
-  benchmark, not a large-scale pretraining corpus. Expect operator-specific
+- Task coverage: `<list the tasks actually present in this release>`.
+- Scale: `<n>` episodes from `<one operator>`. Expect operator-specific
   strategies and limited coverage of the task's state space.
-- **Images**: `<84>`x`<84>` RGB, the raw environment observation. They are the
-  observation the policy sees, not a presentation render.
 
 ## License
 
-- **Data (this dataset)**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+- Data (this dataset): [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
   Attribute BiGym 2.0 and cite the entries below.
-- **Code**: the BiGym 2.0 repository is Apache-2.0. Third-party components
+- Code: the BiGym 2.0 repository is Apache-2.0. Third-party components
   redistributed with the code (robot models, lower-body policy weights, 3D
-  props) have their own terms — see `THIRD_PARTY_NOTICES.md` in the
+  props) have their own terms. See `THIRD_PARTY_NOTICES.md` in the
   repository.
-- **Scene assets visible in the images**: the rendered observations contain
-  3D props under CC0 and CC BY 4.0. Their authors are credited in
-  `bigym/envs/xmls/3D_MODELS_ATTRIBUTION.md`; that attribution carries over to
-  anyone redistributing these images.
+- Scene assets visible in the images: the rendered observations contain 3D
+  props under CC0 and CC BY 4.0. Their authors are credited in
+  `bigym/envs/xmls/3D_MODELS_ATTRIBUTION.md`, and that attribution carries
+  over to anyone redistributing these images.
 
 ## Citation
 
@@ -310,8 +224,8 @@ Cite both the BiGym 2.0 paper and the original BiGym paper:
 ```
 
 If the release uses the `groot_wbc_g1` lower-body backend, also credit
-NVIDIA's GR00T Whole-Body Control policy — see `THIRD_PARTY_NOTICES.md` §1
-for the terms its weights are distributed under.
+NVIDIA's GR00T Whole-Body Control policy. `THIRD_PARTY_NOTICES.md` §1 has
+the terms its weights are distributed under.
 
 ## Contact
 

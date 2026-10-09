@@ -12,7 +12,7 @@
 
 ```{eval-rst}
 .. autoclass:: bigym.loco.config.EnvConfig
-   :members: override, differences, from_metadata, to_metadata, to_dict, from_dict
+   :members: override, differences, from_metadata
 
 .. autoclass:: bigym.loco.config.ControllerConfig
 
@@ -75,7 +75,13 @@
    :members:
 
 .. automodule:: bigym.loco.demos.success_hold
-   :members: latch_batch, latch_steps, latch_step, cut_batch
+   :members: latch_batch
+
+.. automodule:: bigym.loco.demos.hub
+   :members: DemosUnavailableError
+
+.. automodule:: bigym.loco.demos.dataset
+   :members: load_episodes
 ```
 
 ## Demo collection
@@ -87,6 +93,8 @@
 ## Evaluation
 
 ```{eval-rst}
+.. autofunction:: bigym.loco.eval.runner.evaluate
+
 .. automodule:: bigym.loco.eval.protocol
    :members:
 ```
@@ -97,8 +105,6 @@
 .. automodule:: bigym.loco.agent
 
 .. autofunction:: bigym.loco.agent.envtools.make_env
-
-.. autofunction:: bigym.loco.agent.envtools.task_pitch_enabled
 
 .. autoclass:: bigym.loco.agent.episode.Tools
 

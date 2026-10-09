@@ -178,7 +178,8 @@ class VRActionMapper:
         self.last_height = self._height_cmd_default
         self._stick_deadzone = float(stick_deadzone)
         # Optional command slew (units/s); None maps the stick directly.
-        # Height/pitch are already slewed inside the adapter.
+        # Height and pitch are integrated from the stick below and are not
+        # slewed; the adapter only clips them.
         self._base_cmd_slew = None if base_cmd_slew is None else float(base_cmd_slew)
         self._cmd_dt = float(env.control_step_seconds)
         self._last_wz_cmd = 0.0

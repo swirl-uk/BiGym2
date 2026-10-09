@@ -53,7 +53,13 @@ exclude_patterns = [
 html_theme = "sphinx_book_theme"
 html_title = "BiGym 2.0"
 html_static_path = ["_static"]
+html_favicon = "_static/favicon.svg"
 html_theme_options = {
+    "logo": {
+        "image_light": "_static/logo-light.svg",
+        "image_dark": "_static/logo-dark.svg",
+        "alt_text": "BiGym 2.0",
+    },
     "repository_url": "https://github.com/swirl-uk/BiGym2",
     "path_to_docs": "docs/",
     "use_repository_button": True,

@@ -245,11 +245,19 @@ def main() -> None:
 
         # The protocol runner drives a fresh official make() env and hands the
         # policy dm_env-style TimeSteps; adapt them to the gymnasium dict.
-        def policy(timestep):
-            return agent.act({"rgb": timestep.rgb_obs, "state": timestep.low_dim_obs})
+        class Policy:
+            """dm_env TimeStep -> gymnasium dict adapter for the protocol runner."""
+
+            def __call__(self, timestep):
+                return agent.act(
+                    {"rgb": timestep.rgb_obs, "state": timestep.low_dim_obs}
+                )
+
+            def reset(self):
+                agent.ensemble.clear()
 
         result = evaluate(
-            policy,
+            Policy(),
             task_name=args.task,
             method="act-example",
             episodes=args.eval_episodes,

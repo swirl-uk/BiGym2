@@ -58,6 +58,7 @@ MODEL_PRICES: dict[str, dict[str, float]] = {
     # Runs on a ChatGPT plan draw on its included limits first, so
     # these are list-price equivalents, not what the subscription was charged.
     "gpt-6-sol": {"input": 2.0, "cached": 0.2, "output": 10.0},
+    "gpt-6.1-sol": {"input": 2.0, "cached": 0.1, "output": 10.0},
     "gpt-5.6-sol": {"input": 4.0, "cached": 0.4, "output": 20.0},
 }
 

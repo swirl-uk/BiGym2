@@ -441,10 +441,11 @@ class BiGym:
         observation at step ``t`` together with the action, reward and
         discount of the transition that produced it; row 0 is the reset row.
 
-        Side effect: the env adopts the dataset's ``action_stats`` (the
+        Side effects: the env adopts the dataset's ``action_stats`` (the
         collector's outer-action envelope), so ``[-1, 1]`` actions learned
-        from these demos de-normalize exactly as they were recorded.
-        ``num_demos < 0`` loads every episode.
+        from these demos de-normalize exactly as they were recorded; with
+        ``normalize_low_dim_obs`` on, it also takes its low-dim mean/std from
+        these episodes. ``num_demos < 0`` loads every episode.
         """
         episodes, self._action_stats = demo_episodes.load_task_episodes(
             self.task_name,
@@ -455,6 +456,8 @@ class BiGym:
             outer_action_high=self._outer_action_high,
             check_compatibility=self._check_demo_compatibility,
         )
+        if self.config.normalize_low_dim_obs:
+            self._low_dim_obs_stats = self.extract_low_dim_obs_stats(episodes)
         return episodes
 
     def _check_demo_compatibility(
@@ -484,8 +487,6 @@ class BiGym:
         reward. ``num_demos < 0`` loads every episode.
         """
         episodes = self.load_demo_episodes(num_demos)
-        if self.config.normalize_low_dim_obs:
-            self._low_dim_obs_stats = self.extract_low_dim_obs_stats(episodes)
         demos = []
         num_successful = 0
         for episode in episodes:

@@ -84,6 +84,43 @@ def test_episode_to_timesteps_layout(stacked_env):
     assert timesteps[0].demo == 1.0  # no demo column: falls back to the success flag
 
 
+def test_gym_get_demos_applies_low_dim_normalization(monkeypatch):
+    from bigym.loco import env as env_module
+    from bigym.loco.gym_adapter import GymnasiumEnv
+
+    env = make(
+        "reach_target_dual",
+        controller=None,
+        episode_length=50,
+        demo_down_sample_rate=25,
+        camera_shape=(16, 16),
+        normalize_low_dim_obs=True,
+    )
+    bigym = env.bigym
+    cams = len(bigym.config.camera_keys)
+    dim = bigym.low_dim_raw_observation_spec().shape[0]
+    length = 3
+    low_dim = np.tile(np.array([[10.0], [20.0], [30.0]], np.float32), (1, dim))
+    episode = {
+        "rgb_obs": np.zeros((length, cams, 3, 16, 16), dtype=np.uint8),
+        "low_dim_obs": low_dim,
+        "action": np.zeros((length, bigym.action_space.shape[0]), np.float32),
+        "reward": np.array([[0.0], [0.0], [1.0]], np.float32),
+        "discount": np.array([[1.0], [1.0], [0.0]], np.float32),
+    }
+    monkeypatch.setattr(
+        env_module.demo_episodes,
+        "load_task_episodes",
+        lambda *args, **kwargs: ([episode], dict(bigym.action_stats)),
+    )
+    try:
+        state = GymnasiumEnv(env).get_demos(1)[0]["obs"]["state"]
+    finally:
+        env.close()
+    expected = (low_dim - low_dim.mean(0)) / (low_dim.std(0) + 1e-8)
+    np.testing.assert_allclose(state, expected, rtol=1e-5)
+
+
 @pytest.mark.skipif(
     not os.environ.get("BIGYM_DATASET_TESTS"),
     reason="set BIGYM_DATASET_TESTS=1 to download real demonstrations",

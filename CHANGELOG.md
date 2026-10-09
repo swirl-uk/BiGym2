@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `make_gym(..., normalize_low_dim_obs=True).get_demos()` now sets the low-dim
+  mean/std from the demos. Previously the gym path skipped it.
 - `examples/train_act.py` now resets action chunking between evaluation
   episodes. Previously the next episode started with the last one's chunks.
 

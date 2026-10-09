@@ -7,6 +7,28 @@ on:
     branches: [main, master]
 
 jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install xmllint
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libxml2-utils
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install the dev group
+        run: uv sync --locked --only-group dev
+
+      - name: Lint (pre-commit)
+        run: uv run --no-sync pre-commit run --all-files --show-diff-on-failure
+
   test:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -17,11 +39,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install system libraries (headless MuJoCo rendering, xmllint hook)
+      - name: Install system libraries (headless MuJoCo rendering)
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            libxml2-utils xvfb xauth ffmpeg \
+            xvfb xauth ffmpeg \
             libgl1 libglx-mesa0 libegl1 libgl1-mesa-dev libosmesa6-dev
 
       - uses: astral-sh/setup-uv@v6
@@ -31,9 +53,6 @@ jobs:
 
       - name: Install the project (core + agent, and the dev group)
         run: uv sync --extra agent
-
-      - name: Lint (pre-commit)
-        run: uv run pre-commit run --all-files --show-diff-on-failure
 
       # The slow tests run whole GR00T-in-the-loop episodes and render them;
       # with software rendering on a hosted runner that takes hours, so they

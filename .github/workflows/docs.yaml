@@ -6,7 +6,11 @@ on:
     paths:
       - "docs/**"
       - "bigym/loco/**"
+      # Reporting modules are not used by Sphinx.
+      - "!bigym/loco/agent/transcript.py"
+      - "!bigym/loco/agent/usage.py"
       - "bigym/vr/collect/**"
+      - "tests/fixtures/external_extension.py"
       - ".github/workflows/docs.yaml"
       - "pyproject.toml"
       - "uv.lock"
@@ -14,7 +18,10 @@ on:
     paths:
       - "docs/**"
       - "bigym/loco/**"
+      - "!bigym/loco/agent/transcript.py"
+      - "!bigym/loco/agent/usage.py"
       - "bigym/vr/collect/**"
+      - "tests/fixtures/external_extension.py"
       - ".github/workflows/docs.yaml"
       - "pyproject.toml"
       - "uv.lock"

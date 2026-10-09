@@ -110,7 +110,7 @@ The harness runs in Docker. The host needs Docker, ffmpeg and an API key (`OPENA
 | [Building on BiGym 2.0](docs/extending.md) | Your own tasks and controllers in a separate package |
 | [FAQ](docs/faq.md) | Common errors and their fixes |
 
-The documentation is also published at <https://swirl-uk.github.io/BiGym2/>.
+The documentation is also published at <https://bigym2.github.io/docs/>.
 
 ## Roadmap
 
@@ -120,7 +120,7 @@ The documentation is also published at <https://swirl-uk.github.io/BiGym2/>.
 
 ## Built on BiGym 2.0
 
-Papers and projects that use BiGym 2.0 are listed on the [Research](https://swirl-uk.github.io/BiGym2/research.html) page. Open a pull request or an issue to add yours.
+Papers and projects that use BiGym 2.0 are listed on the [Research](https://bigym2.github.io/docs/research.html) page. Open a pull request or an issue to add yours.
 
 ## Citation
 

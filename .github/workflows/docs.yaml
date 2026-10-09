@@ -44,14 +44,34 @@ jobs:
         run: |
           uv sync --group docs
           uv run --no-sync sphinx-build -b html -W docs docs/_build/html
+      # The docs are served at bigym2.github.io/docs/. This repository's Pages
+      # site keeps old links working by redirecting each page there.
+      - name: Write redirects
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+        run: |
+          uv run --no-sync python - <<'EOF'
+          from pathlib import Path
+          src, out = Path("docs/_build/html"), Path("docs/_build/redirects")
+          for page in src.rglob("*.html"):
+              rel = page.relative_to(src).as_posix()
+              url = f"https://bigym2.github.io/docs/{rel}"
+              target = out / rel
+              target.parent.mkdir(parents=True, exist_ok=True)
+              target.write_text(
+                  f'<!doctype html><meta charset="utf-8"><title>BiGym 2.0 docs</title>'
+                  f'<link rel="canonical" href="{url}"><meta http-equiv="refresh" content="0; url={url}">'
+                  f'<script>location.replace("{url}" + location.hash)</script>'
+                  f'<a href="{url}">{url}</a>\n'
+              )
+          EOF
       - uses: actions/upload-pages-artifact@v3
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
         with:
-          path: docs/_build/html
+          path: docs/_build/redirects
 
-  # Only main deploys; GitHub Pages needs a public repository on a free plan.
   deploy:
     needs: build
-    if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && !github.event.repository.private }}
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -59,3 +79,19 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # Rebuilds bigym2.github.io, which builds these docs into /docs/. The token
+  # needs Contents read and write on bigym2/bigym2.github.io.
+  site:
+    needs: build
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.SITE_DISPATCH_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::SITE_DISPATCH_TOKEN is not set; bigym2.github.io was not rebuilt"
+            exit 0
+          fi
+          gh api repos/bigym2/bigym2.github.io/dispatches -f event_type=docs

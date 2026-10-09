@@ -52,6 +52,7 @@ exclude_patterns = [
 
 html_theme = "sphinx_book_theme"
 html_title = "BiGym 2.0"
+html_baseurl = "https://bigym2.github.io/docs/"
 html_static_path = ["_static"]
 html_favicon = "_static/favicon.svg"
 html_theme_options = {

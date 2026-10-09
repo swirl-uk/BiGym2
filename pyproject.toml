@@ -66,7 +66,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/swirl-uk/BiGym2"
+Homepage = "https://bigym2.github.io"
+Documentation = "https://bigym2.github.io/docs/"
 Paper = "https://arxiv.org/abs/2610.07594"
 Repository = "https://github.com/swirl-uk/BiGym2"
 Dataset = "https://huggingface.co/datasets/SWIRL-Lab/bigym-g1-native60"

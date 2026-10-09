@@ -43,6 +43,16 @@ It reads the LeRobot folder with pyarrow and Pillow, without installing
 `lerobot`. Row `t` holds the observation at step `t` with the action, reward
 and discount of the transition that produced it, and row 0 is the reset row.
 
+The stored `action` column is normalized over the ranges in the task's
+`metadata.json` (`action_stats`), and `get_demos()` converts it to the env's
+ranges. To evaluate a policy trained on the stored column directly, give the
+env those ranges first:
+
+```python
+stats = metadata["action_stats"]
+env.set_action_stats(np.array(stats["min"]), np.array(stats["max"]))
+```
+
 ## How an episode ends
 
 Each episode ends on the step where the official env latches success, cut

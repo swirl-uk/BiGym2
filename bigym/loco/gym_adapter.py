@@ -19,9 +19,9 @@ comes from the wrapped env, ``info["success"]`` included
 (:func:`bigym.loco.eval.is_success`).
 
 Action space: ``env.action_space``, the agent-facing ``Box(-1, 1)`` that
-the env de-normalizes through the demo action stats (``action_spec()``
-carries no bounds). Actions are cast to float32 and clipped into it: the
-env rejects values outside ``[-1, 1]``, and squashed-Gaussian policies emit
+the env de-normalizes onto ``env.action_stats`` (``action_spec()`` carries
+no bounds). Actions are cast to float32 and clipped into it: the env rejects
+values outside ``[-1, 1]``, and squashed-Gaussian policies emit
 ``1.0000001``.
 
 Observation space: a ``Dict`` of ``rgb`` (uint8, ``(num_cameras,
@@ -66,7 +66,7 @@ class GymnasiumEnv(gymnasium.Env):
         env: the object returned by :func:`bigym.loco.make` (an
             ``ExtendedTimeStepWrapper``).
             The adapter does not take ownership of construction, so a caller
-            that already built an env — with demo action stats loaded, say —
+            that already built an env — with custom action stats, say —
             can wrap it directly.
         render_camera: camera key used by :meth:`render`; falls back to the
             wrapped env's own free-camera render when that camera is not in
@@ -194,13 +194,13 @@ class GymnasiumEnv(gymnasium.Env):
 
         so transition ``i`` is ``obs[i] --action[i]--> obs[i + 1]`` with
         ``reward[i]``, exactly what ``step`` returns. Observations are
-        stacked/normalized like the env's own, and the env adopts the
-        dataset's action statistics, so ``action`` values and this env's
+        stacked/normalized like the env's own, and actions are normalized
+        over ``env.action_stats``, so ``action`` values and this env's
         ``action_space`` mean the same thing. ``num_demos < 0`` loads every
         episode; ``only_successful`` keeps the successful ones.
         """
         inner = self.bigym_env
-        episodes = inner.load_demo_episodes(num_demos)
+        episodes = inner.load_training_episodes(num_demos)
         trajectories: list[dict[str, Any]] = []
         # Free each raw episode once converted.
         episodes.reverse()

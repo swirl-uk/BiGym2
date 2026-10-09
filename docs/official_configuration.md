@@ -84,6 +84,10 @@ The `vx`, `vy` and `wz` bounds are the env's command clips (`cmd_clip` and
 `wz_clip`, default 1.0). The height bounds come from the backend. Arm slots
 are absolute joint position targets in radians.
 
+`get_demos()` returns demo actions normalized over these ranges. To use
+other ranges, call `env.set_action_stats(min, max)` before `get_demos()` and
+evaluate with the same ranges.
+
 With the pitch command, slot 4 is the torso pitch (radians, absolute,
 + = lean forward, [-0.2, 0.8]) and the arm and gripper slots move up by one:
 left arm 5–11, right arm 12–18, grippers 19 and 20.

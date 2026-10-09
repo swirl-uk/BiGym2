@@ -9,8 +9,9 @@ the golden values below to :data:`TOLERANCE`.
 
 Anything that changes the closed loop shows up here: MuJoCo options or
 model edits, the controller's observation (e.g. feeding it the wrong joint
-velocities), its command plumbing, the action normalisation, the reset and
-warmup path. The fast suite otherwise only checks that these things run.
+velocities), its command plumbing, the reset and warmup path. (The script
+pins its own action envelope, so a change of a fresh env's default envelope
+does not move it; test_demos_env checks that default.) The fast suite otherwise only checks that these things run.
 
 Tolerance: the signature is bit-identical across Python/onnxruntime
 versions and the CI container. A 1e-4 relative noise on every controller
@@ -138,6 +139,15 @@ def rollout(task_name: str) -> tuple[dict[str, float], dict]:
         outer = env.bigym
         inner = outer.inner_env
         model, data = inner.model, inner.data
+        # The script is written in the [-1, 1] per-slot envelope ([0, 1] for
+        # grippers) the goldens were recorded under, so it sends the same raw
+        # commands whatever a fresh env's default envelope is.
+        low = -np.ones(outer.action_space.shape, dtype=np.float32)
+        high = np.ones(outer.action_space.shape, dtype=np.float32)
+        grippers = outer.wholebody_action_layout()["gripper_count"]
+        if grippers:
+            low[-grippers:] = 0.0
+        outer.set_action_stats(low, high)
         env.reset(seed=RESET_SEED)
         # Zero base velocity, default height, current arm and gripper targets.
         hold = np.clip(outer.normalize_action(outer.raw_hold_action()), -1, 1)

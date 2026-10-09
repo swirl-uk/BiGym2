@@ -18,7 +18,7 @@ Per-step arrays, first axis = outer control steps (T):
   [-1, 1] (commands + upper-body targets + grippers), exactly what the
   collector fed env.step(). Decode to physical units via the per-dim
   ``action_stats`` min/max recorded in metadata.json (the collection
-  envelope; ``env.get_demos()`` adopts it at load). The RAW per-step values
+  envelope). The RAW per-step values
   live in the diagnostic ``raw_outer_action`` array, not here.
 - ``reward`` / ``discount`` / ``demo`` / ``is_expert`` (T, 1) float32
 - ``event_progress`` (T, 1) float32 — optional

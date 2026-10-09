@@ -177,9 +177,7 @@ class EnvTools:
         self.time_limit = (
             self.outer.config.episode_length // self.outer.config.demo_down_sample_rate
         )
-        # A fresh protocol env normalises actions over [-1, 1] per dim, which would clip
-        # arm targets to +-1 rad. Scripted policies speak physical units: map over the
-        # true bounds instead.
+        # Scripted policies speak physical units: map over the true bounds.
         layout = self.outer.wholebody_action_layout()
         low, high = layout["action_low"], layout["action_high"]
         self.outer.set_action_stats(low, high)

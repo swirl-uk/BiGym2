@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- A fresh env now maps `[-1, 1]` actions onto the raw outer bounds, so a zero
+  action commands the middle of each range (a 0.7 m pelvis height). Previously
+  it used `[-1, 1]` per slot, which commanded a 0 m pelvis height and capped
+  arm targets at ±1 rad. To evaluate a policy trained under the old default,
+  restore its ranges with `env.set_action_stats(min, max)`.
+- `get_demos()` now normalizes demo actions over `env.action_stats` and leaves
+  them unchanged, so the actions mean the same in a fresh env. Previously it
+  switched the env to the dataset's ranges, which a fresh evaluation env did
+  not have.
 - `get_demos()` with `frame_stack=1` no longer copies demo frames.
 
 ### Fixed

@@ -121,6 +121,40 @@ def check_compatibility(
         )
 
 
+def renormalize_actions(
+    action: np.ndarray,
+    from_stats: dict[str, np.ndarray],
+    to_stats: dict[str, np.ndarray],
+    normalized: np.ndarray,
+) -> np.ndarray:
+    """Re-express ``[-1, 1]`` actions from one action envelope in another.
+
+    Only the ``normalized`` slots (a boolean mask) are converted. Row 0, the
+    reset row that no step executes, is clipped instead of checked.
+    """
+    action = np.asarray(action, dtype=np.float32)
+    from_min, from_max, to_min, to_max = (
+        np.asarray(stats[key], dtype=np.float64)
+        for stats, key in (
+            (from_stats, "min"),
+            (from_stats, "max"),
+            (to_stats, "min"),
+            (to_stats, "max"),
+        )
+    )
+    raw = (action.astype(np.float64) + 1.0) / 2.0 * (from_max - from_min + 1e-8)
+    moved = (raw + from_min - to_min) / (to_max - to_min + 1e-8) * 2.0 - 1.0
+    moved = moved[:, normalized]
+    if np.any(np.abs(moved[1:]) > 1.0 + 1e-5):
+        raise ValueError(
+            "the demonstrations command raw actions outside this env's "
+            "action_stats; widen them with set_action_stats"
+        )
+    out = action.copy()
+    out[:, normalized] = np.clip(moved, -1.0, 1.0)
+    return out
+
+
 def low_dim_obs_stats(episodes: list[dict[str, np.ndarray]]) -> dict[str, np.ndarray]:
     """Per-dimension mean/std of the episodes' raw low-dim observations."""
     low_dim = np.concatenate(

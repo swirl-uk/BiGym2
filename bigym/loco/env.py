@@ -441,13 +441,37 @@ class BiGym:
         observation at step ``t`` together with the action, reward and
         discount of the transition that produced it; row 0 is the reset row.
 
-        Side effects: the env adopts the dataset's ``action_stats`` (the
-        collector's outer-action envelope), so ``[-1, 1]`` actions learned
-        from these demos de-normalize exactly as they were recorded; with
-        ``normalize_low_dim_obs`` on, it also takes its low-dim mean/std from
-        these episodes. ``num_demos < 0`` loads every episode.
+        Actions are as stored, and the env adopts the dataset's
+        ``action_stats`` so they replay exactly as recorded; for training use
+        :meth:`load_training_episodes`. With ``normalize_low_dim_obs`` on, the
+        env also takes its low-dim mean/std from these episodes.
+        ``num_demos < 0`` loads every episode.
         """
-        episodes, self._action_stats = demo_episodes.load_task_episodes(
+        episodes, self._action_stats = self._read_demo_episodes(num_demos)
+        return episodes
+
+    def load_training_episodes(
+        self, num_demos: int = -1
+    ) -> list[dict[str, np.ndarray]]:
+        """:meth:`load_demo_episodes`, with actions normalized over ``env.action_stats``.
+
+        The env's action stats are left unchanged.
+        """
+        episodes, demo_stats = self._read_demo_episodes(num_demos)
+        normalized = np.ones(self.action_space.shape[0], dtype=bool)
+        if self.upper_delta_accumulator is not None:
+            # upper_delta arm slots are deltas, not normalized by action_stats.
+            normalized[self._outer_upper_action_slice()] = False
+        for episode in episodes:
+            episode["action"] = demo_episodes.renormalize_actions(
+                episode["action"], demo_stats, self._action_stats, normalized
+            )
+        return episodes
+
+    def _read_demo_episodes(
+        self, num_demos: int
+    ) -> tuple[list[dict[str, np.ndarray]], dict[str, np.ndarray]]:
+        episodes, demo_stats = demo_episodes.load_task_episodes(
             self.task_name,
             num_demos,
             action_representation=self.config.action_representation,
@@ -458,7 +482,7 @@ class BiGym:
         )
         if self.config.normalize_low_dim_obs:
             self._low_dim_obs_stats = self.extract_low_dim_obs_stats(episodes)
-        return episodes
+        return episodes, demo_stats
 
     def _check_demo_compatibility(
         self, metadata: dict[str, Any], info: dict[str, Any]
@@ -480,13 +504,13 @@ class BiGym:
         """Return demonstrations as lists of :class:`ExtendedTimeStep`, one per episode.
 
         Observations are frame-stacked and (if enabled) low-dim-normalized
-        exactly like the env's own ``reset``/``step`` output, so a demo
-        timestep and a live timestep are interchangeable in a replay buffer.
-        When low-dim normalization is on, its mean/std are set from these
-        demos first. ``only_successful`` drops episodes without a success
-        reward. ``num_demos < 0`` loads every episode.
+        exactly like the env's own ``reset``/``step`` output, and actions are
+        normalized over ``env.action_stats``, so a demo timestep and a live
+        timestep are interchangeable in a replay buffer. When low-dim normalization is on, its mean/std are set from
+        these demos first. ``only_successful`` drops episodes without a
+        success reward. ``num_demos < 0`` loads every episode.
         """
-        episodes = self.load_demo_episodes(num_demos)
+        episodes = self.load_training_episodes(num_demos)
         num_episodes = len(episodes)
         demos = []
         num_successful = 0
@@ -1019,16 +1043,14 @@ class BiGym:
             dtype=np.uint8,
         )  # without frame stacking
 
-        # Set default action stats, which will be overridden by demonstration
-        # action stats
-        # Required for a case we don't use demonstrations
-        action_min = -np.ones(self.action_space.shape, dtype=self.action_space.dtype)
-        action_max = np.ones(self.action_space.shape, dtype=self.action_space.dtype)
-        gripper_count = int(len(self.inner_env.robot.grippers))
-        if gripper_count:
-            action_min[-gripper_count:] = 0
-            action_max[-gripper_count:] = 1
-        self._action_stats = {"min": action_min, "max": action_max}
+        # [-1, 1] maps onto the raw outer bounds.
+        assert self._outer_action_low is not None
+        assert self._outer_action_high is not None
+        dtype = self.action_space.dtype
+        self._action_stats = {
+            "min": np.array(self._outer_action_low, dtype=dtype),
+            "max": np.array(self._outer_action_high, dtype=dtype),
+        }
 
     def _extract_low_dim_from_obs(self, obs: Dict[str, np.ndarray]) -> np.ndarray:
         parts = []

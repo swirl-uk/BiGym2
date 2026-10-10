@@ -42,7 +42,8 @@ Decoded, the 60 demonstrations of a long task take a lot of memory: about
 15 GB for `stack_blocks`. On a `make_gym` env, `get_demos(60,
 decode_images=False)` keeps the frames as PNG bytes instead (about 5 GB for
 `stack_blocks`), and `demo["obs"]["rgb"][i]` decodes observation `i` when you
-index it.
+index it. [`examples/train_act.py`](https://github.com/swirl-uk/BiGym2/blob/main/examples/train_act.py)
+trains this way, decoding in its data loader workers.
 
 `bigym.loco.demos.dataset.load_episodes(task_dir)` is the reader underneath.
 It reads the LeRobot folder with pyarrow and Pillow, without installing

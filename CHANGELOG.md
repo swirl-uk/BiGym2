@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `get_demos()` with `frame_stack=1` no longer copies demo frames.
 - Loading demonstrations needs less memory: 16.5 GB instead of 22.5 GB at
   peak for the 60 demos of `stack_blocks`.
+- `examples/train_act.py` trains offline on the demonstrations, then runs the
+  evaluation protocol. Previously it took one gradient step per env step,
+  which ran the simulator for nothing, and kept every decoded frame in memory.
 
 ### Fixed
 
@@ -88,7 +91,7 @@ and replaces its floating-base robots with a walking humanoid.
   side by side.
 - **LeRobot export** (`bigym-export-lerobot`, `bigym-rerender-lerobot`,
   extra `lerobot`).
-- **`examples/train_act.py`**: the paper's ACT training loop, ending in the
+- **`examples/train_act.py`**: a minimal ACT example, ending in the
   evaluation protocol.
 - **Command lines built with tyro**: each command's flags come from a
   settings dataclass, booleans take `--x` / `--no-x`, and

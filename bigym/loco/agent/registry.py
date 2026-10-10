@@ -125,6 +125,34 @@ def claim(conn: sqlite3.Connection, cell: Path, task: str, info: dict) -> int | 
     return cursor.lastrowid
 
 
+STOP_NOTE = "[killed]"
+"""The note ``kill`` appends to a row: its run must stop the cell."""
+
+
+def stop_requested(conn: sqlite3.Connection, row_id: int | None) -> bool:
+    """Whether ``kill`` asked the run holding ``row_id`` to stop its cell."""
+    if row_id is None:
+        return False
+    found = conn.execute("SELECT note FROM runs WHERE id=?", (row_id,)).fetchone()
+    return bool(found and found[0] and STOP_NOTE in found[0])
+
+
+def record_process_group(
+    conn: sqlite3.Connection, row_id: int | None, pgid: int
+) -> None:
+    """Record the process group of a cell's agent or evaluation, which ``kill`` stops.
+
+    Args:
+        conn: The registry connection.
+        row_id: The run's row; None does nothing.
+        pgid: The process group.
+    """
+    if row_id is None:
+        return
+    conn.execute("UPDATE runs SET pgid=? WHERE id=?", (pgid, row_id))
+    conn.commit()
+
+
 def close_row(conn: sqlite3.Connection, row_id: int | None, note: str = "") -> None:
     """Mark a registry row finished.
 
@@ -261,17 +289,32 @@ CELL_PROCESSES = tuple(
 )
 
 
+def process_group(pid: int | None) -> int | None:
+    """The process group of ``pid``, or None when it is not running."""
+    if not pid:
+        return None
+    try:
+        return os.getpgid(pid)
+    except (ProcessLookupError, PermissionError):
+        return None
+
+
 def kill_row(conn: sqlite3.Connection, row) -> None:
-    """Stop one registered run: its process, its container, its server."""
-    rid, run_root, task, pid, pgid, name = row
-    if pid and alive(pid):
-        try:
-            os.kill(pid, signal.SIGTERM)
-        except ProcessLookupError:
-            pass
-    # Kill the group only when it is not our own: a run started in the
-    # foreground shares the caller's process group.
-    if pgid and pgid != os.getpgid(0):
+    """Stop one registered cell: its agent, its container, its server.
+
+    ``pid`` is the ``run`` process, which also drives the other sessions it
+    started, so it is left running. It sees the stop request, records the cell
+    as interrupted without scoring it, and releases the cell when done.
+    """
+    rid, run_root, task, pid, _, name = row
+    conn.execute(
+        "UPDATE runs SET note=COALESCE(note,'')||? WHERE id=?", (f" {STOP_NOTE}", rid)
+    )
+    conn.commit()
+    # Read after the request: an agent or evaluation starting meanwhile has
+    # recorded its group by now, or will see the request and stop itself.
+    (pgid,) = conn.execute("SELECT pgid FROM runs WHERE id=?", (rid,)).fetchone()
+    if pgid and pgid not in (os.getpgid(0), process_group(pid)):
         try:
             os.killpg(pgid, signal.SIGTERM)
         except (ProcessLookupError, PermissionError):
@@ -289,8 +332,26 @@ def kill_row(conn: sqlite3.Connection, row) -> None:
                 os.kill(int(line.split()[0]), signal.SIGTERM)
             except (ProcessLookupError, ValueError, PermissionError):
                 pass
-    close_row(conn, rid, "[killed]")
-    print(f"killed run {rid} {Path(run_root).name}/{task}")
+    if pid and alive(pid):
+        print(f"stopping run {rid} {Path(run_root).name}/{task}")
+    else:
+        close_row(conn, rid)
+        print(f"killed run {rid} {Path(run_root).name}/{task}")
+
+
+def stop_cells_of(root: Path, pid: int) -> None:
+    """Stop every live cell of ``root`` that the ``run`` process ``pid`` holds."""
+    if not (root / "registry.sqlite").exists():
+        return
+    conn = open_registry(root)
+    rows = conn.execute(
+        "SELECT id, root, task, pid, pgid, container FROM runs"
+        " WHERE pid=? AND ended IS NULL",
+        (pid,),
+    ).fetchall()
+    for row in rows:
+        kill_row(conn, row)
+    conn.close()
 
 
 def main_kill(argv: list[str] | KillConfig | None = None) -> int:

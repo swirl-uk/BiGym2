@@ -84,10 +84,12 @@ import os
 import shlex
 import shutil
 import signal
+import sqlite3
 import subprocess
 import sys
 import threading
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 from bigym.cli import usage_error
@@ -102,7 +104,16 @@ from .harnesses import (
     model_mismatch,
     new_container_name,
 )
-from .registry import claim, close_row, open_registry, read_budget
+from .registry import (
+    STOP_NOTE,
+    claim,
+    close_row,
+    open_registry,
+    read_budget,
+    record_process_group,
+    stop_cells_of,
+    stop_requested,
+)
 from .snapshots import version_dir
 
 # The benchmark's own commands, run as subprocesses of this interpreter.
@@ -478,8 +489,16 @@ def stop_server(server: subprocess.Popen) -> None:
         server.kill()
 
 
-def run_agent(spec: AgentCommand, cell: Path, args: RunConfig) -> int:
-    """Run the agent to completion (or to the wall-clock limit); returns its exit."""
+def run_agent(
+    spec: AgentCommand,
+    cell: Path,
+    args: RunConfig,
+    on_start: Callable[[int], None] | None = None,
+) -> int:
+    """Run the agent to completion (or to the wall-clock limit); returns its exit.
+
+    ``on_start`` is called with the agent's process group once it is running.
+    """
     mode = "a" if args.resume else "w"
     with open(spec.out, mode) as out, open(spec.err, mode) as err:
         try:
@@ -497,6 +516,8 @@ def run_agent(spec: AgentCommand, cell: Path, args: RunConfig) -> int:
                 text=spec.stdin is not None,
                 start_new_session=True,
             )
+            if on_start is not None:
+                on_start(proc.pid)
             try:
                 proc.communicate(input=spec.stdin, timeout=args.session_timeout_s)
                 return proc.returncode
@@ -693,6 +714,7 @@ def run_with_server(
     env: dict[str, str],
     serve_cmd: list[str],
     spec: AgentCommand,
+    on_start: Callable[[int], None] | None = None,
 ) -> int:
     """Start the environment server, run the agent against it, stop it.
 
@@ -714,7 +736,7 @@ def run_with_server(
             raise RuntimeError(problem)
         launched = args.model or command_text(spec.cmd)
         log(f"{task}: server ready, launching {args.harness} ({launched})")
-        return run_agent(spec, cell, args)
+        return run_agent(spec, cell, args, on_start)
     finally:
         stop_server(server)
 
@@ -763,9 +785,16 @@ def rejection(summary: Path) -> str | None:
 
 
 def evaluate_submission(
-    task: str, cell: Path, args: RunConfig, env: dict[str, str], config: dict
+    task: str,
+    cell: Path,
+    args: RunConfig,
+    env: dict[str, str],
+    config: dict,
+    on_start: Callable[[int], None] | None = None,
 ) -> dict:
     """Score the cell's submission and record the evaluation in ``run.json``.
+
+    ``on_start`` is called with the evaluation's process group once it runs.
 
     Returns:
         The ``evaluation`` block of ``run.json``.
@@ -786,19 +815,21 @@ def evaluate_submission(
     write_run_json(cell, config)
     log(f"{task}: evaluating the submission ({shlex.join(command)})")
     with open(cell / "eval.log", "w") as handle:
+        proc = subprocess.Popen(
+            command,
+            env=env,
+            stdout=handle,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+        )
+        if on_start is not None:
+            on_start(proc.pid)
         if args.eval_detached:
-            subprocess.Popen(
-                command,
-                env=env,
-                stdout=handle,
-                stderr=subprocess.STDOUT,
-                start_new_session=True,
-            )
             return evaluation
-        done = subprocess.run(command, env=env, stdout=handle, stderr=subprocess.STDOUT)
+        returncode = proc.wait()
     summary = eval_summary_path(cell, command, version)
-    evaluation["exit"] = done.returncode
-    if done.returncode == 0 and summary.exists():
+    evaluation["exit"] = returncode
+    if returncode == 0 and summary.exists():
         evaluation["status"] = "scored"
         evaluation["summary"] = str(summary)
         rejected = rejection(summary)
@@ -814,7 +845,7 @@ def evaluate_submission(
         evaluation["status"] = "failed"
         log(
             f"{task}: WARNING evaluation failed (exit "
-            f"{done.returncode}, no {summary.name}); see "
+            f"{returncode}, no {summary.name}); see "
             f"{cell / 'eval.log'}; re-run with "
             f"`bigym-agent evaluate {cell} --version {version}`"
         )
@@ -822,12 +853,45 @@ def evaluate_submission(
     return evaluation
 
 
-def run_session(task: str, args: RunConfig) -> dict:
+def cell_process_started(conn: sqlite3.Connection, row: int | None, pgid: int) -> None:
+    """Record the group of a cell's agent or evaluation; stop it if the cell was killed."""
+    record_process_group(conn, row, pgid)
+    if stop_requested(conn, row):
+        try:
+            os.killpg(pgid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+
+
+def claim_unless_cancelled(
+    conn: sqlite3.Connection,
+    cell: Path,
+    task: str,
+    info: dict,
+    cancel: threading.Event | None,
+) -> int | None:
+    """Claim the cell, unless the run was interrupted.
+
+    The interrupt is checked after the claim, so an interrupt either finds
+    the row in the registry or is seen here.
+    """
+    row = claim(conn, cell, task, info)
+    if row is not None and cancel is not None and cancel.is_set():
+        close_row(conn, row, STOP_NOTE)
+        return None
+    return row
+
+
+def run_session(
+    task: str, args: RunConfig, cancel: threading.Event | None = None
+) -> dict:
     """Run one task's session end to end.
 
     Args:
         task: The task name.
         args: The parsed ``run`` arguments.
+        cancel: Set when the run is interrupted; the session then does not
+            start.
 
     Returns:
         A result dictionary (``task``, and either ``error`` or ``exit``,
@@ -868,7 +932,7 @@ def run_session(task: str, args: RunConfig) -> dict:
         return {"task": task, "dry_run": True}
 
     conn = open_registry(args.root)
-    row = claim(
+    row = claim_unless_cancelled(
         conn,
         cell,
         task,
@@ -882,10 +946,18 @@ def run_session(task: str, args: RunConfig) -> dict:
             "model": args.model,
             "cmd": command_text(spec.cmd),
         },
+        cancel,
     )
     if row is None:
+        conn.close()
+        if cancel is not None and cancel.is_set():
+            return {"task": task, "error": "interrupted"}
         return {"task": task, "error": "refused by the registry"}
     started = time.time()
+
+    def started_process(pgid: int) -> None:
+        cell_process_started(conn, row, pgid)
+
     config = run_config(task, cell, args, spec, *device)
     try:
         cell.mkdir(parents=True, exist_ok=True)
@@ -898,11 +970,22 @@ def run_session(task: str, args: RunConfig) -> dict:
         config["harness_version"] = spec.version
         config["resume_session"] = spec.resume
         write_run_json(cell, config)
-        rc = run_with_server(task, cell, args, env, serve_cmd, spec)
+        rc = run_with_server(
+            task,
+            cell,
+            args,
+            env,
+            serve_cmd,
+            spec,
+            on_start=started_process,
+        )
         last = cell / "raw" / "codex_home" / "codex_last.txt"
         if last.exists():
             shutil.copy(last, cell / "raw" / "codex_last.txt")
         state, why = submission_state(cell, rc, spec.container)
+        killed = stop_requested(conn, row)
+        if killed and state != "void":
+            state, why = "interrupted", "killed"
         log(f"{task}: session done (exit {rc}), verdict {state} {why}".rstrip())
         verdict = {"state": state, "reason": why}
         record_outcome(cell, args, config, rc, verdict, started)
@@ -912,10 +995,17 @@ def run_session(task: str, args: RunConfig) -> dict:
             "verdict": state,
             "budget": config["budget"],
         }
-        if state != "void" and args.eval:
-            evaluation = evaluate_submission(task, cell, args, env, config)
+        if state != "void" and args.eval and not killed:
+            evaluation = evaluate_submission(
+                task, cell, args, env, config, on_start=started_process
+            )
+            if stop_requested(conn, row):
+                verdict.update(state="interrupted", reason="killed")
+                evaluation["status"] = "killed"
+                result["verdict"] = "interrupted"
+                write_run_json(cell, config)
             result["evaluation"] = evaluation["status"]
-        elif state == "void":
+        elif state == "void" or killed:
             log(f"{task}: no evaluation, the cell stays unscored ({why})")
         return result
     except Exception as exc:  # the batch keeps going; the cell records why
@@ -993,7 +1083,8 @@ def main(argv: list[str] | RunConfig | None = None) -> int:
         print("bigym-agent run: --task is required", file=sys.stderr)
         return 2
     results: list[dict] = []
-    queue, lock = list(tasks), threading.Lock()
+    queue = list(tasks)
+    lock, cancel = threading.Lock(), threading.Event()
 
     def worker() -> None:
         while True:
@@ -1002,7 +1093,7 @@ def main(argv: list[str] | RunConfig | None = None) -> int:
                     return
                 task = queue.pop(0)
             try:
-                result = run_session(task, args)
+                result = run_session(task, args, cancel)
             except Exception as exc:
                 result = {"task": task, "error": f"{type(exc).__name__}: {exc}"}
             with lock:
@@ -1015,8 +1106,21 @@ def main(argv: list[str] | RunConfig | None = None) -> int:
     ]
     for thread in threads:
         thread.start()
-    for thread in threads:
-        thread.join()
+    try:
+        for thread in threads:
+            thread.join()
+    except KeyboardInterrupt:
+        # Agents and evaluations run in their own process groups, out of reach
+        # of the terminal's Ctrl+C: stop them as `kill` would, and let each
+        # worker record its cell before exiting.
+        log("interrupted: stopping the running cells")
+        cancel.set()
+        with lock:
+            queue.clear()
+        stop_cells_of(args.root, os.getpid())
+        for thread in threads:
+            thread.join(timeout=120)
+        return 130
     if not args.dry_run:
         write_run_results(args.root, results)
     return 1 if any("error" in r for r in results) else 0

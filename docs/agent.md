@@ -128,7 +128,9 @@ development episodes and policy versions appear while the agent works.
 
 A session whose `policy.py` is still the untouched template is `void` and is
 not scored. Otherwise `run` scores the last policy version on the hidden
-seeds. An interrupted session is scored and marked `interrupted`.
+seeds. An interrupted session is scored and marked `interrupted`. A cell
+stopped with `bigym-agent kill` is marked `interrupted` (reason `killed`) and
+is not scored.
 
 `--no-eval` skips the evaluation, `--eval-detached` runs it in the background,
 and `--eval-episodes N` shortens it for a smoke test. Reported numbers use

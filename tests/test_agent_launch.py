@@ -450,6 +450,157 @@ def test_registry_refuses_a_duplicate_container_name(tmp_path, monkeypatch, caps
     assert "refused: container" in capsys.readouterr().out
 
 
+def test_kill_stops_one_session_and_leaves_its_run_and_siblings(tmp_path):
+    """Killing one cell stops its agent only, and holds the cell until its run ends."""
+
+    def spawn():
+        return subprocess.Popen(["sleep", "60"], start_new_session=True)
+
+    run, agent_a, agent_b = spawn(), spawn(), spawn()
+    try:
+        root = tmp_path / "root"
+        conn = registry.open_registry(root)
+        rows = {}
+        for task, agent in (("move_plate", agent_a), ("pick_box", agent_b)):
+            rows[task] = registry.claim(conn, root / task, task, {"container": None})
+            conn.execute("UPDATE runs SET pid=? WHERE id=?", (run.pid, rows[task]))
+            registry.record_process_group(conn, rows[task], agent.pid)
+        conn.commit()
+        assert registry.main_kill(["--root", str(root), "move_plate"]) == 0
+        assert agent_a.wait(timeout=10) is not None
+        assert agent_b.poll() is None
+        assert run.poll() is None
+        assert registry.stop_requested(conn, rows["move_plate"])
+        assert not registry.stop_requested(conn, rows["pick_box"])
+        # The run still owns the killed cell until it has wound it down.
+        cell = root / "move_plate"
+        assert registry.claim(conn, cell, "move_plate", {"container": None}) is None
+        registry.close_row(conn, rows["move_plate"])
+        assert registry.claim(conn, cell, "move_plate", {"container": None})
+        conn.close()
+    finally:
+        for proc in (run, agent_a, agent_b):
+            proc.kill()
+            proc.wait()
+
+
+def test_kill_before_the_agent_starts_stops_it_when_it_does(tmp_path):
+    """A cell killed while its sandbox is built never gets a running agent."""
+    run = subprocess.Popen(["sleep", "60"], start_new_session=True)
+    agent = None
+    try:
+        root = tmp_path / "root"
+        conn = registry.open_registry(root)
+        row = registry.claim(
+            conn, root / "move_plate", "move_plate", {"container": None}
+        )
+        conn.execute(
+            "UPDATE runs SET pid=?, pgid=? WHERE id=?", (run.pid, run.pid, row)
+        )
+        conn.commit()
+        assert registry.main_kill(["--root", str(root), "move_plate"]) == 0
+        assert run.poll() is None
+        agent = subprocess.Popen(["sleep", "60"], start_new_session=True)
+        launch.cell_process_started(conn, row, agent.pid)
+        assert agent.wait(timeout=10) is not None
+        conn.close()
+    finally:
+        for proc in (run, agent):
+            if proc is not None:
+                proc.kill()
+                proc.wait()
+
+
+def test_kill_before_the_evaluation_starts_stops_it_when_it_does(tmp_path, monkeypatch):
+    """A cell killed after its agent ended is not evaluated after all."""
+    monkeypatch.setattr(launch, "eval_command", lambda *a: (["sleep", "60"], 1))
+    run = subprocess.Popen(["sleep", "60"], start_new_session=True)
+    try:
+        root = tmp_path / "root"
+        cell = root / "move_plate"
+        conn = registry.open_registry(root)
+        row = registry.claim(conn, cell, "move_plate", {"container": None})
+        conn.execute(
+            "UPDATE runs SET pid=?, pgid=? WHERE id=?", (run.pid, run.pid, row)
+        )
+        conn.commit()
+        assert registry.main_kill(["--root", str(root), "move_plate"]) == 0
+        args = SimpleNamespace(eval_detached=False)
+        evaluation = launch.evaluate_submission(
+            "move_plate",
+            cell,
+            args,  # ty: ignore[invalid-argument-type]
+            {},
+            {},
+            on_start=lambda pgid: launch.cell_process_started(conn, row, pgid),
+        )
+        assert evaluation["status"] == "failed"
+        assert evaluation["exit"] != 0
+        conn.close()
+    finally:
+        run.kill()
+        run.wait()
+
+
+RUN_WITH_SLEEPING_AGENTS = """
+import os, subprocess, sys, time
+from bigym.loco.agent import launch, registry
+
+first = []
+
+def session(task, args, cancel=None):
+    if task == "pick_box":
+        # Claims only once Ctrl+C has stopped the first cell.
+        while not first or registry.alive(first[0]):
+            time.sleep(0.05)
+    conn = registry.open_registry(args.root)
+    row = launch.claim_unless_cancelled(
+        conn, args.root / task, task, {"container": None}, cancel
+    )
+    if row is None:
+        return {"task": task, "error": "interrupted"}
+    agent = subprocess.Popen(["sleep", "60"], start_new_session=True)
+    launch.cell_process_started(conn, row, agent.pid)
+    first.append(agent.pid)
+    print(task, agent.pid, flush=True)
+    agent.wait()
+    registry.close_row(conn, row)
+    return {"task": task, "exit": agent.returncode}
+
+launch.run_session = session
+sys.exit(launch.main([
+    "--task", "move_plate", "pick_box", "--parallel", "2",
+    "--root", sys.argv[1], "--model", "m",
+]))
+"""
+
+
+def test_ctrl_c_on_run_stops_its_cells_and_starts_no_more(tmp_path):
+    """Ctrl+C stops the running agents, and a cell claimed afterwards never starts."""
+    import signal
+    import sys
+
+    run = subprocess.Popen(
+        [sys.executable, "-c", RUN_WITH_SLEEPING_AGENTS, str(tmp_path / "root")],
+        stdout=subprocess.PIPE,
+        text=True,
+    )
+    assert run.stdout is not None
+    task, agent = run.stdout.readline().split()
+    assert task == "move_plate"
+    try:
+        run.send_signal(signal.SIGINT)
+        assert run.wait(timeout=60) == 130
+        assert not registry.alive(int(agent))
+        rest = run.stdout.read().splitlines()
+        assert not any(line.startswith("pick_box ") for line in rest)
+        assert any("pick_box" in line and "interrupted" in line for line in rest)
+    finally:
+        run.kill()
+        if registry.alive(int(agent)):
+            os.kill(int(agent), 9)
+
+
 def test_status_and_gc(tmp_path, capsys):
     """status lists live rows; gc closes the dead ones."""
     root = tmp_path / "root"

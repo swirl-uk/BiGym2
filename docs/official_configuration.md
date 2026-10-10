@@ -181,8 +181,7 @@ uv run python -m bigym.loco.eval.runner --task move_plate --method my-method \
 ## Baseline training recipe v1
 
 The paper trained its five baselines (ACT, Diffusion Policy, DEAS, CQN-AS and
-DrQ-v2+) with this recipe. It is not implemented in this repository.
-`examples/train_act.py` is a minimal ACT example that does not follow it.
+DrQ-v2+) with this recipe.
 
 The five baselines use the official configuration above: three 84×84 RGB
 cameras, the low-dimensional and action layouts, 60 demonstrations, the

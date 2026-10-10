@@ -17,8 +17,9 @@ imitation method like this one has no use for it.
 The policy is a compact Action Chunking Transformer: a CNN per camera and a
 state MLP feed a transformer decoder that predicts the next ``chunk`` actions,
 trained with an L1 loss and executed with temporal ensembling. It leaves out
-parts of the original ACT (the CVAE, a pretrained ResNet backbone), so it is a
-starting point, not a reproduction of a paper number::
+parts of the original ACT (the CVAE, a pretrained ResNet backbone). This
+simplified ACT example is for getting started; it does not reproduce the
+paper's ACT results::
 
     MUJOCO_GL=egl uv run --with torch python examples/train_act.py \
         --task reach_target_single --steps 20000 --eval-episodes 100

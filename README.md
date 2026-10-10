@@ -94,10 +94,10 @@ A coding agent gets a one-sentence task description, a video of one human demons
 uv sync --extra agent
 export OPENAI_API_KEY=<your-key>
 uv run bigym-download --agent --task move_plate   # the demonstration video and task metadata, about 4 MB
-uv run bigym-agent run --task move_plate --harness codex --model <model-id>
+uv run bigym-agent run --task move_plate --harness codex --model gpt-6-astra --effort high
 ```
 
-Running agents does not need the training demonstrations: `--agent` skips them (68 MB for all 20 tasks instead of 29 GB), and `run` downloads the same files itself if you skip that step. The harness runs in Docker, so the host needs Docker and ffmpeg. With `--harness claude`, set `ANTHROPIC_API_KEY` instead. Setup and results are in [Coding-agent benchmark](https://bigym2.github.io/docs/agent.html).
+Running agents does not need the training demonstrations: `--agent` skips them (68 MB for all 20 tasks instead of 29 GB), and `run` downloads the same files itself if you skip that step. The harness runs in Docker on a Linux host with an NVIDIA GPU and ffmpeg. With `--harness claude`, set `ANTHROPIC_API_KEY` instead. To compare with the paper, keep every setting at its default and use the paper's models and CLI versions, listed in [Reproducing the paper's results](https://bigym2.github.io/docs/agent.html#reproducing-the-paper-s-results). Setup and results are in [Coding-agent benchmark](https://bigym2.github.io/docs/agent.html).
 
 ## Documentation
 

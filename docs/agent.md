@@ -7,15 +7,16 @@ same frozen lower-body controller.
 
 ## Quick start
 
-Running agents needs Docker (usable without `sudo`), `ffmpeg`, a GPU with
-6000 MiB free and an API key. It does not need the training demonstrations.
+Running agents needs a Linux machine with Docker (usable without `sudo`),
+`ffmpeg`, an NVIDIA GPU with 6000 MiB free and an API key. It does not need
+the training demonstrations.
 
 ```bash
 uv sync --extra agent
 export MUJOCO_GL=egl
 export OPENAI_API_KEY=<your-key>                  # ANTHROPIC_API_KEY with --harness claude
 uv run bigym-download --agent --task move_plate   # demonstration video + metadata, about 4 MB
-uv run bigym-agent run --task move_plate --harness codex --model <model-id> --effort high
+uv run bigym-agent run --task move_plate --harness codex --model gpt-6-astra --effort high
 ```
 
 `bigym-download --agent` fetches each task's demonstration video and the
@@ -23,8 +24,43 @@ metadata a session needs (the development seeds), not the 60 training
 demonstrations: `--agent --all` is 68 MB for all 20 tasks. `run` downloads
 the same files itself when they are missing, so the download step matters
 only on a machine that runs offline later. The first `run` builds the harness
-image and the Docker networks. The cell lands in `bigym-agent-runs/move_plate/`;
-[Reading results](#reading-results) says what is in it.
+image and the Docker networks.
+
+A session stops when the agent finishes or after 3 hours. Sessions with the
+paper's settings took about 45 minutes and $15 of API usage at the median, 2
+hours and $50 at most. `run` then scores the policy on the 100 evaluation
+seeds and writes the cell (one task, one session) to
+`bigym-agent-runs/move_plate/`. `uv run bigym-agent status --all` shows its
+score; [Reading results](#reading-results) says what else is in it.
+
+## Reproducing the paper's results
+
+Leave every setting that changes a result at its default: `--interface
+strict`, `--image-cap 84x84`, the default demonstration (no `--demo`,
+`--demo-episode` or `--demo-episodes`), `--isolation container`, the
+101,000-step budget, the 3-hour session limit and the 100 evaluation
+episodes. Do not pass `--slew`, `--tier privileged` or
+`--allow-external-cameras`.
+
+The paper ran three sessions per task (`--sessions 3`) with:
+
+| model | flags | CLI version |
+|---|---|---|
+| GPT-6 Astra | `--harness codex --model gpt-6-astra --effort high` | Codex CLI 0.153.4 |
+| Claude Opus 5.5 | `--harness claude --model claude-opus-5-5 --effort high` | Claude Code 2.1.280 |
+
+The harness images install the latest CLI. To run the paper's versions,
+build them pinned before the first `run`:
+
+```bash
+cd bigym/loco/agent/docker
+docker build -f Dockerfile.codex  -t bigym-agent-codex  --build-arg CODEX_VERSION=0.153.4 .
+docker build -f Dockerfile.claude -t bigym-agent-claude --build-arg CLAUDE_CODE_VERSION=2.1.280 .
+```
+
+Scores vary widely between sessions of the same task, so compare means over
+sessions. Every evaluation episode of the paper's sessions is in
+[SWIRL-Lab/bigym2-agent-rollouts](https://huggingface.co/datasets/SWIRL-Lab/bigym2-agent-rollouts).
 
 ## Rules and scoring
 

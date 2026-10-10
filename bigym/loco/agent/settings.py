@@ -55,6 +55,19 @@ SOFT_BASH_ALLOW = [
 # Credential stores that stay unreadable whatever else the session is given.
 DENY_READ_ALWAYS = ["~/.ssh", "~/.aws", "~/.kube", "~/.claude", "~/.codex"]
 
+# Instruction files of the project the sandbox sits in, kept from the agent.
+INSTRUCTION_FILE_EXCLUDES = [
+    "**/CLAUDE.md", "**/CLAUDE.local.md", "**/AGENTS.md", "**/.claude/rules/**",
+]  # fmt: skip
+
+# Harness flags for a session on the host, keeping the instruction files and
+# skills of the project and the user around the sandbox from the agent. A
+# one-token skill budget leaves Codex's skill list empty.
+CLAUDE_HOST_FLAGS = ["--disable-slash-commands"]
+CODEX_HOST_FLAGS = [
+    "-c", "project_doc_max_bytes=0", "-c", "skills.max_context_tokens=1",
+]  # fmt: skip
+
 
 def claude_settings_soft(sandbox: Path, effort: str = "high") -> dict:
     """Tool-level isolation only, for hosts where the full sandbox cannot start.
@@ -76,6 +89,7 @@ def claude_settings_soft(sandbox: Path, effort: str = "high") -> dict:
             "allow": list(SOFT_BASH_ALLOW),
             "additionalDirectories": [],
         },
+        "claudeMdExcludes": list(INSTRUCTION_FILE_EXCLUDES),
         "disableClaudeAiConnectors": True,
         "effortLevel": effort,
         "autoCompactEnabled": True,

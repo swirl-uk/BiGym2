@@ -31,7 +31,7 @@ from bigym.loco.eval.protocol import EVAL_SEED_BASE
 
 from .. import wire
 from ..cli import InloopConfig, parse_command
-from ..settings import claude_settings_soft
+from ..settings import CLAUDE_HOST_FLAGS, CODEX_HOST_FLAGS, claude_settings_soft
 
 HERE = Path(__file__).resolve().parent
 PACKAGE = HERE.parent
@@ -287,7 +287,7 @@ def run_episode(root: Path, i: int, worker: int, args) -> dict:
         cmd = [
             "codex", "exec", "--skip-git-repo-check", "-C", str(ep),
             "--dangerously-bypass-approvals-and-sandbox", "-m", args.model,
-            "-c", f"model_reasoning_effort={args.effort}", "--json",
+            "-c", f"model_reasoning_effort={args.effort}", *CODEX_HOST_FLAGS, "--json",
             "-o", str(ep / "codex_last.txt"), (ep / "PROMPT.md").read_text(),
         ]  # fmt: skip
         env = dict(os.environ, CODEX_HOME=str(CODEX_HOME))
@@ -308,7 +308,7 @@ def run_episode(root: Path, i: int, worker: int, args) -> dict:
         cmd = [
             "claude", "-p", (ep / "PROMPT.md").read_text(), "--setting-sources", "project",
             "--settings", str(ep / "claude_settings.json"), "--permission-mode", "dontAsk",
-            "--allowedTools", "Read,Bash,Glob,Grep", "--model", args.model,
+            "--allowedTools", "Read,Bash,Glob,Grep", *CLAUDE_HOST_FLAGS, "--model", args.model,
             "--max-turns", str(args.max_turns), "--output-format", "json",
         ]  # fmt: skip
         env = dict(os.environ, CLAUDE_CODE_DISABLE_AUTO_MEMORY="1")

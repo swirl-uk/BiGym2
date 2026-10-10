@@ -34,6 +34,7 @@ from pathlib import Path
 
 from . import containers
 from .cli import RunConfig
+from .settings import CLAUDE_HOST_FLAGS, CODEX_HOST_FLAGS
 
 # Per harness: whose models it runs, the harness for the other vendor, and the
 # name prefixes (case-insensitive) of that vendor's models. A prefix check, not
@@ -622,6 +623,7 @@ def codex_on_host(session: Session) -> AgentCommand:
         args.model,
         "-c",
         f"model_reasoning_effort={args.effort}",
+        *CODEX_HOST_FLAGS,
         "--json",
         "-o",
         str(raw / "codex_last.txt"),
@@ -654,6 +656,7 @@ def claude_on_host(session: Session) -> AgentCommand:
         "dontAsk",
         "--allowedTools",
         "Read,Edit,Write,Bash,Glob,Grep",
+        *CLAUDE_HOST_FLAGS,
         "--model",
         args.model,
         "--max-turns",

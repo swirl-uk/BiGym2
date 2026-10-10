@@ -288,6 +288,8 @@ def test_isolation_picks_the_interpreter_and_the_settings(tmp_path, datasets):
     settings = json.loads((soft / "sandbox" / "claude_settings.json").read_text())
     assert "sandbox" not in settings
     assert "WebFetch" in settings["permissions"]["deny"]
+    # On the host the instruction files of the project around the sandbox stay out.
+    assert {"**/CLAUDE.md", "**/AGENTS.md"} <= set(settings["claudeMdExcludes"])
 
 
 def test_image_cap_is_stated_in_the_document(tmp_path, datasets):

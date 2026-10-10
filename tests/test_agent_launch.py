@@ -122,6 +122,21 @@ def test_dry_run_soft_isolation(tmp_path, capsys):
     assert "--isolation soft" in out
 
 
+@pytest.mark.parametrize(
+    "harness, flags",
+    [
+        ("codex", "-c project_doc_max_bytes=0 -c skills.max_context_tokens=1"),
+        ("claude", "--disable-slash-commands"),
+    ],
+)
+def test_dry_run_soft_keeps_project_files_out(tmp_path, capsys, harness, flags):
+    """On the host, the harness skips the project's instruction files and skills."""
+    _run(tmp_path, "--harness", harness, "--isolation", "soft")
+    out = capsys.readouterr().out
+    assert "docker run" not in out
+    assert flags in out
+
+
 def test_dry_run_custom(tmp_path, capsys):
     """A custom agent is a shell command with the session in its environment."""
     root = tmp_path / "root"

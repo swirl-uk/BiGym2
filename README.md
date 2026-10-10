@@ -11,7 +11,7 @@
   <a href="https://huggingface.co/datasets/SWIRL-Lab/bigym-g1-native60"><img alt="Dataset" src="https://img.shields.io/badge/%F0%9F%A4%97_Dataset-G1_demos-ffcc4d.svg"></a>
   <a href="https://github.com/astral-sh/uv"><img alt="uv" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json"></a>
   <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/python-3.10%2B-3776ab.svg?logo=python&logoColor=white"></a>
-  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache_2.0-blue.svg"></a>
+  <a href="https://github.com/swirl-uk/BiGym2/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache_2.0-blue.svg"></a>
 </p>
 
 BiGym 2.0 brings [BiGym](https://github.com/NeuracoreAI/bigym) to a walking humanoid. A Unitree G1 performs household tasks while NVIDIA's frozen GR00T-WBC policy keeps it balanced and walking inside every environment step. The same controller runs during VR data collection, training and evaluation.
@@ -31,7 +31,7 @@ git clone https://github.com/swirl-uk/BiGym2.git && cd BiGym2
 uv sync
 ```
 
-This installs the environments, the GR00T-WBC lower body, the demonstration loader and the evaluation protocol. The coding-agent benchmark, VR teleoperation and LeRobot export need extras, listed in [Installation](docs/installation.md).
+This installs the environments, the GR00T-WBC lower body, the demonstration loader and the evaluation protocol. The coding-agent benchmark, VR teleoperation and LeRobot export need extras, listed in [Installation](https://bigym2.github.io/docs/installation.html).
 
 ## Tasks
 
@@ -41,29 +41,29 @@ This installs the environments, the GR00T-WBC lower body, the demonstration load
 
 <table>
 <tr><th colspan="3" align="left">Reaching</th></tr>
-<tr><td><a href="bigym/envs/reach_target.py"><code>reach_target_single</code></a></td><td>Reach the target with the left wrist.</td><td><img src="docs/images/tasks/reach_target_single.jpg" width="160"></td></tr>
-<tr><td><a href="bigym/envs/reach_target.py"><code>reach_target_multi_modal</code></a></td><td>Reach the target with either wrist.</td><td><img src="docs/images/tasks/reach_target_multi_modal.jpg" width="160"></td></tr>
-<tr><td><a href="bigym/envs/reach_target.py"><code>reach_target_dual</code></a></td><td>Reach the two targets, one with each wrist.</td><td><img src="docs/images/tasks/reach_target_dual.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/reach_target.py"><code>reach_target_single</code></a></td><td>Reach the target with the left wrist.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/reach_target_single.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/reach_target.py"><code>reach_target_multi_modal</code></a></td><td>Reach the target with either wrist.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/reach_target_multi_modal.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/reach_target.py"><code>reach_target_dual</code></a></td><td>Reach the two targets, one with each wrist.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/reach_target_dual.jpg" width="160"></td></tr>
 <tr><th colspan="3" align="left">Table-top</th></tr>
-<tr><td><a href="bigym/envs/move_plates.py"><code>move_plate</code></a></td><td>Move the plate between two draining racks.</td><td><img src="docs/images/tasks/move_plate.jpg" width="160"></td></tr>
-<tr><td><a href="bigym/envs/move_plates.py"><code>move_two_plates</code></a></td><td>Move two plates simultaneously from one draining rack to the other.</td><td><img src="docs/images/tasks/move_two_plates.jpg" width="160"></td></tr>
-<tr><td><a href="bigym/envs/manipulation.py"><code>flip_cup</code></a></td><td>Flip the upside-down cup to an upright position.</td><td><img src="docs/images/tasks/flip_cup.jpg" width="160"></td></tr>
-<tr><td><a href="bigym/envs/manipulation.py"><code>flip_cutlery</code></a></td><td>Take the cutlery from the holder, flip it, and place it back.</td><td><img src="docs/images/tasks/flip_cutlery.jpg" width="160"></td></tr>
-<tr><td><a href="bigym/envs/manipulation.py"><code>stack_blocks</code></a></td><td>Move blocks across the table and stack them in the target area.</td><td><img src="docs/images/tasks/stack_blocks.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/move_plates.py"><code>move_plate</code></a></td><td>Move the plate between two draining racks.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/move_plate.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/move_plates.py"><code>move_two_plates</code></a></td><td>Move two plates simultaneously from one draining rack to the other.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/move_two_plates.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/manipulation.py"><code>flip_cup</code></a></td><td>Flip the upside-down cup to an upright position.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/flip_cup.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/manipulation.py"><code>flip_cutlery</code></a></td><td>Take the cutlery from the holder, flip it, and place it back.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/flip_cutlery.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/manipulation.py"><code>stack_blocks</code></a></td><td>Move blocks across the table and stack them in the target area.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/stack_blocks.jpg" width="160"></td></tr>
 <tr><th colspan="3" align="left">Dishwasher</th></tr>
-<tr><td><a href="bigym/envs/dishwasher.py"><code>dishwasher_close</code></a></td><td>Push back all trays and close the door of the dishwasher.</td><td><img src="docs/images/tasks/dishwasher_close.jpg" width="160"></td></tr>
-<tr><td><a href="bigym/envs/dishwasher_cups.py"><code>dishwasher_load_cups</code></a></td><td>Move the cups from the table into the dishwasher's upper tray.</td><td><img src="docs/images/tasks/dishwasher_load_cups.jpg" width="160"></td></tr>
-<tr><td><a href="bigym/envs/dishwasher_cutlery.py"><code>dishwasher_load_cutlery</code></a></td><td>Move the cutlery from the holder on the table into the dishwasher's cutlery basket.</td><td><img src="docs/images/tasks/dishwasher_load_cutlery.jpg" width="160"></td></tr>
-<tr><td><a href="bigym/envs/dishwasher_plates.py"><code>dishwasher_load_plates</code></a></td><td>Move the plates from the rack into the dishwasher's lower tray.</td><td><img src="docs/images/tasks/dishwasher_load_plates.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/dishwasher.py"><code>dishwasher_close</code></a></td><td>Push back all trays and close the door of the dishwasher.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/dishwasher_close.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/dishwasher_cups.py"><code>dishwasher_load_cups</code></a></td><td>Move the cups from the table into the dishwasher's upper tray.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/dishwasher_load_cups.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/dishwasher_cutlery.py"><code>dishwasher_load_cutlery</code></a></td><td>Move the cutlery from the holder on the table into the dishwasher's cutlery basket.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/dishwasher_load_cutlery.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/dishwasher_plates.py"><code>dishwasher_load_plates</code></a></td><td>Move the plates from the rack into the dishwasher's lower tray.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/dishwasher_load_plates.jpg" width="160"></td></tr>
 <tr><th colspan="3" align="left">Kitchen counter</th></tr>
-<tr><td><a href="bigym/envs/cupboards.py"><code>drawer_top_open</code></a></td><td>Open the top drawer of the kitchen cabinet.</td><td><img src="docs/images/tasks/drawer_top_open.jpg" width="160"></td></tr>
-<tr><td><a href="bigym/envs/cupboards.py"><code>drawer_top_close</code></a></td><td>Close the top drawer of the kitchen cabinet.</td><td><img src="docs/images/tasks/drawer_top_close.jpg" width="160"></td></tr>
-<tr><td><a href="bigym/envs/pick_and_place.py"><code>pick_box</code></a></td><td>Pick up the box from the side table and place it on the counter.</td><td><img src="docs/images/tasks/pick_box.jpg" width="160"></td></tr>
-<tr><td><a href="bigym/envs/pick_and_place.py"><code>put_cups</code></a></td><td>Pick up the cups from the table and put them into the closed wall cabinet.</td><td><img src="docs/images/tasks/put_cups.jpg" width="160"></td></tr>
-<tr><td><a href="bigym/envs/pick_and_place.py"><code>saucepan_to_hob</code></a></td><td>Take the saucepan from the closed cabinet and place it on the hob.</td><td><img src="docs/images/tasks/saucepan_to_hob.jpg" width="160"></td></tr>
-<tr><td><a href="bigym/envs/pick_and_place.py"><code>sandwich_remove</code></a></td><td>Remove the sandwich from the frying pan.</td><td><img src="docs/images/tasks/sandwich_remove.jpg" width="160"></td></tr>
-<tr><td><a href="bigym/envs/cupboards.py"><code>wall_cupboard_open</code></a></td><td>Open the doors of the wall cabinet.</td><td><img src="docs/images/tasks/wall_cupboard_open.jpg" width="160"></td></tr>
-<tr><td><a href="bigym/envs/cupboards.py"><code>wall_cupboard_close</code></a></td><td>Close the doors of the wall cabinet.</td><td><img src="docs/images/tasks/wall_cupboard_close.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/cupboards.py"><code>drawer_top_open</code></a></td><td>Open the top drawer of the kitchen cabinet.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/drawer_top_open.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/cupboards.py"><code>drawer_top_close</code></a></td><td>Close the top drawer of the kitchen cabinet.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/drawer_top_close.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/pick_and_place.py"><code>pick_box</code></a></td><td>Pick up the box from the side table and place it on the counter.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/pick_box.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/pick_and_place.py"><code>put_cups</code></a></td><td>Pick up the cups from the table and put them into the closed wall cabinet.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/put_cups.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/pick_and_place.py"><code>saucepan_to_hob</code></a></td><td>Take the saucepan from the closed cabinet and place it on the hob.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/saucepan_to_hob.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/pick_and_place.py"><code>sandwich_remove</code></a></td><td>Remove the sandwich from the frying pan.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/sandwich_remove.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/cupboards.py"><code>wall_cupboard_open</code></a></td><td>Open the doors of the wall cabinet.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/wall_cupboard_open.jpg" width="160"></td></tr>
+<tr><td><a href="https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/cupboards.py"><code>wall_cupboard_close</code></a></td><td>Close the doors of the wall cabinet.</td><td><img src="https://raw.githubusercontent.com/swirl-uk/BiGym2/main/docs/images/tasks/wall_cupboard_close.jpg" width="160"></td></tr>
 </table>
 </details>
 
@@ -77,7 +77,7 @@ uv run bigym-download --all                             # every task
 
 Both go through the Hugging Face cache (`~/.cache/huggingface`), so nothing downloads twice. `bigym-download --local-dir PATH` writes to a folder instead.
 
-`uv run bigym-view` opens a browser viewer with a task dropdown. `--task move_plate` picks the task it opens first, and `--demo-dir PATH` opens a local folder. More in [Demonstrations](docs/demonstrations.md).
+`uv run bigym-view` opens a browser viewer with a task dropdown. `--task move_plate` picks the task it opens first, and `--demo-dir PATH` opens a local folder. More in [Demonstrations](https://bigym2.github.io/docs/demonstrations.html).
 
 ## Coding-agent benchmark
 
@@ -95,20 +95,20 @@ export OPENAI_API_KEY=<your-key>
 uv run bigym-agent run --task move_plate --harness codex --model <model-id>
 ```
 
-The harness runs in Docker. The host needs Docker, ffmpeg and an API key (`OPENAI_API_KEY`, or `ANTHROPIC_API_KEY` with `--harness claude`). Setup is in [Coding-agent benchmark](docs/agent.md).
+The harness runs in Docker. The host needs Docker, ffmpeg and an API key (`OPENAI_API_KEY`, or `ANTHROPIC_API_KEY` with `--harness claude`). Setup is in [Coding-agent benchmark](https://bigym2.github.io/docs/agent.html).
 
 ## Documentation
 
 | Guide | Contents |
 |---|---|
-| [Getting started](docs/getting_started.md) | First environment, action layout, demonstrations |
-| [Tasks](docs/tasks.md) | Success conditions, reset randomisation, episode budgets |
-| [Official configuration](docs/official_configuration.md) | Configuration, evaluation protocol, seeds, result records |
-| [Demonstrations](docs/demonstrations.md) | Downloading, loading and converting the demos |
-| [Coding-agent benchmark](docs/agent.md) | Sandbox, harnesses, scoring |
-| [Demo collection](docs/demo_collection.md) | Recording your own VR demonstrations |
-| [Building on BiGym 2.0](docs/extending.md) | Your own tasks and controllers in a separate package |
-| [FAQ](docs/faq.md) | Common errors and their fixes |
+| [Getting started](https://bigym2.github.io/docs/getting_started.html) | First environment, action layout, demonstrations |
+| [Tasks](https://bigym2.github.io/docs/tasks.html) | Success conditions, reset randomisation, episode budgets |
+| [Official configuration](https://bigym2.github.io/docs/official_configuration.html) | Configuration, evaluation protocol, seeds, result records |
+| [Demonstrations](https://bigym2.github.io/docs/demonstrations.html) | Downloading, loading and converting the demos |
+| [Coding-agent benchmark](https://bigym2.github.io/docs/agent.html) | Sandbox, harnesses, scoring |
+| [Demo collection](https://bigym2.github.io/docs/demo_collection.html) | Recording your own VR demonstrations |
+| [Building on BiGym 2.0](https://bigym2.github.io/docs/extending.html) | Your own tasks and controllers in a separate package |
+| [FAQ](https://bigym2.github.io/docs/faq.html) | Common errors and their fixes |
 
 The documentation is also published at <https://bigym2.github.io/docs/>.
 
@@ -146,8 +146,8 @@ Please also cite [BiGym](https://arxiv.org/abs/2407.07788):
 
 ## License
 
-The code is released under the [Apache 2.0 License](LICENSE). Bundled third-party components keep their own licenses:
+The code is released under the [Apache 2.0 License](https://github.com/swirl-uk/BiGym2/blob/main/LICENSE). Bundled third-party components keep their own licenses:
 
-- Robot model: the Unitree G1 description (BSD-3-Clause) in the MuJoCo packaging of [AMO](https://github.com/OpenTeleVision/AMO) (Apache-2.0). See [`bigym/envs/xmls/g1/`](bigym/envs/xmls/g1/).
-- Scene props: CC0 or CC BY 4.0. See [the attributions](bigym/envs/xmls/3D_MODELS_ATTRIBUTION.md).
-- GR00T-WBC weights: NVIDIA's, redistributed under the NVIDIA Open Model License. See [`NOTICE`](NOTICE) and [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+- Robot model: the Unitree G1 description (BSD-3-Clause) in the MuJoCo packaging of [AMO](https://github.com/OpenTeleVision/AMO) (Apache-2.0). See [`bigym/envs/xmls/g1/`](https://github.com/swirl-uk/BiGym2/tree/main/bigym/envs/xmls/g1).
+- Scene props: CC0 or CC BY 4.0. See [the attributions](https://github.com/swirl-uk/BiGym2/blob/main/bigym/envs/xmls/3D_MODELS_ATTRIBUTION.md).
+- GR00T-WBC weights: NVIDIA's, redistributed under the NVIDIA Open Model License. See [`NOTICE`](https://github.com/swirl-uk/BiGym2/blob/main/NOTICE) and [`THIRD_PARTY_NOTICES.md`](https://github.com/swirl-uk/BiGym2/blob/main/THIRD_PARTY_NOTICES.md).

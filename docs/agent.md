@@ -107,6 +107,8 @@ Each harness runs only its own vendor's models (`codex` for OpenAI, `claude`
 for Anthropic), and `run` refuses a mismatch before anything starts.
 `--dry-run` prints every command the run would execute and writes nothing.
 `--task move_plate pick_box --parallel 2` runs two sessions at once.
+`--sessions 3` runs every task three times, session k in the root
+`<root>_s<k>`. `--parallel` counts the sessions of every task and session.
 
 Each session takes the GPU with the most free memory and refuses to start if
 it has less than 6000 MiB free (`--min-free-mib`). `--gpu` picks a GPU by its

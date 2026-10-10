@@ -594,8 +594,11 @@ class RunConfig:
     memory)."""
     min_free_mib: int = 6000
     """GPU memory a session needs free before it starts."""
+    sessions: int = 1
+    """Independent sessions per task. Above 1, session k writes to the root
+    <root>_s<k>."""
     parallel: int = 1
-    """Sessions to run at once."""
+    """Sessions to run at once, over all tasks and --sessions."""
     resume: bool = False
     """claude only: continue an interrupted session in the same conversation
     (same sandbox, budget and transcript)."""

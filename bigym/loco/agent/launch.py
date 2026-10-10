@@ -1059,6 +1059,8 @@ def parse_run_args(argv: list[str] | RunConfig | None = None) -> RunConfig:
         mismatch = model_mismatch(args.harness, args.model)
         if mismatch:
             usage_error(mismatch, prog="bigym-agent run")
+    if args.sessions < 1:
+        usage_error("--sessions must be at least 1", prog="bigym-agent run")
     args.root = args.root.expanduser().resolve()
     args.codex_home = (
         args.codex_home
@@ -1068,7 +1070,7 @@ def parse_run_args(argv: list[str] | RunConfig | None = None) -> RunConfig:
 
 
 def main(argv: list[str] | RunConfig | None = None) -> int:
-    """Run one session per task.
+    """Run ``--sessions`` sessions per task, ``--parallel`` at a time.
 
     Args:
         argv: The parsed settings, or command line arguments (None for
@@ -1082,8 +1084,9 @@ def main(argv: list[str] | RunConfig | None = None) -> int:
     if not tasks:
         print("bigym-agent run: --task is required", file=sys.stderr)
         return 2
-    results: list[dict] = []
-    queue = list(tasks)
+    roots = session_roots(args.root, args.sessions)
+    results: dict[Path, list[dict]] = {root: [] for root in roots}
+    queue = [(root, task) for root in roots for task in tasks]
     lock, cancel = threading.Lock(), threading.Event()
 
     def worker() -> None:
@@ -1091,18 +1094,18 @@ def main(argv: list[str] | RunConfig | None = None) -> int:
             with lock:
                 if not queue:
                     return
-                task = queue.pop(0)
+                root, task = queue.pop(0)
             try:
-                result = run_session(task, args, cancel)
+                result = run_session(task, dataclasses.replace(args, root=root), cancel)
             except Exception as exc:
                 result = {"task": task, "error": f"{type(exc).__name__}: {exc}"}
             with lock:
-                results.append(result)
-                log(f"{task}: {result}")
+                results[root].append(result)
+                log(f"{root.name}/{task}: {result}")
 
     threads = [
         threading.Thread(target=worker, daemon=True)
-        for _ in range(max(1, min(args.parallel, len(tasks))))
+        for _ in range(max(1, min(args.parallel, len(queue))))
     ]
     for thread in threads:
         thread.start()
@@ -1117,13 +1120,24 @@ def main(argv: list[str] | RunConfig | None = None) -> int:
         cancel.set()
         with lock:
             queue.clear()
-        stop_cells_of(args.root, os.getpid())
+        for root in roots:
+            stop_cells_of(root, os.getpid())
         for thread in threads:
             thread.join(timeout=120)
         return 130
     if not args.dry_run:
-        write_run_results(args.root, results)
-    return 1 if any("error" in r for r in results) else 0
+        for root, entries in results.items():
+            write_run_results(root, entries)
+    return (
+        1 if any("error" in r for entries in results.values() for r in entries) else 0
+    )
+
+
+def session_roots(root: Path, sessions: int) -> list[Path]:
+    """The runs root of each session: ``root`` itself, or ``<root>_s1`` ... ``_sN``."""
+    if sessions <= 1:
+        return [root]
+    return [root.with_name(f"{root.name}_s{k}") for k in range(1, sessions + 1)]
 
 
 def write_run_results(root: Path, results: list[dict]) -> Path:
@@ -1135,6 +1149,7 @@ def write_run_results(root: Path, results: list[dict]) -> Path:
     ``run.json`` and the registry remain the authority.
     """
     path = Path(root) / "run_results.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
     merged: dict[str, dict] = {}
     try:
         previous = json.loads(path.read_text())

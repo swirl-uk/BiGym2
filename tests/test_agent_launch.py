@@ -137,6 +137,46 @@ def test_dry_run_soft_keeps_project_files_out(tmp_path, capsys, harness, flags):
     assert flags in out
 
 
+def test_dry_run_sessions_write_one_root_each(tmp_path, capsys):
+    """--sessions N gives every task N cells, under <root>_s1 ... <root>_sN."""
+    _run(tmp_path, "--harness", "codex", "--task", "move_plate", "--sessions", "2")
+    out = capsys.readouterr().out
+    for k in (1, 2):
+        assert f"--cell {tmp_path / f'root_s{k}' / 'move_plate'}" in out
+    assert not (tmp_path / "root").exists()
+
+
+def test_parallel_caps_every_session_of_every_task(tmp_path, monkeypatch):
+    """--parallel bounds the sessions running at once over tasks and sessions."""
+    import threading
+    import time
+
+    running, peak, cells = [0], [0], []
+    lock = threading.Lock()
+
+    def fake_session(task, args, cancel=None):
+        with lock:
+            running[0] += 1
+            peak[0] = max(peak[0], running[0])
+            cells.append((args.root.name, task))
+        time.sleep(0.05)
+        with lock:
+            running[0] -= 1
+        return {"task": task, "exit": 0}
+
+    monkeypatch.setattr(launch, "run_session", fake_session)
+    root = tmp_path / "root"
+    argv = ["--task", "move_plate", "pick_box", "--root", str(root), "--model", "m"]
+    assert launch.main(argv + ["--sessions", "3", "--parallel", "2"]) == 0
+    assert peak[0] == 2
+    assert sorted(cells) == sorted(
+        (f"root_s{k}", task) for k in (1, 2, 3) for task in ("move_plate", "pick_box")
+    )
+    for k in (1, 2, 3):
+        entries = json.loads((tmp_path / f"root_s{k}" / "run_results.json").read_text())
+        assert sorted(e["task"] for e in entries) == ["move_plate", "pick_box"]
+
+
 def test_dry_run_custom(tmp_path, capsys):
     """A custom agent is a shell command with the session in its environment."""
     root = tmp_path / "root"

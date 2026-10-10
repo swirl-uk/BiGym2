@@ -5,6 +5,27 @@ a budget of environment steps, and writes `policy.py`. `bigym-agent` scores
 that file on the same evaluation seeds as the learned policies, through the
 same frozen lower-body controller.
 
+## Quick start
+
+Running agents needs Docker (usable without `sudo`), `ffmpeg`, a GPU with
+6000 MiB free and an API key. It does not need the training demonstrations.
+
+```bash
+uv sync --extra agent
+export MUJOCO_GL=egl
+export OPENAI_API_KEY=<your-key>                  # ANTHROPIC_API_KEY with --harness claude
+uv run bigym-download --agent --task move_plate   # demonstration video + metadata, about 4 MB
+uv run bigym-agent run --task move_plate --harness codex --model <model-id> --effort high
+```
+
+`bigym-download --agent` fetches each task's demonstration video and the
+metadata a session needs (the development seeds), not the 60 training
+demonstrations: `--agent --all` is 68 MB for all 20 tasks. `run` downloads
+the same files itself when they are missing, so the download step matters
+only on a machine that runs offline later. The first `run` builds the harness
+image and the Docker networks. The cell lands in `bigym-agent-runs/move_plate/`;
+[Reading results](#reading-results) says what is in it.
+
 ## Rules and scoring
 
 A cell is one task × one session. Inside it:
@@ -112,11 +133,11 @@ for Anthropic), and `run` refuses a mismatch before anything starts.
 
 The demonstration videos are published with the dataset (`agent_demos/` in
 [SWIRL-Lab/bigym-g1-native60](https://huggingface.co/datasets/SWIRL-Lab/bigym-g1-native60)):
-every session gets the same files the benchmark sessions got, and a run
-downloads only them and the task's metadata. With any other `--image-cap`,
-`--demo-episode` or `--demo-episodes`, the run renders the video on your
-machine, downloading only the data file that holds the demonstration it
-shows. A local render can differ from the published videos in a few pixels.
+every session gets the same files the benchmark sessions got. With any other
+`--image-cap`, `--demo-episode` or `--demo-episodes`, the run renders the
+video on your machine, downloading only the data file that holds the
+demonstration it shows. A local render can differ from the published videos
+in a few pixels.
 
 Each session takes the GPU with the most free memory and refuses to start if
 it has less than 6000 MiB free (`--min-free-mib`). `--gpu` picks a GPU by its

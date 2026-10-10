@@ -26,6 +26,7 @@ BiGym 2.0 brings [BiGym](https://github.com/NeuracoreAI/bigym) to a walking huma
 - **[Study agent-written policies](#agent-rollouts)**: replay the 5,400 scored episodes of the paper's agent sessions, with the program lines each step ran.
 - **[Train a policy](#train-a-policy)** on 60 human VR demonstrations for each of the [20 tasks](#tasks), and score it on 100 fixed seeds with bit-exact replay.
 - **[Watch demonstrations and agent episodes in 3D](#demonstrations)** in the browser with `bigym-view`.
+- **[Re-render the demonstrations](#demonstrations)** at another resolution, such as 224×224 for a VLA.
 - **[Record your own VR demonstrations](#collect-your-own-demonstrations)** with a Meta Quest 3, in the environment the benchmark evaluates in.
 - **[Add tasks and lower-body controllers](#add-your-own-tasks)** from your own package.
 
@@ -98,7 +99,16 @@ uv run bigym-download --all                             # every task
 
 Both go through the Hugging Face cache (`~/.cache/huggingface`), so nothing downloads twice. `bigym-download --local-dir PATH` writes to a folder instead.
 
-`uv run bigym-view` opens a browser viewer with a task dropdown. `--task move_plate` picks the task it opens first, and `--demo-dir PATH` opens a local folder. More in [Demonstrations](https://bigym2.github.io/docs/demonstrations.html).
+`uv run bigym-view` opens a browser viewer with a task dropdown. `--task move_plate` picks the task it opens first, and `--demo-dir PATH` opens a local folder.
+
+`bigym-rerender-lerobot` re-renders a task's cameras at another resolution from the simulator state of each frame, and writes a copy of the task:
+
+```bash
+uv sync --extra lerobot
+uv run bigym-rerender-lerobot --task move_plate --size 224 224   # into bigym-g1-native60-224/move_plate
+```
+
+More in [Demonstrations](https://bigym2.github.io/docs/demonstrations.html).
 
 ## Coding-agent benchmark
 

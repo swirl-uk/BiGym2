@@ -53,5 +53,6 @@ bigym-agent-runs/
 
 # ACT example output (examples/train_act.py)
 act_runs/
+bigym-g1-native60-*/
 
 *.safetensors

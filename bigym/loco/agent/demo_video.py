@@ -295,37 +295,6 @@ def pick_episodes(
     return sorted(chosen, key=lambda e: e.index)
 
 
-class _EpisodeArrays:
-    """An ``NpzFile`` stand-in over in-memory arrays.
-
-    :meth:`bigym.loco.demos.rerender.BatchRenderer.render_episode` reads an
-    episode through the ``files`` / ``__getitem__`` npz interface; a dataset
-    episode is handed to it through this wrapper instead of being written to
-    disk first.
-    """
-
-    def __init__(self, arrays: dict):
-        """Wrap a mapping of array name to array.
-
-        Args:
-            arrays: The arrays to serve.
-        """
-        self._arrays = dict(arrays)
-
-    @property
-    def files(self) -> list:
-        """The array names, as ``NpzFile.files`` reports them."""
-        return list(self._arrays)
-
-    def __contains__(self, key) -> bool:
-        """Whether an array is present."""
-        return key in self._arrays
-
-    def __getitem__(self, key):
-        """Return one array."""
-        return self._arrays[key]
-
-
 def ffmpeg_binary() -> str:
     """Return the ffmpeg executable to encode with.
 
@@ -536,7 +505,7 @@ def render_demo(
     Raises:
         ValueError: An unknown view name.
     """
-    from bigym.loco.demos.rerender import BatchRenderer
+    from bigym.loco.demos.rerender import BatchRenderer, EpisodeArrays
 
     views = [str(v).strip() for v in views if str(v).strip()]
     unknown = [v for v in views if v not in ONBOARD_VIEWS and v != "third"]
@@ -562,7 +531,7 @@ def render_demo(
             onboard = [v for v in views if v in ONBOARD_VIEWS]
             if onboard:
                 rendered = renderer.render_episode(
-                    _EpisodeArrays({"full_qpos": qpos, "seed": np.int64(episode.seed)})
+                    EpisodeArrays({"full_qpos": qpos, "seed": np.int64(episode.seed)})
                 )
                 for view in onboard:
                     index = camera_keys.index(view)

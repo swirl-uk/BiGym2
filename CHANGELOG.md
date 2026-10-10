@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   instead of 22.5 GB for `stack_blocks`.
 - `bigym-download --agent` fetches only what `bigym-agent` needs: each task's
   metadata and demonstration videos, 68 MB for all 20 tasks.
+- `bigym-rerender-lerobot --task move_plate` re-renders a task of the
+  published dataset at another resolution (224×224 by default) into
+  `bigym-g1-native60-224/move_plate`. Only the camera columns, their image
+  statistics and the recorded camera resolution change. `--demo-dir` also
+  takes a downloaded task folder. Previously it read npz batches only.
 
 ### Changed
 
@@ -46,6 +51,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   mean/std from the demos. Previously the gym path skipped it.
 - `examples/train_act.py` now resets action chunking between evaluation
   episodes. Previously the next episode started with the last one's chunks.
+- `bigym-rerender-lerobot` on an npz batch now records the new resolution as
+  `camera_shape` in the dataset's metadata. Previously it kept the recorded
+  one, and `get_demos()` refused the dataset in an env built at the new
+  resolution.
 
 ## [1.0.0]
 

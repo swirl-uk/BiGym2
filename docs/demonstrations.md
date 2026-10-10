@@ -96,16 +96,32 @@ violations = validate_episode(episode)   # empty when valid
 ## Converting and re-rendering
 
 Both commands need the `lerobot` extra (see
-[Installation](installation.md#extras)). `bigym-export-lerobot` converts an
-npz batch to LeRobot v3:
+[Installation](installation.md#extras)). `bigym-rerender-lerobot` re-renders
+the cameras of a published task at another resolution, 224×224 by default:
+
+```bash
+uv sync --extra lerobot
+uv run bigym-rerender-lerobot --task move_plate                  # into bigym-g1-native60-224/move_plate
+uv run bigym-rerender-lerobot --task move_plate --size 240 320   # height width, into bigym-g1-native60-240x320/move_plate
+```
+
+It copies the task with only the three camera columns re-rendered from the
+simulator state of each frame. The other columns and files stay as they
+are, and the image statistics and the recorded camera resolution are
+updated, so an env built with the same `camera_shape` accepts the copy.
+`--root` writes elsewhere, and `--demo-dir` takes a downloaded task folder
+instead of `--task`. Viewing the demonstrations with `bigym-view` needs no
+re-render.
+
+`bigym-export-lerobot` converts an npz batch to LeRobot v3:
 
 ```bash
 uv run bigym-export-lerobot --demo-dir <npz batch> \
     --repo-id <hf-user>/<dataset> --root <output dir>
 ```
 
-`bigym-rerender-lerobot` takes the same arguments plus `--size`, re-renders
-the cameras (224×224 by default) and writes a LeRobot dataset:
+`bigym-rerender-lerobot` given an npz batch takes the same arguments plus
+`--size`, and writes a LeRobot dataset with re-rendered cameras:
 
 ```bash
 uv run bigym-rerender-lerobot --demo-dir <npz batch> \

@@ -8,7 +8,9 @@
 
 <p align="center">
   <a href="https://arxiv.org/abs/2610.07594"><img alt="arXiv" src="https://img.shields.io/badge/arXiv-2610.07594-b31b1b.svg"></a>
+  <a href="https://bigym2.github.io/"><img alt="Project page" src="https://img.shields.io/badge/Project_Page-0072b2.svg"></a>
   <a href="https://huggingface.co/datasets/SWIRL-Lab/bigym-g1-native60"><img alt="Dataset" src="https://img.shields.io/badge/%F0%9F%A4%97_Dataset-G1_demos-ffcc4d.svg"></a>
+  <a href="https://huggingface.co/datasets/SWIRL-Lab/bigym2-agent-rollouts"><img alt="Agent rollouts" src="https://img.shields.io/badge/%F0%9F%A4%97_Dataset-Agent_rollouts-ffcc4d.svg"></a>
   <a href="https://github.com/astral-sh/uv"><img alt="uv" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json"></a>
   <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/python-3.10%2B-3776ab.svg?logo=python&logoColor=white"></a>
   <a href="https://github.com/swirl-uk/BiGym2/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache_2.0-blue.svg"></a>
@@ -18,10 +20,27 @@ BiGym 2.0 brings [BiGym](https://github.com/NeuracoreAI/bigym) to a walking huma
 
 <p align="center"><img alt="Left, BiGym: the H1 pelvis is commanded directly and the legs play back an animation. Right, BiGym 2.0: GR00T-WBC walks and balances the G1." src="https://bigym2.github.io/readme/fig2_bigym_to_bigym2.gif" width="100%"></p>
 
-- 20 tasks across reaching, table-top, dishwasher and kitchen-counter scenes.
-- 60 human VR demonstrations per task, with full simulator state so every frame can be re-rendered.
-- 100 fixed evaluation seeds, bit-exact replay and a physics fingerprint on every result.
-- Learned policies and coding agents are scored through the same observation and action interface.
+## What you can do
+
+- **[Benchmark a coding agent](#coding-agent-benchmark)**: an LLM in a harness such as Codex or Claude Code writes `policy.py` from one demonstration video and is scored on the same 100 hidden seeds as learned policies.
+- **[Study agent-written policies](#agent-rollouts)**: replay the 5,400 scored episodes of the paper's agent sessions, with the program lines each step ran.
+- **[Train a policy](#train-a-policy)** on 60 human VR demonstrations for each of the [20 tasks](#tasks), and score it on 100 fixed seeds with bit-exact replay.
+- **[Watch demonstrations and agent episodes in 3D](#demonstrations)** in the browser with `bigym-view`.
+- **[Record your own VR demonstrations](#collect-your-own-demonstrations)** with a Meta Quest 3, in the environment the benchmark evaluates in.
+- **[Add tasks and lower-body controllers](#add-your-own-tasks)** from your own package.
+
+## News
+
+- **[2026/10/08]** 🎉 BiGym 2.0 is released! The code, **1,200** human VR demonstrations of 20 tasks and **5,400** coding-agent evaluation episodes are all public. Paper on [arXiv](https://arxiv.org/abs/2610.07594).
+
+## Roadmap
+
+- [x] Code, 20 tasks and the evaluation protocol
+- [x] 1,200 human VR demonstrations
+- [x] 5,400 coding-agent evaluation episodes
+- [ ] WebXR teleoperation from macOS, Apple Vision Pro or the Quest browser
+- [ ] PyPI release
+- [ ] Public leaderboard
 
 ## Installation
 
@@ -67,6 +86,8 @@ This installs the environments, the GR00T-WBC lower body, the demonstration load
 </table>
 </details>
 
+## Demonstrations
+
 The demonstrations are on Hugging Face at [`SWIRL-Lab/bigym-g1-native60`](https://huggingface.co/datasets/SWIRL-Lab/bigym-g1-native60), one LeRobot v3 dataset per task. `env.get_demos()` downloads a task's demonstrations on first use. To fetch them ahead of time:
 
 ```bash
@@ -97,7 +118,16 @@ uv run bigym-download --agent --task move_plate   # the demonstration video and 
 uv run bigym-agent run --task move_plate --harness codex --model gpt-6-astra --effort high
 ```
 
-Running agents does not need the training demonstrations: `--agent` skips them (68 MB for all 20 tasks instead of 29 GB), and `run` downloads the same files itself if you skip that step. The harness runs in Docker on a Linux host with an NVIDIA GPU and ffmpeg. With `--harness claude`, set `ANTHROPIC_API_KEY` instead. To compare with the paper, keep every setting at its default and use the paper's models and CLI versions, listed in [Reproducing the paper's results](https://bigym2.github.io/docs/agent.html#reproducing-the-paper-s-results). Setup and results are in [Coding-agent benchmark](https://bigym2.github.io/docs/agent.html).
+Running agents does not need the training demonstrations: `--agent` skips them (68 MB for all 20 tasks instead of 29 GB), and `run` downloads the same files itself if you skip that step. The harness runs in Docker on a Linux host with an NVIDIA GPU and ffmpeg. With `--harness claude`, set `ANTHROPIC_API_KEY` instead. To compare with the paper, keep every setting at its default and use the paper's LLMs and harness versions, listed in [Reproducing the paper's results](https://bigym2.github.io/docs/agent.html#reproducing-the-paper-s-results). Setup and results are in [Coding-agent benchmark](https://bigym2.github.io/docs/agent.html).
+
+### Agent rollouts
+
+Every evaluation episode of the paper's agent sessions is in [`SWIRL-Lab/bigym2-agent-rollouts`](https://huggingface.co/datasets/SWIRL-Lab/bigym2-agent-rollouts): two agents, nine tasks, three sessions each and 100 seeds, with the simulator state, the actions and the program lines each step ran. To watch one task's episodes:
+
+```bash
+uv run hf download SWIRL-Lab/bigym2-agent-rollouts --repo-type dataset --include "episodes/move_plate/*" --local-dir bigym2-agent-rollouts
+uv run bigym-view --demo-dir bigym2-agent-rollouts/episodes/move_plate
+```
 
 ## Train a policy
 
@@ -109,6 +139,22 @@ uv run bigym-view --demo-dir act_runs/move_plate     # the recorded episodes in 
 ```
 
 The policy is saved to `act_runs/move_plate/policy.pt`, and `--load` evaluates or records it again without training. `--help` lists the options.
+
+## Collect your own demonstrations
+
+`bigym-collect` records VR demonstrations with a Meta Quest 3 in a task's official environment, the way every released demonstration was recorded. It runs on Linux:
+
+```bash
+uv sync --extra vr --extra agent
+uv run --no-sync bigym-collect --task move_plate
+uv run bigym-view --demo-dir bigym_demos             # play back what you recorded
+```
+
+Headset setup is in [Demo collection](https://bigym2.github.io/docs/demo_collection.html).
+
+## Add your own tasks
+
+`register_task` and `register_backend` add tasks and lower-body controllers from your own package. `make`, the evaluation runner and `bigym-view` then run them like the built-in ones, and `bigym-collect` records demonstrations of your tasks. See [Building on BiGym 2.0](https://bigym2.github.io/docs/extending.html).
 
 ## Documentation
 
@@ -125,12 +171,6 @@ The policy is saved to `act_runs/move_plate/policy.pt`, and `--load` evaluates o
 
 The documentation is also published at <https://bigym2.github.io/docs/>.
 
-## Roadmap
-
-- [ ] WebXR teleoperation from macOS, Apple Vision Pro or the Quest browser
-- [ ] PyPI release
-- [ ] Public leaderboard
-
 ## Built on BiGym 2.0
 
 Papers and projects that use BiGym 2.0 are listed on the [Research](https://bigym2.github.io/docs/research.html) page. Open a pull request or an issue to add yours.
@@ -146,7 +186,7 @@ Papers and projects that use BiGym 2.0 are listed on the [Research](https://bigy
 }
 ```
 
-Please also cite [BiGym](https://arxiv.org/abs/2407.07788):
+Please also consider citing [BiGym](https://arxiv.org/abs/2407.07788):
 
 ```bibtex
 @article{chernyadev2024bigym,
@@ -156,6 +196,10 @@ Please also cite [BiGym](https://arxiv.org/abs/2407.07788):
   year    = {2024}
 }
 ```
+
+## Acknowledgements
+
+We thank [Nikita Chernyadev](https://github.com/chernyadev) and the other authors of [BiGym](https://github.com/NeuracoreAI/bigym), whose tasks, scenes and code BiGym 2.0 builds on.
 
 ## License
 

@@ -26,12 +26,15 @@ def load_task_episodes(
     outer_action_low: Optional[np.ndarray],
     outer_action_high: Optional[np.ndarray],
     check_compatibility: Callable[[dict[str, Any], dict[str, Any]], None],
+    decode_images: bool = True,
 ) -> tuple[list[dict[str, np.ndarray]], dict[str, np.ndarray]]:
     """Return ``(episodes, action_stats)`` for ``task_name`` (fetched on demand).
 
     ``check_compatibility(metadata, info)`` runs before any episode is
     decoded. The dataset's ``action_stats`` must lie inside the env's outer
-    action bounds. ``num_demos < 0`` loads every episode.
+    action bounds. ``num_demos < 0`` loads every episode. With
+    ``decode_images=False`` each ``rgb_obs`` is a
+    :class:`~bigym.loco.demos.dataset.PngFrames`.
     """
     # Deferred: huggingface_hub and the export reader load only when an env
     # reads demonstrations.
@@ -45,6 +48,7 @@ def load_task_episodes(
         max_episodes=int(num_demos),
         action_representation=action_representation,
         upper_delta_scale_rad=upper_delta_scale_rad,
+        decode_images=decode_images,
     )
     stats = metadata.get("action_stats") or {}
     action_min = np.asarray(stats.get("min"), dtype=np.float32).reshape(-1)

@@ -110,20 +110,9 @@ class TaskDemos:
     def _row_index(self) -> dict[int, tuple[Path, int, int]]:
         """Map each episode index to ``(parquet file, first row, row count)``."""
         if self._rows is None:
-            import pyarrow.parquet as pq
+            from bigym.loco.demos.dataset import episode_rows
 
-            rows: dict[int, tuple[Path, int, int]] = {}
-            files = sorted(self.dir.glob("data/chunk-*/file-*.parquet"))
-            if not files:
-                raise FileNotFoundError(f"no data parquet files under {self.dir}")
-            for path in files:
-                column = pq.read_table(path, columns=["episode_index"])
-                index = column.column("episode_index").to_numpy()
-                for episode in np.unique(index):
-                    start = int(np.searchsorted(index, episode))
-                    count = int((index == episode).sum())
-                    rows[int(episode)] = (path, start, count)
-            self._rows = rows
+            self._rows = episode_rows(self.dir)
         return self._rows
 
     @property

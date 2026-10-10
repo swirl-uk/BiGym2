@@ -174,7 +174,11 @@ class GymnasiumEnv(gymnasium.Env):
         return obs, reward, terminated, truncated, info
 
     def get_demos(
-        self, num_demos: int = -1, only_successful: bool = False
+        self,
+        num_demos: int = -1,
+        only_successful: bool = False,
+        *,
+        decode_images: bool = True,
     ) -> list[dict[str, Any]]:
         """Return this task's demonstrations as gymnasium-shaped trajectories.
 
@@ -198,9 +202,16 @@ class GymnasiumEnv(gymnasium.Env):
         over ``env.action_stats``, so ``action`` values and this env's
         ``action_space`` mean the same thing. ``num_demos < 0`` loads every
         episode; ``only_successful`` keeps the successful ones.
+
+        The decoded frames of a long task take tens of gigabytes. With
+        ``decode_images=False``, ``obs["rgb"]`` is a
+        :class:`~bigym.loco.demos.dataset.PngFrames` instead: it keeps the
+        frames compressed and returns the same ``uint8 [cams, 3 * stack, H, W]``
+        array when indexed, ``rgb[i]``, so a training loop can decode only the
+        frames it samples.
         """
         inner = self.bigym_env
-        episodes = inner.load_training_episodes(num_demos)
+        episodes = inner.load_training_episodes(num_demos, decode_images=decode_images)
         trajectories: list[dict[str, Any]] = []
         # Free each raw episode once converted.
         episodes.reverse()

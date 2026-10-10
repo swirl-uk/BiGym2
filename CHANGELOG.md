@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `make_gym(...).get_demos(n, decode_images=False)` keeps the demo frames as
+  PNG bytes and decodes an observation when it is indexed: about 7 GB at peak
+  instead of 22.5 GB for `stack_blocks`.
+
 ### Changed
 
 - A fresh env now maps `[-1, 1]` actions onto the raw outer bounds, so a zero
@@ -19,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   switched the env to the dataset's ranges, which a fresh evaluation env did
   not have.
 - `get_demos()` with `frame_stack=1` no longer copies demo frames.
+- Loading demonstrations needs less memory: 16.5 GB instead of 22.5 GB at
+  peak for the 60 demos of `stack_blocks`.
 
 ### Fixed
 

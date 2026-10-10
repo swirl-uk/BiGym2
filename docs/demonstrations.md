@@ -38,6 +38,12 @@ opens that task first, and `--demo-dir bigym-data` opens a downloaded folder.
 It raises an error when the task has no published demonstrations or the
 dataset does not match the env. The [FAQ](faq.md) covers both.
 
+Decoded, the 60 demonstrations of a long task take a lot of memory: about
+15 GB for `stack_blocks`. On a `make_gym` env, `get_demos(60,
+decode_images=False)` keeps the frames as PNG bytes instead (about 5 GB for
+`stack_blocks`), and `demo["obs"]["rgb"][i]` decodes observation `i` when you
+index it.
+
 `bigym.loco.demos.dataset.load_episodes(task_dir)` is the reader underneath.
 It reads the LeRobot folder with pyarrow and Pillow, without installing
 `lerobot`. Row `t` holds the observation at step `t` with the action, reward

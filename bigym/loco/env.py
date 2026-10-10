@@ -20,7 +20,7 @@ which builds an env from a :class:`~bigym.loco.config.EnvConfig`.
 
 import dataclasses
 from collections import deque
-from typing import Any, Dict, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union, cast
 
 import numpy as np
 from dm_env import StepType, specs
@@ -43,6 +43,9 @@ from bigym.loco.tasks import (
 from bigym.loco.timestep import ExtendedTimeStep, ExtendedTimeStepWrapper, TimeStep
 from bigym.robots.configs import ROBOT_MODELS
 from bigym.utils.observation_config import CameraConfig, ObservationConfig
+
+if TYPE_CHECKING:
+    from bigym.loco.demos.dataset import PngFrames
 
 __all__ = [
     "SUBSTRATE_VERSION",
@@ -430,7 +433,9 @@ class BiGym:
     # Demonstrations (Hugging Face Hub, LeRobot v3 lossless exports)
     # ------------------------------------------------------------------
 
-    def load_demo_episodes(self, num_demos: int = -1) -> list[dict[str, np.ndarray]]:
+    def load_demo_episodes(
+        self, num_demos: int = -1, *, decode_images: bool = True
+    ) -> list[dict[str, np.ndarray]]:
         """Return this task's recorded episodes in replay format (fetched on demand).
 
         The task's folder of the demonstration dataset is downloaded on
@@ -445,19 +450,23 @@ class BiGym:
         ``action_stats`` so they replay exactly as recorded; for training use
         :meth:`load_training_episodes`. With ``normalize_low_dim_obs`` on, the
         env also takes its low-dim mean/std from these episodes.
-        ``num_demos < 0`` loads every episode.
+        ``num_demos < 0`` loads every episode. With ``decode_images=False``
+        each ``rgb_obs`` is a :class:`~bigym.loco.demos.dataset.PngFrames`,
+        which decodes rows when indexed.
         """
-        episodes, self._action_stats = self._read_demo_episodes(num_demos)
+        episodes, self._action_stats = self._read_demo_episodes(
+            num_demos, decode_images
+        )
         return episodes
 
     def load_training_episodes(
-        self, num_demos: int = -1
+        self, num_demos: int = -1, *, decode_images: bool = True
     ) -> list[dict[str, np.ndarray]]:
         """:meth:`load_demo_episodes`, with actions normalized over ``env.action_stats``.
 
         The env's action stats are left unchanged.
         """
-        episodes, demo_stats = self._read_demo_episodes(num_demos)
+        episodes, demo_stats = self._read_demo_episodes(num_demos, decode_images)
         normalized = np.ones(self.action_space.shape[0], dtype=bool)
         if self.upper_delta_accumulator is not None:
             # upper_delta arm slots are deltas, not normalized by action_stats.
@@ -469,7 +478,7 @@ class BiGym:
         return episodes
 
     def _read_demo_episodes(
-        self, num_demos: int
+        self, num_demos: int, decode_images: bool = True
     ) -> tuple[list[dict[str, np.ndarray]], dict[str, np.ndarray]]:
         episodes, demo_stats = demo_episodes.load_task_episodes(
             self.task_name,
@@ -479,6 +488,7 @@ class BiGym:
             outer_action_low=self._outer_action_low,
             outer_action_high=self._outer_action_high,
             check_compatibility=self._check_demo_compatibility,
+            decode_images=decode_images,
         )
         if self.config.normalize_low_dim_obs:
             self._low_dim_obs_stats = self.extract_low_dim_obs_stats(episodes)
@@ -539,19 +549,25 @@ class BiGym:
 
     def demo_observations(
         self, episode: dict[str, np.ndarray]
-    ) -> tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[Union[np.ndarray, "PngFrames"], np.ndarray]:
         """Stack (and normalize) one episode's frames the way the env observes them.
 
         Returns ``(rgb, low_dim)`` with shapes ``[T, cams, 3 * frame_stack, H, W]``
         and ``[T, D * frame_stack]``, the first frame padding the start as
-        after ``reset()``.
+        after ``reset()``. A :class:`~bigym.loco.demos.dataset.PngFrames`
+        ``rgb_obs`` comes back as its stacked view, still undecoded.
         """
         stack = self.config.frame_stack
         low_dims = np.asarray(episode["low_dim_obs"], dtype=np.float32)
         if self.config.normalize_low_dim_obs:
             mean, std = self._low_dim_obs_stats["mean"], self._low_dim_obs_stats["std"]
             low_dims = (low_dims - mean) / (std + 1e-8)
-        if self.config.camera_keys:
+        from bigym.loco.demos.dataset import PngFrames
+
+        frames = episode.get("rgb_obs")
+        if isinstance(frames, PngFrames):
+            rgb = frames.stacked(stack)
+        elif self.config.camera_keys:
             rgb_frames = np.asarray(episode["rgb_obs"], dtype=np.uint8)
             rgb = self._stack_demo_frames(rgb_frames, stack, axis=2)
         else:
@@ -633,7 +649,9 @@ class BiGym:
         successful = self.demo_is_successful(episode)
         rgb, low_dim = self.demo_observations(episode)
         return (
-            demo_episodes.episode_to_timesteps(episode, rgb, low_dim, successful),
+            demo_episodes.episode_to_timesteps(
+                episode, np.asarray(rgb), low_dim, successful
+            ),
             successful,
         )
 

@@ -244,4 +244,9 @@ def test_real_dataset_through_the_paper_api():
     assert demo["success"] and demo["reward"][-1] > 0
     obs, _ = env.reset(seed=620000)
     env.step(demo["action"][0])
+    undecoded = env.get_demos(2, decode_images=False)[0]
+    np.testing.assert_array_equal(
+        np.asarray(undecoded["obs"]["rgb"]), demo["obs"]["rgb"]
+    )
+    np.testing.assert_array_equal(undecoded["obs"]["state"], demo["obs"]["state"])
     env.close()

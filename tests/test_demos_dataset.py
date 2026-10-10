@@ -44,6 +44,58 @@ def test_reader_honours_max_episodes(synthetic_dataset):
     assert len(dataset.load_episodes(root, max_episodes=-1)) == 3
 
 
+def test_undecoded_frames_decode_to_the_same_rows(synthetic_dataset):
+    root, episodes = synthetic_dataset
+    loaded = dataset.load_episodes(root, decode_images=False)
+    for (_, got), want in zip(loaded, episodes, strict=True):
+        frames = got["rgb_obs"]
+        assert isinstance(frames, dataset.PngFrames)
+        assert frames.shape == want["rgb_obs"].shape
+        np.testing.assert_array_equal(np.asarray(frames), want["rgb_obs"])
+        np.testing.assert_array_equal(frames[-1], want["rgb_obs"][-1])
+        np.testing.assert_array_equal(frames[1:3], want["rgb_obs"][1:3])
+
+
+@pytest.mark.parametrize(
+    "index",
+    [(2, 0), (-1, 1, 2), (slice(1, 4), 0), (slice(None, None, 2), slice(None), 0),
+     [3, 0, 3], np.array([1, 2]), (np.array([0, 2]), 1), slice(3, 3),
+     ([0, 2], slice(None), 0), ([0, 2], 1, slice(1, 3)), (slice(1, 4), [0, 2])],
+)  # fmt: skip
+def test_undecoded_frames_index_like_the_array(synthetic_dataset, index):
+    root, episodes = synthetic_dataset
+    frames = dataset.load_episodes(root, decode_images=False)[2][1]["rgb_obs"]
+    want = episodes[2]["rgb_obs"]
+    np.testing.assert_array_equal(frames[index], want[index])
+
+
+@pytest.mark.parametrize(
+    "index",
+    [(Ellipsis, 0), (None,), np.array([True, False]), np.zeros((2, 2), int),
+     ([0, 2], [0, 1]), (np.array([0, 2]), np.array([1, 0])), ([0, 1], True),
+     True, np.True_],
+)  # fmt: skip
+def test_undecoded_frames_refuse_other_indices(synthetic_dataset, index):
+    root, _ = synthetic_dataset
+    frames = dataset.load_episodes(root, decode_images=False)[2][1]["rgb_obs"]
+    with pytest.raises(IndexError):
+        frames[index]
+
+
+@pytest.mark.parametrize("stack", [1, 3])
+def test_undecoded_frames_stack_like_the_env(synthetic_dataset, stack):
+    from bigym.loco.env import BiGym
+
+    root, episodes = synthetic_dataset
+    frames = dataset.load_episodes(root, decode_images=False)[0][1]["rgb_obs"]
+    assert isinstance(frames, dataset.PngFrames)
+    want = BiGym._stack_demo_frames(episodes[0]["rgb_obs"], stack, axis=2)
+    stacked = frames.stacked(stack)
+    assert stacked.shape == want.shape
+    for t in range(len(stacked)):
+        np.testing.assert_array_equal(stacked[t], want[t])
+
+
 def test_reader_rejects_video_mode(synthetic_dataset, tmp_path):
     root, _ = synthetic_dataset
     info = json.loads((root / "meta" / "info.json").read_text())

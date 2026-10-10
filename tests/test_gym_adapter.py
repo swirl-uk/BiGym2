@@ -253,8 +253,9 @@ def test_paper_snippet():
         assert isinstance(env.action_space, gymnasium.spaces.Box)
         assert env.action_space.shape == (20,)  # move_plate: no pitch command
         parameters = inspect.signature(env.get_demos).parameters
-        assert list(parameters) == ["num_demos", "only_successful"]
+        assert list(parameters) == ["num_demos", "only_successful", "decode_images"]
         assert parameters["num_demos"].default == -1
+        assert parameters["decode_images"].default is True
         if os.environ.get("BIGYM_DATASET_TESTS"):
             assert len(env.get_demos(60)) == 60
     finally:

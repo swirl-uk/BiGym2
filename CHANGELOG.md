@@ -37,6 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `examples/train_act.py` trains offline on the demonstrations, then runs the
   evaluation protocol. Previously it took one gradient step per env step,
   which ran the simulator for nothing, and kept every decoded frame in memory.
+  It saves the trained policy, `--load` evaluates a saved one again, and
+  `--record N` keeps N evaluation episodes as mp4s and for `bigym-view`.
 
 ### Fixed
 

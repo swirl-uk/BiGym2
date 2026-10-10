@@ -51,4 +51,7 @@ CLAUDE.md
 # Coding-agent benchmark sessions (bigym-agent run, default --root)
 bigym-agent-runs/
 
+# ACT example output (examples/train_act.py)
+act_runs/
+
 *.safetensors

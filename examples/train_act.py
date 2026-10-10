@@ -21,20 +21,33 @@ parts of the original ACT (the CVAE, a pretrained ResNet backbone). This
 simplified ACT example is for getting started; it does not reproduce the
 paper's ACT results::
 
-    MUJOCO_GL=egl uv run --with torch python examples/train_act.py \
-        --task reach_target_single --steps 20000 --eval-episodes 100
+    MUJOCO_GL=egl uv run --with torch --with imageio-ffmpeg python examples/train_act.py \
+        --task reach_target_single --record 3
+
+saves the policy to ``act_runs/<task>/policy.pt``, scores it on the 100
+evaluation seeds and records three evaluation episodes into the same folder,
+each as an mp4 and as the simulator states the 3D viewer plays::
+
+    uv run bigym-view --demo-dir act_runs/reach_target_single
+
+``--out`` picks another folder, which must be empty.
+``--load act_runs/<task>/policy.pt`` evaluates or records a saved policy
+without training it again.
 
 ``decode_images=False`` keeps the demonstration frames compressed in memory;
-the data loader workers decode only the frames each batch samples. torch is
-the only thing beyond the core install: ``--with`` adds it for this run without
-touching the project environment. On macOS drop ``MUJOCO_GL=egl``.
+the data loader workers decode only the frames each batch samples. torch and
+imageio-ffmpeg (for the mp4s) are all this needs beyond the core install:
+``--with`` adds them for this run without touching the project environment.
+On macOS drop ``MUJOCO_GL=egl``.
 """
 
 from __future__ import annotations
 
 import argparse
 import collections
+import json
 import time
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -42,8 +55,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, RandomSampler
 
-from bigym.loco import make_gym
-from bigym.loco.eval import evaluate
+from bigym.loco import make, make_gym
+from bigym.loco.demos.schema import BATCH_FORMAT
+from bigym.loco.eval import eval_seeds, evaluate, is_success
 
 
 class DemoChunks(Dataset):
@@ -163,37 +177,25 @@ class EnsemblePolicy:
         return np.clip(action, -1.0, 1.0).astype(np.float32)
 
 
-def main() -> None:
-    """Train on the demonstrations, then run the evaluation protocol."""
-    parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
-    )
-    parser.add_argument("--task", default="reach_target_single")
-    parser.add_argument("--demos", type=int, default=60)
-    parser.add_argument("--steps", type=int, default=20_000, help="gradient steps")
-    parser.add_argument("--batch", type=int, default=64)
-    parser.add_argument("--chunk", type=int, default=20)
-    parser.add_argument("--lr", type=float, default=1e-4)
-    parser.add_argument("--shift", type=int, default=4, help="augmentation, pixels")
-    parser.add_argument("--workers", type=int, default=4, help="data loader workers")
-    parser.add_argument("--eval-episodes", type=int, default=100)
-    parser.add_argument("--seed", type=int, default=0)
-    args = parser.parse_args()
-    torch.manual_seed(args.seed)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+def train(args) -> tuple[ACT, dict]:
+    """Train on the task's demonstrations; return the model and its shapes."""
     env = make_gym(args.task)
     demos = env.get_demos(args.demos, only_successful=True, decode_images=False)
     env.close()
     data = DemoChunks(demos, args.chunk)
     states = np.concatenate([demo["obs"]["state"] for demo in demos])
+    shapes = {
+        "rgb_shape": list(demos[0]["obs"]["rgb"].shape[1:]),
+        "state_dim": states.shape[1],
+        "action_dim": demos[0]["action"].shape[1],
+    }
     model = ACT(
-        demos[0]["obs"]["rgb"].shape[1:],
+        shapes["rgb_shape"],
         states.mean(0).astype(np.float32),
         states.std(0).astype(np.float32) + 1e-3,
-        demos[0]["action"].shape[1],
+        shapes["action_dim"],
         args.chunk,
-    ).to(device)
+    ).to(args.device)
     print(f"{len(demos)} demos, {len(data)} training frames")
 
     loader = DataLoader(
@@ -204,14 +206,14 @@ def main() -> None:
         ),
         num_workers=args.workers,
         persistent_workers=args.workers > 0,
-        pin_memory=device.type == "cuda",
+        pin_memory=args.device.type == "cuda",
     )
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
     model.train()
     losses, t0 = [], time.time()
     for step, (rgb, state, actions) in enumerate(loader, start=1):
         rgb, state, actions = (
-            x.to(device, non_blocking=True) for x in (rgb, state, actions)
+            x.to(args.device, non_blocking=True) for x in (rgb, state, actions)
         )
         loss = F.l1_loss(model(rgb, state, shift=args.shift), actions)
         opt.zero_grad(set_to_none=True)
@@ -224,11 +226,111 @@ def main() -> None:
                 f"step {step:6d} | L1 {np.mean(losses[-500:]):.4f} | "
                 f"{step / (time.time() - t0):.1f} steps/s"
             )
+    return model, shapes
 
+
+def load(path: Path, device) -> tuple[ACT, dict]:
+    """A policy saved by this script, and what it was saved with."""
+    saved = torch.load(path, map_location=device)
+    state_dim = saved["state_dim"]
+    model = ACT(
+        saved["rgb_shape"],
+        np.zeros(state_dim, np.float32),
+        np.ones(state_dim, np.float32),
+        saved["action_dim"],
+        saved["chunk"],
+    ).to(device)
+    model.load_state_dict(saved["model"])
+    return model, saved
+
+
+def record(policy: EnsemblePolicy, task: str, episodes: int, out: Path) -> None:
+    """Run the policy on the first evaluation seeds and keep what it did.
+
+    Episode ``seed<S>`` becomes ``seed<S>.mp4``, seen from outside the robot,
+    and ``seed<S>.npz``, the simulator state of every step, which
+    ``bigym-view`` plays with the ``metadata.json`` next to it.
+    """
+    import imageio
+
+    env = make(task)
+    metadata = {
+        "format": BATCH_FORMAT,
+        "control_step_seconds": env.control_step_seconds,
+    }
+    metadata.update(env.config.to_metadata(task))
+    (out / "metadata.json").write_text(json.dumps(metadata, indent=1))
+    data = env.inner_env.data
+    for seed in eval_seeds(episodes):
+        policy.reset()
+        timestep = env.reset(seed=seed)
+        qpos, qvel, rewards = [data.qpos.copy()], [data.qvel.copy()], []
+        with imageio.get_writer(out / f"seed{seed}.mp4", fps=25) as video:
+            while not timestep.last():
+                timestep = env.step(policy(timestep))
+                qpos.append(data.qpos.copy())
+                qvel.append(data.qvel.copy())
+                rewards.append(timestep.reward)
+                if len(rewards) % 2:  # 50 Hz control, 25 fps video
+                    video.append_data(env.render())  # ty: ignore[unresolved-attribute]
+        success = is_success(env)
+        np.savez(
+            out / f"seed{seed}.npz",
+            full_qpos=np.array(qpos),
+            full_qvel=np.array(qvel),
+            reward=np.array(rewards, dtype=np.float32).reshape(-1, 1),
+            seed=np.int64(seed),
+            success=np.float32(success),
+            length=np.int64(len(rewards)),
+        )
+        print(f"recorded seed {seed}: {'success' if success else 'failure'}")
+    env.close()
+
+
+def main() -> None:
+    """Train (or load) a policy, evaluate it, record some episodes."""
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument("--task", default="reach_target_single")
+    parser.add_argument("--demos", type=int, default=60)
+    parser.add_argument("--steps", type=int, default=20_000, help="gradient steps")
+    parser.add_argument("--batch", type=int, default=64)
+    parser.add_argument("--chunk", type=int, default=20)
+    parser.add_argument("--lr", type=float, default=1e-4)
+    parser.add_argument("--shift", type=int, default=4, help="augmentation, pixels")
+    parser.add_argument("--workers", type=int, default=4, help="data loader workers")
+    parser.add_argument("--eval-episodes", type=int, default=100)
+    parser.add_argument("--record", type=int, default=0, help="episodes to record")
+    parser.add_argument("--load", type=Path, help="a saved policy.pt; skips training")
+    parser.add_argument("--out", type=Path, help="default: act_runs/<task>")
+    parser.add_argument("--seed", type=int, default=0)
+    args = parser.parse_args()
+    torch.manual_seed(args.seed)
+    args.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    home = args.load.parent if args.load else Path("act_runs") / args.task
+    out = args.out or home
+    # A folder holds one policy and its recordings.
+    reuse = args.load is not None and out.resolve() == home.resolve()
+    if not reuse and out.exists() and any(out.iterdir()):
+        parser.error(f"{out} is not empty; pass another --out")
+    if args.load:
+        model, saved = load(args.load, args.device)
+        args.task, args.chunk = saved["task"], saved["chunk"]
+        out.mkdir(parents=True, exist_ok=True)
+    else:
+        model, shapes = train(args)
+        out.mkdir(parents=True, exist_ok=True)
+        saved = {"task": args.task, "chunk": args.chunk, **shapes}
+        torch.save({**saved, "model": model.state_dict()}, out / "policy.pt")
+        print(f"saved {out / 'policy.pt'}")
+
+    model.eval()
+    policy = EnsemblePolicy(model, args.device, args.chunk)
     if args.eval_episodes > 0:
-        model.eval()
         result = evaluate(
-            EnsemblePolicy(model, device, args.chunk),
+            policy,
             task_name=args.task,
             method="act-example",
             episodes=args.eval_episodes,
@@ -239,6 +341,9 @@ def main() -> None:
             f"evaluation: success_rate={result['success_rate']:.3f} over "
             f"{result['episodes']} episodes"
         )
+    if args.record > 0:
+        record(policy, args.task, args.record, out)
+        print(f"watch in 3D: uv run bigym-view --demo-dir {out}")
 
 
 if __name__ == "__main__":

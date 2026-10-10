@@ -126,6 +126,13 @@ uv run bigym-view --demo-dir bigym-agent-runs/move_plate --follow
 With `--follow` the viewer rescans the cell every few seconds, so new
 development episodes and policy versions appear while the agent works.
 
+### Run a sweep
+
+A sweep runs a task list several times with one harness and model. In a
+clone of this repository, `/running-agent-sweeps` in Claude Code or
+`$running-agent-sweeps` in Codex walks through the protocol, the launch,
+the checks on every cell and the report.
+
 ## After the run
 
 A session whose `policy.py` is still the untouched template is `void` and is

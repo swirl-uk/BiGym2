@@ -88,6 +88,7 @@ def write_export(
     episodes: list[dict],
     task_name: str = "reach_target_single",
     task_fields: dict | None = None,
+    episodes_per_file: int = 0,
 ) -> Path:
     """Write ``episodes`` as one task's export under ``root`` and return it.
 
@@ -101,6 +102,8 @@ def write_export(
         episodes: Replay-format episodes, each with a ``seed``.
         task_name: The task the metadata names.
         task_fields: More settings for the metadata's ``task`` block.
+        episodes_per_file: Episodes per data file; 0 puts them all in one.
+            ``meta/episodes`` records which file holds each one.
     """
     first = episodes[0]
     columns = [key for key in first if key not in ("rgb_obs", "low_dim_obs", "seed")]
@@ -168,12 +171,42 @@ def write_export(
 
     (root / "data" / "chunk-000").mkdir(parents=True, exist_ok=True)
     (root / "meta").mkdir(exist_ok=True)
-    pq.write_table(pa.table(rows), root / "data" / "chunk-000" / "file-000.parquet")
+    per_file = episodes_per_file or len(episodes)
+    table = pa.table(rows)
+    index = np.asarray(rows["episode_index"])
+    entries: dict[str, list] = {
+        "episode_index": [],
+        "length": [],
+        "data/chunk_index": [],
+        "data/file_index": [],
+        "dataset_from_index": [],
+        "dataset_to_index": [],
+    }
+    for file_index, head in enumerate(range(0, len(episodes), per_file)):
+        members = range(head, min(head + per_file, len(episodes)))
+        start = int(np.searchsorted(index, head))
+        stop = int(np.searchsorted(index, members[-1], side="right"))
+        path = root / "data" / "chunk-000" / f"file-{file_index:03d}.parquet"
+        pq.write_table(table.slice(start, stop - start), path)
+        for episode_index in members:
+            begin = int(np.searchsorted(index, episode_index))
+            end = int(np.searchsorted(index, episode_index, side="right"))
+            entries["episode_index"].append(episode_index)
+            entries["length"].append(end - begin)
+            entries["data/chunk_index"].append(0)
+            entries["data/file_index"].append(file_index)
+            entries["dataset_from_index"].append(begin)
+            entries["dataset_to_index"].append(end)
+    (root / "meta" / "episodes" / "chunk-000").mkdir(parents=True)
+    pq.write_table(
+        pa.table(entries), root / "meta" / "episodes" / "chunk-000" / "file-000.parquet"
+    )
     info = {
         "codebase_version": "v3.0",
         "fps": 50,
         "total_episodes": len(episodes),
         "robot_type": "g1_dex1",
+        "data_path": "data/chunk-{chunk_index:03d}/file-{file_index:03d}.parquet",
         "features": features,
     }
     (root / "meta" / "info.json").write_text(json.dumps(info))

@@ -35,6 +35,7 @@ from bigym.loco.demos.lerobot_export import ACTION_ALIGNMENT_VERSION
 
 INDEX_FEATURES = ("timestamp", "frame_index", "episode_index", "index", "task_index")
 IMAGE_PREFIX = "observation.images."
+DATA_PATH = "data/chunk-{chunk_index:03d}/file-{file_index:03d}.parquet"
 
 
 def load_task_metadata(task_dir: Path) -> dict[str, Any]:
@@ -97,13 +98,39 @@ def undo_transition_shift(
 
 
 def episode_rows(task_dir: Path) -> dict[int, tuple[Path, int, int]]:
-    """Map each episode index of an export to ``(parquet file, first row, row count)``."""
+    """Map each episode index of an export to ``(parquet file, first row, row count)``.
+
+    The export's episode table (``meta/episodes``) says where each episode is,
+    so the data files need not be on disk; an export without one is scanned.
+    """
+    import pyarrow as pa
     import pyarrow.parquet as pq
 
-    paths = sorted(Path(task_dir).glob("data/chunk-*/file-*.parquet"))
+    task_dir = Path(task_dir)
+    tables = sorted((task_dir / "meta" / "episodes").glob("chunk-*/file-*.parquet"))
+    if tables:
+        columns = ["episode_index", "length", "data/chunk_index", "data/file_index"]
+        columns.append("dataset_from_index")
+        table = pa.concat_tables([pq.read_table(t, columns=columns) for t in tables])
+        template = load_info(task_dir).get("data_path", DATA_PATH)
+        first: dict[tuple[int, int], int] = {}
+        entries = table.to_pylist()
+        for entry in entries:
+            key = (entry["data/chunk_index"], entry["data/file_index"])
+            first[key] = min(
+                first.get(key, entry["dataset_from_index"]), entry["dataset_from_index"]
+            )
+        rows = {}
+        for entry in entries:
+            chunk, file = entry["data/chunk_index"], entry["data/file_index"]
+            path = task_dir / template.format(chunk_index=chunk, file_index=file)
+            start = entry["dataset_from_index"] - first[(chunk, file)]
+            rows[int(entry["episode_index"])] = (path, int(start), int(entry["length"]))
+        return rows
+    paths = sorted(task_dir.glob("data/chunk-*/file-*.parquet"))
     if not paths:
         raise RuntimeError(f"No data parquet files under {task_dir}")
-    rows: dict[int, tuple[Path, int, int]] = {}
+    rows = {}
     for path in paths:
         index = pq.read_table(path, columns=["episode_index"]).column(0).to_numpy()
         for episode in np.unique(index):

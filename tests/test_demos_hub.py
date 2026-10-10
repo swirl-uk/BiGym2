@@ -105,6 +105,9 @@ def test_cli_list_and_download(monkeypatch, tmp_path, capsys):
     out = capsys.readouterr().out
     assert "2/40 benchmark tasks published" in out and "pending (38" in out
     assert hub.main(["--repo", "org/demos", "--task", "pick_box"]) == 0
-    assert calls[-1]["allow_patterns"] == ["pick_box/**"]
+    assert [call["allow_patterns"] for call in calls[-2:]] == [
+        ["pick_box/**"],
+        ["agent_demos/pick_box/**"],
+    ]
     assert hub.main(["--repo", "org/demos", "--all"]) == 0
     assert calls[-1]["allow_patterns"] is None

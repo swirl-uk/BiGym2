@@ -74,7 +74,9 @@ class TaskDemos:
     Only the columns a re-render needs are touched (``episode_index`` and
     ``full_qpos``), so no camera PNG is ever decoded: reading the whole export
     back with :func:`bigym.loco.demos.dataset.load_episodes` would decode tens
-    of thousands of images to render one video.
+    of thousands of images to render one video. From the Hub, only the
+    task's metadata is downloaded up front, and the data file of an episode
+    the first time one of its columns is read.
     """
 
     def __init__(self, task: str, task_dir: Path | str | None = None):
@@ -83,7 +85,7 @@ class TaskDemos:
         Args:
             task: Task name.
             task_dir: An already downloaded task folder, or None to fetch it
-                from the Hub.
+                from the Hub as needed.
 
         Raises:
             bigym.loco.demos.hub.DemosUnavailableError: The dataset has no
@@ -92,7 +94,9 @@ class TaskDemos:
         from bigym.loco.demos import hub
 
         self.task = task
-        self.dir = Path(task_dir) if task_dir is not None else hub.task_dir(task)
+        self.from_hub = task_dir is None
+        self.dir = hub.task_files(task, []) if task_dir is None else Path(task_dir)
+        self.revision = hub.snapshot_revision(self.dir) if self.from_hub else None
         self._rows: dict[int, tuple[Path, int, int]] | None = None
         self._episodes: tuple[DemoEpisode, ...] | None = None
         self._metadata: dict | None = None
@@ -112,8 +116,30 @@ class TaskDemos:
         if self._rows is None:
             from bigym.loco.demos.dataset import episode_rows
 
+            if self.from_hub and not (self.dir / "meta" / "episodes").is_dir():
+                self.fetch_all()
             self._rows = episode_rows(self.dir)
         return self._rows
+
+    def fetch(self, episodes) -> None:
+        """Download the data files that hold ``episodes``, if they are missing."""
+        from bigym.loco.demos import hub
+
+        rows = self._row_index()
+        missing = {rows[e.index][0] for e in episodes} - {
+            path for path, _, _ in rows.values() if path.is_file()
+        }
+        if missing and self.from_hub:
+            names = sorted(str(path.relative_to(self.dir)) for path in missing)
+            hub.task_files(self.task, names, revision=self.revision)
+
+    def fetch_all(self) -> Path:
+        """Download every file of the task's export and return its folder."""
+        from bigym.loco.demos import hub
+
+        if self.from_hub:
+            hub.task_dir(self.task, revision=self.revision)
+        return self.dir
 
     @property
     def episodes(self) -> tuple[DemoEpisode, ...]:
@@ -206,6 +232,7 @@ class TaskDemos:
         )
 
         features = load_info(self.dir).get("features", {})
+        self.fetch([episode])
         path, start, count = self._row_index()[episode.index]
         present = [n for n in names if n in pq.read_schema(path).names]
         table = pq.read_table(path, columns=present).slice(start, count)
@@ -413,6 +440,60 @@ def _third_person_frames(renderer, qpos: np.ndarray, size: tuple[int, int]):
     finally:
         view.close()
     return out
+
+
+def published_demo(
+    task: str,
+    out_dir: Path | str,
+    demos: TaskDemos,
+    *,
+    size: tuple[int, int] = (84, 84),
+    which: str = "median",
+    episodes: int = 1,
+) -> dict | None:
+    """Copy the task's published demonstration videos into ``out_dir``.
+
+    The dataset publishes, in ``agent_demos/<task>/``, the videos the
+    benchmark's sessions were given under the default settings. Every
+    sandbox with those settings gets the same files, without downloading the
+    task's demonstrations or rendering them.
+
+    Args:
+        task: Task name.
+        out_dir: Where the files go.
+        demos: The task's demonstrations, from the Hub.
+        size: Frame size, ``(width, height)``.
+        which: ``median`` or an episode index, as for :func:`render_demo`.
+        episodes: How many episodes, as for :func:`render_demo`.
+
+    Returns:
+        The render record, or None when the dataset publishes no videos for
+        the task or the settings ask for other episodes or another frame size.
+    """
+    from bigym.loco.demos import hub
+
+    if not demos.from_hub:
+        return None
+    folder = hub.agent_demo_dir(task, revision=demos.revision)
+    if folder is None:
+        return None
+    record = json.loads(next(iter(sorted(folder.glob("*.json")))).read_text())
+    record.pop("view", None)
+    shown = [episode["index"] for episode in record["episodes"]]
+    if (
+        record["size"] != f"{size[0]}x{size[1]}"
+        or record["views"] != list(DEFAULT_VIEWS)
+        or len(shown) != episodes
+        or (str(which) != "median" and shown[0] != int(which))
+    ):
+        return None
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for name in record["files"]:
+        for path in (folder / name, (folder / name).with_suffix(".json")):
+            shutil.copyfile(path, out_dir / path.name)
+    record["dataset_dir"] = str(demos.dir)
+    return record
 
 
 def render_demo(

@@ -4,9 +4,9 @@
 prompt, the API document in the rendering that matches the interface and the
 action layout, a copy of the harness, the policy template, the development
 seeds and the demonstrations. The demonstrations come from the public Hugging
-Face dataset, so these tests point :func:`bigym.loco.demos.hub.task_dir` at a
-tiny LeRobot v3 export built in ``tmp_path`` (``tests/fixtures/synthetic_dataset.py``,
-with the ``full_qpos`` column a sandbox needs) and never touch the network.
+Face dataset, so these tests stand in for the Hub with tiny LeRobot v3 exports
+built in ``tmp_path`` (``tests/fixtures/synthetic_dataset.py``, with the
+``full_qpos`` column a sandbox needs) and never touch the network.
 
 The one test that renders video is marked ``slow``: it builds a real
 environment and re-renders ten frames of a synthetic episode through the
@@ -15,7 +15,9 @@ public code path (run it with ``MUJOCO_GL=egl ... --run-slow``).
 
 from __future__ import annotations
 
+import fnmatch
 import json
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -43,9 +45,43 @@ SEEDS = (41, 7, 19)
 LENGTHS = (6, 4, 9)
 
 
+class FakeHub:
+    """Stand in for the Hub: a download copies the files it asks for out of ``remote``."""
+
+    def __init__(self, tmp_path: Path):
+        self.remote = tmp_path / "remote"
+        self.snapshot = tmp_path / "hub" / "snapshots" / "c0ffee"
+        self.fetched: list[str] = []
+
+    def snapshot_download(self, repo_id, allow_patterns=None, **kwargs):
+        self.snapshot.mkdir(parents=True, exist_ok=True)
+        for path in sorted(self.remote.rglob("*")):
+            name = path.relative_to(self.remote).as_posix()
+            wanted = allow_patterns is None or any(
+                fnmatch.fnmatch(name, pattern) for pattern in allow_patterns
+            )
+            target = self.snapshot / name
+            if path.is_file() and wanted and not target.exists():
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(path, target)
+                self.fetched.append(name)
+        return str(self.snapshot)
+
+    def list_repo_files(self, repo_id, repo_type=None, revision=None):
+        return [p.relative_to(self.remote).as_posix() for p in self.remote.rglob("*")]
+
+
 @pytest.fixture
-def datasets(tmp_path, monkeypatch):
-    """Point ``hub.task_dir`` at a synthetic export for each benchmark layout."""
+def fake_hub(tmp_path, monkeypatch):
+    fake = FakeHub(tmp_path)
+    monkeypatch.setattr(hub, "snapshot_download", fake.snapshot_download)
+    monkeypatch.setattr(hub, "HfApi", lambda: fake)
+    return fake
+
+
+@pytest.fixture
+def datasets(fake_hub):
+    """A synthetic export on the fake Hub for each benchmark layout."""
     rng = np.random.default_rng(0)
     built = {}
     for task, action_dim, state_dim in (
@@ -57,16 +93,9 @@ def datasets(tmp_path, monkeypatch):
             episode = make_episode(rng, length, action_dim, state_dim, nq=NQ)
             episode["seed"] = np.int64(seed)
             episodes.append(episode)
-        built[task] = write_export(tmp_path / "dataset" / task, episodes, task)
-
-    def fake_task_dir(task, repo=None, revision=None):
-        if task not in built:
-            raise hub.DemosUnavailableError(
-                f"Demonstrations for task {task!r} have not been published yet."
-            )
-        return built[task]
-
-    monkeypatch.setattr(hub, "task_dir", fake_task_dir)
+        built[task] = write_export(
+            fake_hub.remote / task, episodes, task, episodes_per_file=1
+        )
     return built
 
 
@@ -440,7 +469,7 @@ def _frame_count(path: Path) -> int:
 
 
 @pytest.mark.slow
-def test_renders_a_video_from_a_real_environment(tmp_path, monkeypatch):
+def test_renders_a_video_from_a_real_environment(tmp_path, fake_hub):
     """Re-render ten frames of a synthetic episode built on a real env's qpos."""
     from bigym.loco.demos.rerender import BatchRenderer
 
@@ -470,10 +499,7 @@ def test_renders_a_video_from_a_real_environment(tmp_path, monkeypatch):
     episode["full_qpos"] = np.tile(settled, (frames, 1))
     episode["full_qpos"][:, :3] += np.linspace(0, 0.01, frames)[:, None]
     episode["seed"] = np.int64(SEEDS[0])
-    root = write_export(
-        tmp_path / "dataset" / FLAT_TASK, [episode], FLAT_TASK, task_block
-    )
-    monkeypatch.setattr(hub, "task_dir", lambda task, repo=None, revision=None: root)
+    write_export(fake_hub.remote / FLAT_TASK, [episode], FLAT_TASK, task_block)
 
     out = tmp_path / "video"
     record = demo_video.render_demo(
@@ -489,3 +515,77 @@ def test_renders_a_video_from_a_real_environment(tmp_path, monkeypatch):
         assert sidecar["size"] == "84x84"
         assert sidecar["fps"] == 25
         assert "dataset_dir" not in sidecar
+
+
+def test_demos_download_the_metadata_and_only_the_episodes_read(datasets, fake_hub):
+    demos = demo_video.TaskDemos(FLAT_TASK)
+    assert demos.seeds == sorted(set(SEEDS))
+    assert not [name for name in fake_hub.fetched if "/data/" in name]
+    median = demo_video.pick_episodes(demos.episodes, "median", 1)[0]
+    demos.qpos(median)
+    data = [name for name in fake_hub.fetched if "/data/" in name]
+    assert data == [f"{FLAT_TASK}/data/chunk-000/file-{median.index:03d}.parquet"]
+
+
+def published_record(size: str = "84x84") -> dict:
+    """A render record of episode 2, which is not the synthetic task's median."""
+    views = list(demo_video.DEFAULT_VIEWS)
+    return {
+        "task": FLAT_TASK,
+        "views": views,
+        "files": [f"demo_{view}.mp4" for view in views],
+        "episodes": [{"index": 2, "source_file": "episode_2.npz", "seed": SEEDS[2]}],
+        "seeds": [SEEDS[2]],
+        "frames": 3,
+        "frames_per_episode": [3],
+        "every": 2,
+        "fps": 25,
+        "size": size,
+    }
+
+
+@pytest.fixture
+def published(fake_hub):
+    """Publish demonstration videos for the synthetic task on the fake Hub."""
+    folder = fake_hub.remote / hub.AGENT_DEMO_FOLDER / FLAT_TASK
+    folder.mkdir(parents=True)
+    record = published_record()
+    for view in record["views"]:
+        (folder / f"demo_{view}.mp4").write_bytes(view.encode())
+        (folder / f"demo_{view}.json").write_text(json.dumps({**record, "view": view}))
+    return folder
+
+
+def test_default_demo_uses_the_published_videos(
+    tmp_path, datasets, published, fake_hub, monkeypatch
+):
+    def render_demo(*args, **kwargs):
+        raise AssertionError("the published videos match; nothing is rendered")
+
+    monkeypatch.setattr(demo_video, "render_demo", render_demo)
+    cell = tmp_path / "cell"
+    assert build(cell) == 0
+    box = cell / "sandbox"
+    assert (box / "demo_head.mp4").read_bytes() == b"head"
+    assert json.loads((box / "demo_head.json").read_text())["size"] == "84x84"
+    assert not [name for name in fake_hub.fetched if "/data/" in name]
+    config = json.loads((cell / "sandbox_config.json").read_text())
+    assert config["demo"]["files"] == published_record()["files"]
+
+
+@pytest.mark.parametrize(
+    "flags",
+    [["--image-cap", "128x96"], ["--demo-episode", "1"], ["--demo-episodes", "2"]],
+)
+def test_other_demo_settings_render_locally(
+    tmp_path, datasets, published, monkeypatch, flags
+):
+    calls = []
+
+    def render_demo(task, out_dir, *, size, **kwargs):
+        calls.append(size)
+        return published_record(f"{size[0]}x{size[1]}")
+
+    monkeypatch.setattr(demo_video, "render_demo", render_demo)
+    assert build(tmp_path / "cell", FLAT_TASK, *flags) == 0
+    assert len(calls) == 1

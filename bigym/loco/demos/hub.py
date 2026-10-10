@@ -46,6 +46,7 @@ REPO_ENV_VAR = "BIGYM_DATASET_REPO"
 REVISION_ENV_VAR = "BIGYM_DATASET_REVISION"
 
 TASK_MARKER = "meta/info.json"
+AGENT_DEMO_FOLDER = "agent_demos"
 
 
 class DemosUnavailableError(RuntimeError):
@@ -130,13 +131,56 @@ def task_dir(
     :class:`DemosUnavailableError` when the dataset has no folder for the
     task, naming the tasks it does have.
     """
+    return task_files(task, None, repo, revision, local_dir)
+
+
+def task_files(
+    task: str,
+    patterns: Iterable[str] | None,
+    repo: str | None = None,
+    revision: str | None = None,
+    local_dir: Path | None = None,
+) -> Path:
+    """Fetch some files of a task's folder and return the folder.
+
+    ``patterns`` are glob patterns relative to the task's folder, such as
+    ``meta/**``; None fetches the whole folder. The task's metadata
+    (``metadata.json`` and ``meta/``) always comes along. Raises
+    :class:`DemosUnavailableError` like :func:`task_dir`.
+    """
     task = str(task)
     folder_name = path_name(task)
-    root = _snapshot(repo, revision, [f"{folder_name}/**"], local_dir)
+    wanted = ["**"] if patterns is None else ["metadata.json", "meta/**", *patterns]
+    root = _snapshot(
+        repo, revision, [f"{folder_name}/{pattern}" for pattern in wanted], local_dir
+    )
     folder = root / folder_name
     if (folder / TASK_MARKER).is_file():
         return folder
     raise DemosUnavailableError(_unavailable_message(task, repo, revision))
+
+
+def agent_demo_dir(
+    task: str, repo: str | None = None, revision: str | None = None
+) -> Path | None:
+    """Return the published agent demonstration videos of a task, or None.
+
+    They sit in ``agent_demos/<task>/`` of the dataset: the files
+    ``bigym-agent`` puts in a sandbox under its default demonstration
+    settings, as the benchmark's sessions were given them.
+    """
+    folder = AGENT_DEMO_FOLDER + "/" + path_name(str(task))
+    found = _snapshot(repo, revision, [f"{folder}/**"]) / folder
+    return found if any(found.glob("*.mp4")) else None
+
+
+def snapshot_revision(folder: Path) -> str | None:
+    """The commit a folder of the Hub cache was downloaded at, or None.
+
+    Pass it as ``revision`` to fetch more files of the same dataset version.
+    """
+    snapshot = Path(folder).parent
+    return snapshot.name if snapshot.parent.name == "snapshots" else None
 
 
 def _unavailable_message(task: str, repo: str | None, revision: str | None) -> str:
@@ -223,6 +267,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     for name in args.task:
         folder = task_dir(name, repo, args.revision, args.local_dir)
+        if args.local_dir is None:
+            agent_demo_dir(name, repo, args.revision)  # what bigym-agent reads
         print(f"{name}: {folder}")
     return 0
 

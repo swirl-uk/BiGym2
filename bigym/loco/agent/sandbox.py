@@ -646,7 +646,7 @@ def write_demo_files(demos, out_dir: Path, max_episodes: int = -1) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     written = []
     action_dim = state_dim = 0
-    for name, episode in load_episodes(demos.dir, max_episodes):
+    for name, episode in load_episodes(demos.fetch_all(), max_episodes):
         arrays = {key: value for key, value in episode.items() if key in DEMO_KEEP}
         leaked = [key for key in arrays if key.startswith("full_")]
         if leaked:
@@ -737,7 +737,14 @@ def build(args: SandboxConfig) -> dict:
     demo_section = ""
     demo_line = "No demonstrations in this run."
     if args.demo == "video":
-        record = demo_video.render_demo(
+        record = demo_video.published_demo(
+            args.task,
+            sandbox,
+            demos,
+            size=cap,
+            which=args.demo_episode,
+            episodes=args.demo_episodes,
+        ) or demo_video.render_demo(
             args.task,
             sandbox,
             size=cap,

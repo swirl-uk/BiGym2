@@ -96,6 +96,24 @@ def test_undecoded_frames_stack_like_the_env(synthetic_dataset, stack):
         np.testing.assert_array_equal(stacked[t], want[t])
 
 
+def test_episode_rows_without_an_episode_table_scan_the_data(
+    synthetic_dataset, tmp_path
+):
+    import shutil
+
+    root, _ = synthetic_dataset
+    bare = tmp_path / "bare"
+    shutil.copytree(root, bare)
+    shutil.rmtree(bare / "meta" / "episodes")
+
+    def relative(folder):
+        rows = dataset.episode_rows(folder)
+        return {i: (p.relative_to(folder), s, n) for i, (p, s, n) in rows.items()}
+
+    assert relative(bare) == relative(root)
+    assert len(relative(bare)) == 3
+
+
 def test_reader_rejects_video_mode(synthetic_dataset, tmp_path):
     root, _ = synthetic_dataset
     info = json.loads((root / "meta" / "info.json").read_text())

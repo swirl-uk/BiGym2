@@ -27,6 +27,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `get_demos()` with `frame_stack=1` no longer copies demo frames.
 - Loading demonstrations needs less memory: 16.5 GB instead of 22.5 GB at
   peak for the 60 demos of `stack_blocks`.
+- `bigym-agent` puts the published demonstration videos in a sandbox and
+  downloads only them and the task's metadata, a few MB per task. Previously
+  it downloaded all of a task's demonstrations (5.6 GB for `stack_blocks`) to
+  render one. Other demonstration settings still render locally, and download
+  only the data file that holds the demonstration they show.
 - `examples/train_act.py` trains offline on the demonstrations, then runs the
   evaluation protocol. Previously it took one gradient step per env step,
   which ran the simulator for nothing, and kept every decoded frame in memory.

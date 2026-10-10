@@ -110,6 +110,14 @@ for Anthropic), and `run` refuses a mismatch before anything starts.
 `--sessions 3` runs every task three times, session k in the root
 `<root>_s<k>`. `--parallel` counts the sessions of every task and session.
 
+The demonstration videos are published with the dataset (`agent_demos/` in
+[SWIRL-Lab/bigym-g1-native60](https://huggingface.co/datasets/SWIRL-Lab/bigym-g1-native60)):
+every session gets the same files the benchmark sessions got, and a run
+downloads only them and the task's metadata. With any other `--image-cap`,
+`--demo-episode` or `--demo-episodes`, the run renders the video on your
+machine, downloading only the data file that holds the demonstration it
+shows. A local render can differ from the published videos in a few pixels.
+
 Each session takes the GPU with the most free memory and refuses to start if
 it has less than 6000 MiB free (`--min-free-mib`). `--gpu` picks a GPU by its
 `nvidia-smi` index.

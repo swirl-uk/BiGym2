@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `make_gym(...).get_demos(n, decode_images=False)` keeps the demo frames as
   PNG bytes and decodes an observation when it is indexed: about 7 GB at peak
   instead of 22.5 GB for `stack_blocks`.
+- `bigym-download --agent` fetches only what `bigym-agent` needs: each task's
+  metadata and demonstration videos, 68 MB for all 20 tasks.
 
 ### Changed
 

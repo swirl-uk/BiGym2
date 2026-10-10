@@ -229,6 +229,9 @@ class DownloadConfig:
     """Tasks to fetch; default: nothing unless --all."""
     all: bool = False
     """Fetch every task."""
+    agent: bool = False
+    """Fetch only what bigym-agent needs: each task's metadata and its
+    demonstration videos, not the demonstrations."""
     list_tasks: Annotated[bool, tyro.conf.arg(name="list")] = False
     """List the tasks the dataset provides."""
     repo: str | None = None
@@ -260,6 +263,16 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  {name}")
         if not (args.all or args.task):
             print("Pass --all or --task NAME to download.")
+        return 0
+    if args.agent:
+        if args.local_dir is not None:
+            raise SystemExit(
+                "--agent fills the Hub cache bigym-agent reads; drop --local-dir"
+            )
+        for name in args.task or available_tasks(repo, args.revision):
+            task_files(name, [], repo, args.revision)
+            videos = agent_demo_dir(name, repo, args.revision)
+            print(f"{name}: {videos or 'metadata only, no published videos'}")
         return 0
     if args.all:
         root = download_all(repo, args.revision, args.local_dir)

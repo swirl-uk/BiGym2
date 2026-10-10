@@ -15,7 +15,12 @@ uv run bigym-download --list                  # tasks the dataset provides
 uv run bigym-download --all                   # every task
 uv run bigym-download --task move_plate pick_box
 uv run bigym-download --all --local-dir bigym-data   # into a folder instead of the cache
+uv run bigym-download --agent --all           # only what bigym-agent needs
 ```
+
+`--agent` fetches each task's metadata and the demonstration videos a
+coding-agent session is given (`agent_demos/` of the dataset), not the
+demonstrations themselves: 68 MB for all 20 tasks.
 
 Both share the Hugging Face cache and its variables (`HF_HOME`, `HF_TOKEN`,
 `HF_HUB_OFFLINE=1`). `BIGYM_DATASET_REPO` and `BIGYM_DATASET_REVISION` select

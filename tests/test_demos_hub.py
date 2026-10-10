@@ -111,3 +111,15 @@ def test_cli_list_and_download(monkeypatch, tmp_path, capsys):
     ]
     assert hub.main(["--repo", "org/demos", "--all"]) == 0
     assert calls[-1]["allow_patterns"] is None
+
+
+def test_cli_agent_fetches_metadata_and_videos_only(monkeypatch, tmp_path):
+    pytest.importorskip("huggingface_hub")
+    _, calls = _fake_hub(monkeypatch, tmp_path, ["move_plate", "pick_box"])
+    assert hub.main(["--repo", "org/demos", "--agent", "--task", "pick_box"]) == 0
+    assert [call["allow_patterns"] for call in calls] == [
+        ["pick_box/metadata.json", "pick_box/meta/**"],
+        ["agent_demos/pick_box/**"],
+    ]
+    with pytest.raises(SystemExit):
+        hub.main(["--agent", "--all", "--local-dir", str(tmp_path / "out")])

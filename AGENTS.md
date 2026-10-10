@@ -13,6 +13,9 @@ guessing how something works.
   command, so name them all at once: `uv sync --extra vr --extra agent`. After
   a hand-picked sync, run commands with `uv run --no-sync`.
 - On headless Linux, set `MUJOCO_GL=egl`.
+- Decoded, the 60 demonstrations of a long task take about 16 GB
+  (`stack_blocks`). Code that only indexes frames uses
+  `get_demos(..., decode_images=False)`, about 7 GB, or loads fewer episodes.
 
 ## Checks
 
@@ -47,6 +50,9 @@ Run these before calling a change done:
   in its `PROVENANCE.md`. No torch and no git dependencies.
 - The README snippet (`make_gym(task)`, `env.get_demos(n)`, the gymnasium
   loop) is the reference usage and must keep running as written.
+- `PngFrames` (`bigym/loco/demos/dataset.py`) keeps each camera's PNG bytes
+  in one numpy array, so forked data loader workers share them instead of
+  copying. Do not turn them into Python lists of `bytes`.
 - `bigym/loco/agent/templates/` is everything a benchmark agent is told.
   Editing it changes the benchmark: update `prompt_version` in
   `bigym/loco/agent/sandbox.py` and never add task-specific hints. Nothing

@@ -173,8 +173,8 @@ def focus_pose(
 ) -> tuple[tuple[float, float, float], tuple[float, float, float]]:
     """Where a camera stands to watch one slot on its own.
 
-    On the -x side of that robot (the side every other view watches from),
-    looking at its pelvis a little above the hips.
+    On the -x side of that robot, looking at its pelvis a little above the
+    hips.
 
     Args:
         offset: The slot's grid offset.

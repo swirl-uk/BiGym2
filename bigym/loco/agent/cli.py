@@ -469,7 +469,8 @@ class InloopConfig:
     episodes: int = 100
     """Episodes in the block."""
     first_episode: int = 0
-    """Index of the first episode to run (to resume a block)."""
+    """Index of the first episode to run; results already under --label are
+    replaced, not merged."""
     seed_offset: int = 0
     """Added to every protocol seed."""
     workers: int = 8
@@ -524,8 +525,9 @@ class RunConfig:
     """Reasoning effort the harness asks for."""
     service_tier: str | None = None
     """codex account speed tier (e.g. fast); default: the account's own. A
-    routing priority on the same model: it changes latency, not any recorded
-    metric. Opt-in, because tiers speed models up unequally."""
+    routing priority on the same model: it changes latency, and so the
+    wall-clock time a session takes. Opt-in, because tiers speed models up
+    unequally."""
     env_tools: tyro.conf.OmitArgPrefixes[EnvToolsConfig] = field(
         default_factory=EnvToolsConfig
     )

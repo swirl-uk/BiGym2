@@ -235,7 +235,7 @@ def codex_home(
         write: False for a dry run (return the path, create nothing).
         service_tier: The account speed tier to request, or None for the
             default. ``"fast"`` is a routing priority on the same model, so it
-            changes latency and nothing the benchmark records; it is opt-in
+            changes latency and the wall-clock time a session takes; it is opt-in
             per run so that two models being compared are not silently given
             different tiers (their speed-ups differ, e.g. 2x vs 1.5x).
     """

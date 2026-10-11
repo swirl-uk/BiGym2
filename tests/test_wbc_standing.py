@@ -5,8 +5,8 @@ The official env (controller in the loop) is reset and then held for
 velocity, the default height command and the arms where reset left them.
 That is the command a policy sends while it thinks, and the state every
 episode starts from; a controller that cannot hold it makes every task
-unsolvable. The robot must not trip the controller's fall latch, the
-pelvis must stay near standing height and the feet must stay put.
+unsolvable. The robot must not trip the controller's fall latch, and the
+pelvis must stay near standing height, upright and close to where it started.
 
 The bounds are loose on purpose (measured: pelvis height
 0.747-0.748 m, horizontal drift 6.5 mm, tilt 0.42 deg): this test is for

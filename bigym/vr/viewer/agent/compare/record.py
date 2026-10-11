@@ -296,8 +296,8 @@ def record_compare(
             elif got != actual:
                 raise RuntimeError(
                     f"frame {index} came back {got[0]}x{got[1]} after "
-                    f"{actual[0]}x{actual[1]}: do not resize the browser "
-                    "window while recording"
+                    f"{actual[0]}x{actual[1]}; the frame size cannot change "
+                    "mid-recording"
                 )
             sink.write(frame)
             written += 1

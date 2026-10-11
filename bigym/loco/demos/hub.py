@@ -222,7 +222,8 @@ def download_all(
 class DownloadConfig:
     """Download BiGym 2.0 demonstrations from the Hugging Face Hub.
 
-    They land in the Hub cache, so env.get_demos() never waits on the network.
+    They land in the Hub cache, where env.get_demos() finds them;
+    HF_HUB_OFFLINE=1 keeps it from checking the Hub for a newer revision.
     """
 
     task: list[str] = field(default_factory=list)

@@ -422,14 +422,14 @@ def test_the_camera_starts_where_every_slot_is_in_view():
     assert position[2] + along * (look_at[2] - position[2]) > 1.7
 
 
-def test_focus_stands_in_front_of_one_slot_and_looks_at_its_pelvis():
+def test_focus_stands_on_the_minus_x_side_of_one_slot():
     """The focus dropdown flies to the -x side of that robot."""
     offset = (-2.5, 2.5, 0.0)
     pelvis = (0.1, -0.2, 0.76)
     position, look_at = focus_pose(offset, pelvis, distance=2.0)
     assert look_at == pytest.approx((-2.4, 2.3, 0.91))
     assert position == pytest.approx((-4.4, 2.3, 1.35))
-    assert position[0] < look_at[0]  # in front of it, not behind
+    assert position[0] < look_at[0]
 
 
 class FakeCamera:
@@ -880,7 +880,7 @@ def test_the_progress_bars_carry_their_own_label_line():
 
 @pytest.mark.slow
 def test_compare_builds_one_prefixed_scene_per_slot(tmp_path, capsys):
-    """Two environments in one viser server, offset along +y, each labelled."""
+    """Four environments in one viser server, in a 2x2 grid, each labelled."""
     from bigym.loco import make
 
     probe = make(TASK)
@@ -1104,7 +1104,7 @@ def test_a_compare_recording_poses_then_renders_then_writes():
     assert frames[0].flags["C_CONTIGUOUS"]
 
 
-def test_a_compare_recording_refuses_a_resized_browser():
+def test_a_compare_recording_refuses_a_frame_size_change():
     """A frame of a different size mid-recording is an error, not a corrupt file."""
     sizes = iter([(10, 20), (12, 20)])
 
@@ -1123,7 +1123,7 @@ def test_a_compare_recording_refuses_a_resized_browser():
         def close(self):
             pass
 
-    with pytest.raises(RuntimeError, match="resize"):
+    with pytest.raises(RuntimeError, match="cannot change"):
         record_compare(
             lambda f: None,
             _Client(),

@@ -103,7 +103,7 @@ Reproducing this data requires reproducing the reset
 
 ## Substrate fingerprint
 
-Results are comparable when `substrate_version` matches. The main fields:
+Official results are comparable when their `substrate_version` matches. The main fields:
 
 ```text
 {
@@ -162,7 +162,7 @@ Standard LeRobot v3 layout, plus these files:
 | `expanded_action` | float32 | (`<35>`,) | outer action expanded to the full joint set |
 | `lowerbody_action` | float32 | (`<15>`,) | lower-body policy output |
 | `leg_joint_targets` | float32 | (`<15>`,) | leg and waist position targets sent to the actuators |
-| `torso_target` | float32 | (1,) | torso yaw target |
+| `torso_target` | float32 | (1,) | kept for compatibility; NaN on the G1 |
 | `lowerbody_command` | float32 | (3,) | base velocity command `(vx, vy, wz)` |
 | `height_command` | float32 | (1,) | pelvis height command, m |
 | `full_qpos` | float64 | (`<46>`,) | full MuJoCo `qpos` |

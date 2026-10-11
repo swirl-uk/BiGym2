@@ -48,8 +48,9 @@ Run these before calling a change done:
   wall clock or unseeded randomness.
 - `bigym/loco/adapters/_groot/` is vendored upstream code. Record every edit
   in its `PROVENANCE.md`. No torch and no git dependencies.
-- The README snippet (`make_gym(task)`, `env.get_demos(n)`, the gymnasium
-  loop) is the reference usage and must keep running as written.
+- The paper's snippet (`make_gym(task)`, `env.get_demos(n)`; see
+  `test_paper_snippet` in `tests/test_gym_adapter.py`) is the reference usage
+  and must keep running as written.
 - `PngFrames` (`bigym/loco/demos/dataset.py`) keeps each camera's PNG bytes
   in one numpy array, so forked data loader workers share them instead of
   copying. Do not turn them into Python lists of `bytes`.

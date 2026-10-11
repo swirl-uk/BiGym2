@@ -230,7 +230,7 @@ def test_a_one_frame_demo_never_indexes_past_its_end():
 
 
 def test_labels_and_the_gui_can_be_turned_off():
-    """``--no-labels`` and ``--show-gui`` are the negated options."""
+    """``--no-labels`` and ``--no-hide-gui`` are the negated options."""
     args = demo_grid.parse_args(["--no-labels", "--no-hide-gui", "--tint"])
     assert args.labels is False
     assert args.hide_gui is False

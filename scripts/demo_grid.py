@@ -25,11 +25,11 @@ clock* rather than the update loop: demo time runs at ``--fps`` (50 = real
 time) and frames that could not be drawn are skipped, so the
 demonstrations always play at their own speed however big the grid is.
 
-The scene machinery is compare mode's (``bigym/vr/viewer/agent_cells.py``): one
-mjviser scene per task under its own node-name prefix, moved into the grid
-by a frame at ``/bodies/<prefix>`` (a column steps +y, a row steps -x), all
-of them built hidden and revealed together once every scene holds frame 0
-of its demo. Nothing in this module writes to ``agent_cells``; it imports.
+The scene machinery is compare mode's (:mod:`bigym.vr.viewer.scene` and
+:mod:`bigym.vr.viewer.layout`): one mjviser scene per task under its own
+node-name prefix, moved into the grid by a frame at ``/bodies/<prefix>`` (a
+column steps +y, a row steps -x), all of them built hidden and revealed
+together once every scene holds frame 0 of its demo.
 
 For a video the live rate is not good enough, so ``--record`` captures the
 same scene offline: the playhead is stepped one frame at a time with no
@@ -67,11 +67,31 @@ import tyro
 from mjviser import ViserMujocoScene
 
 from bigym.loco.demos.kinematic import replay_env, run_task_hook
-from bigym.vr.viewer import agent_cells, video
+from bigym.vr.viewer import video
+from bigym.vr.viewer.layout import (
+    css_rgb,
+    focus_pose,
+    grid_shape,
+    slot_grid,
+    slot_offset,
+)
 from bigym.vr.viewer.mjviser_compat import (
     hide_reach_targets,
     patch_mjviser,
     patch_mjviser_track_props,
+)
+from bigym.vr.viewer.scene import (
+    SlotBillboard,
+    apply_lighting,
+    billboard_anchor,
+    compare_server,
+    facing_wxyz,
+    pelvis_body_id,
+    pelvis_position,
+    pose_slot,
+    slot_scene_build,
+    tint_slot_robot,
+    viewer_camera_position,
 )
 
 # The grid a 20-task dataset wants: 5 columns x 4 rows reads as a poster and
@@ -209,9 +229,9 @@ def scene_tint(index: int) -> tuple[float, float, float]:
         index: The scene's position in the grid.
 
     Returns:
-        An ``(r, g, b)`` multiplier for :func:`agent_cells.tint_slot_robot`.
+        An ``(r, g, b)`` multiplier for :func:`tint_slot_robot`.
     """
-    rgb = np.asarray(agent_cells.css_rgb(scene_colour(index)), dtype=float)
+    rgb = np.asarray(css_rgb(scene_colour(index)), dtype=float)
     peak = float(rgb.max()) or 1.0
     return cast(tuple[float, float, float], tuple(float(v) for v in rgb / peak))
 
@@ -379,7 +399,7 @@ def pack_layout(
         The :class:`Layout`.
     """
     boxes = list(footprints)
-    places = agent_cells.slot_grid(len(boxes), columns_layout(columns))
+    places = slot_grid(len(boxes), columns_layout(columns))
     if not boxes:
         return Layout((), (), (), (), (), float(clearance))
     gap = max(0.0, float(clearance))
@@ -454,10 +474,10 @@ def uniform_layout(footprints, columns: int, gap: float) -> Layout:
         The :class:`Layout`.
     """
     boxes = list(footprints)
-    places = agent_cells.slot_grid(len(boxes), columns_layout(columns))
+    places = slot_grid(len(boxes), columns_layout(columns))
     if not boxes:
         return Layout((), (), (), (), (), float(gap))
-    offsets = [agent_cells.slot_offset(r, c, float(gap)) for r, c in places]
+    offsets = [slot_offset(r, c, float(gap)) for r, c in places]
     width = max(1, max(c for _, c in places) + 1)
     rows = max(1, max(r for r, _ in places) + 1)
     row_span = [[float("inf"), float("-inf")] for _ in range(rows)]
@@ -908,7 +928,7 @@ def pose_scene(entry: dict, frame: int, mujoco) -> int:
     Returns:
         The frame actually used.
     """
-    here = agent_cells.pose_slot(entry, frame, mujoco)
+    here = pose_slot(entry, frame, mujoco)
     run_task_hook(entry["inner"])
     if entry["targets"]:
         update_targets(entry)
@@ -929,14 +949,14 @@ def place_label(entry: dict, camera=None) -> tuple[float, float, float] | None:
     billboard = entry.get("billboard")
     if billboard is None:
         return None
-    anchor = agent_cells.billboard_anchor(
-        agent_cells.pelvis_position(entry["data"], entry["pelvis"]),
+    anchor = billboard_anchor(
+        pelvis_position(entry["data"], entry["pelvis"]),
         entry["offset"],
         PLATE_Z,
     )
     billboard.node.position = tuple(float(v) for v in anchor)
     if camera is not None:
-        billboard.node.wxyz = agent_cells.facing_wxyz(anchor, camera)
+        billboard.node.wxyz = facing_wxyz(anchor, camera)
     return anchor
 
 
@@ -988,8 +1008,8 @@ def build_grid(
     """
     patch_mjviser()
     if server is None:
-        server = agent_cells.compare_server(port)
-    # One /fixed_bodies root for every scene (see agent_cells.slot_scene_build).
+        server = compare_server(port)
+    # One /fixed_bodies root for every scene (see slot_scene_build).
     fixed_frame = server.scene.add_frame("/fixed_bodies", show_axes=False)
     total = len(demos)
     # First pass: build every environment, pose it at frame 0 and measure
@@ -1048,8 +1068,8 @@ def build_grid(
         )
         patch_mjviser_track_props(model, inner)
         pristine = np.array(model.geom_rgba, copy=True)
-        tinted = agent_cells.tint_slot_robot(model, scene_tint(i)) if tint else 0
-        with agent_cells.slot_scene_build(
+        tinted = tint_slot_robot(model, scene_tint(i)) if tint else 0
+        with slot_scene_build(
             server, prefix, keep_grid=i == 0, fixed_frame=fixed_frame
         ):
             scene = ViserMujocoScene(server=server, mj_model=model, num_envs=1)
@@ -1057,7 +1077,7 @@ def build_grid(
         scene.camera_tracking_enabled = False
         billboard = None
         if labels:
-            billboard = agent_cells.SlotBillboard(
+            billboard = SlotBillboard(
                 server,
                 f"/grid/{prefix}/label",
                 position=(offset[0], offset[1], offset[2] + PLATE_Z),
@@ -1078,7 +1098,7 @@ def build_grid(
             "scene": scene,
             "qpos": demo.qpos,
             "info": {},
-            "pelvis": agent_cells.pelvis_body_id(model),
+            "pelvis": pelvis_body_id(model),
             "billboard": billboard,
             "frames": (body_frame, scene_fixed),
             "geom_rgba": pristine,
@@ -1101,7 +1121,7 @@ def build_grid(
             f"built hidden, {tinted} geoms tinted, {len(targets)} reach target(s)",
             flush=True,
         )
-    agent_cells.apply_lighting(
+    apply_lighting(
         server,
         {"sky": sky, "environment": 0.7, "default_lights": True, "shadows": True},
     )
@@ -1142,9 +1162,7 @@ def build_grid(
 def scene_pose(built: dict, index: int):
     """``(position, look_at)`` for the camera watching one scene alone."""
     entry = built["scenes"][index]
-    return agent_cells.focus_pose(
-        entry["offset"], agent_cells.pelvis_position(entry["data"], entry["pelvis"])
-    )
+    return focus_pose(entry["offset"], pelvis_position(entry["data"], entry["pelvis"]))
 
 
 def overview_pose(
@@ -1248,7 +1266,7 @@ def grid_fov(
     sky above and empty floor below (measured: 37% of the frame width).
     Rather than dragging the camera closer — which would foreshorten the
     near row — the lens is narrowed to what the grid actually subtends from
-    where :func:`agent_cells.compare_camera_pose` stands.
+    where :func:`compare_camera_pose` stands.
 
     Args:
         offsets: Every scene's offset.
@@ -1305,7 +1323,7 @@ def pose_grid(built: dict, playhead: int, loop: str = LOOP_ALL) -> None:
     # One camera lookup for the whole grid rather than one per plate.
     camera = built.get("camera")
     if camera is None:
-        camera = agent_cells.viewer_camera_position(built["server"])
+        camera = viewer_camera_position(built["server"])
     with built["server"].atomic():
         for entry in scenes:
             here = loop_frame(playhead, entry["qpos"].shape[0], longest, loop)
@@ -2225,7 +2243,7 @@ def grid_keyframes(built: dict, args, aspect: float = 16 / 9):
         entry = built["scenes"][0] if built["scenes"] else None
         anchor_point = None
         if entry is not None and entry.get("pelvis", -1) >= 0:
-            pelvis = agent_cells.pelvis_position(entry["data"], entry["pelvis"])
+            pelvis = pelvis_position(entry["data"], entry["pelvis"])
             offset = entry["offset"]
             anchor_point = (
                 pelvis[0] + offset[0],
@@ -2521,7 +2539,7 @@ def main() -> None:
         if args.gap and args.gap > 0.0
         else f"clearance {args.clearance:g} m"
     )
-    rows, columns = agent_cells.grid_shape(len(tasks), columns_layout(args.columns))
+    rows, columns = grid_shape(len(tasks), columns_layout(args.columns))
     print(
         f"[grid] {len(tasks)} scenes as {columns} columns x {rows} rows · "
         f"{spacing} · episode {args.episode} · {args.fps:g} fps · "

@@ -22,7 +22,16 @@ import pytest
 
 os.environ.setdefault("MUJOCO_GL", "egl")
 
-from bigym.vr.viewer import agent_cells
+from bigym.vr.viewer.agent.compare.record import compare_box
+from bigym.vr.viewer.layout import (
+    compare_camera_pose,
+    grid_note,
+    grid_offsets,
+    grid_shape,
+    slot_grid,
+    slot_offset,
+)
+from bigym.vr.viewer.scene import facing_wxyz
 
 
 def load_script():
@@ -51,39 +60,37 @@ TASKS = ("reach_target_single", "move_plate")
 
 def test_twenty_tasks_fill_four_rows_of_five():
     """The default grid is 5 columns x 4 rows, filled left to right."""
-    places = agent_cells.slot_grid(20, demo_grid.columns_layout(5))
+    places = slot_grid(20, demo_grid.columns_layout(5))
     assert places[0] == (0, 0)
     assert places[4] == (0, 4)
     assert places[5] == (1, 0)
     assert places[-1] == (3, 4)
-    assert agent_cells.grid_shape(20, demo_grid.columns_layout(5)) == (4, 5)
-    note = agent_cells.grid_note(20, 4.0, demo_grid.columns_layout(5), noun="scene")
+    assert grid_shape(20, demo_grid.columns_layout(5)) == (4, 5)
+    note = grid_note(20, 4.0, demo_grid.columns_layout(5), noun="scene")
     assert note == "20 scenes as 5 columns x 4 rows, gap 4 m"
 
 
 def test_a_column_steps_along_y_and_a_row_back_along_x():
     """Compare mode's placement: +y per column, -x per row, origin first."""
-    offsets = agent_cells.grid_offsets(7, 4.0, demo_grid.columns_layout(5))
+    offsets = grid_offsets(7, 4.0, demo_grid.columns_layout(5))
     assert offsets[0] == (0.0, 0.0, 0.0)
     assert offsets[1] == (0.0, 4.0, 0.0)
     assert offsets[4] == (0.0, 16.0, 0.0)
     assert offsets[5] == (-4.0, 0.0, 0.0)
     assert offsets[6] == (-4.0, 4.0, 0.0)
     # Same helper the compare scene places its slots with.
-    assert offsets[6] == agent_cells.slot_offset(1, 1, 4.0)
+    assert offsets[6] == slot_offset(1, 1, 4.0)
 
 
 def test_a_short_grid_never_has_empty_columns():
     """Three tasks in a five-column grid are one row of three."""
-    assert agent_cells.grid_shape(3, demo_grid.columns_layout(5)) == (1, 3)
-    assert agent_cells.slot_grid(3, demo_grid.columns_layout(5)) == [
+    assert grid_shape(3, demo_grid.columns_layout(5)) == (1, 3)
+    assert slot_grid(3, demo_grid.columns_layout(5)) == [
         (0, 0),
         (0, 1),
         (0, 2),
     ]
-    assert agent_cells.grid_offsets(1, 4.0, demo_grid.columns_layout(5)) == [
-        (0.0, 0.0, 0.0)
-    ]
+    assert grid_offsets(1, 4.0, demo_grid.columns_layout(5)) == [(0.0, 0.0, 0.0)]
 
 
 def test_packing_leaves_exactly_the_clearance_between_footprints():
@@ -124,10 +131,8 @@ def test_the_uniform_gap_is_still_available():
 
 def test_the_overview_camera_frames_the_whole_grid():
     """It stands off the -x side, left of every scene and above them all."""
-    offsets = agent_cells.grid_offsets(
-        20, demo_grid.DEFAULT_GAP, demo_grid.columns_layout(5)
-    )
-    position, look_at = agent_cells.compare_camera_pose(offsets)
+    offsets = grid_offsets(20, demo_grid.DEFAULT_GAP, demo_grid.columns_layout(5))
+    position, look_at = compare_camera_pose(offsets)
     assert position[0] < min(o[0] for o in offsets)
     assert position[1] == pytest.approx(0.5 * (0.0 + 16.0))
     # High enough that the near row cannot hide the far one.
@@ -579,10 +584,10 @@ class _LoadingClient:
 def test_the_recording_lens_frames_the_compare_slots_not_a_kitchen():
     """compare_box pads slots by a table's reach; grid_fov takes that box."""
     offsets = [(0.0, 0.0, 0.0), (0.0, 2.5, 0.0), (-2.5, 0.0, 0.0), (-2.5, 2.5, 0.0)]
-    centre, half = agent_cells.compare_box(offsets)
+    centre, half = compare_box(offsets)
     assert centre == pytest.approx((-1.25 + 0.4, 1.25, 0.9))
     assert half == pytest.approx((1.25 + 1.3, 1.25 + 1.3, 1.0))
-    home = agent_cells.compare_camera_pose(offsets)
+    home = compare_camera_pose(offsets)
     tight = demo_grid.grid_fov(offsets, *home, 16 / 9, box=(centre, half))
     loose = demo_grid.grid_fov(offsets, *home, 16 / 9)
     assert 0.0 < tight < loose
@@ -590,10 +595,8 @@ def test_the_recording_lens_frames_the_compare_slots_not_a_kitchen():
 
 def test_the_overview_lens_narrows_to_fit_the_grid():
     """viser's ~80 degree default leaves the grid in a band; fit it instead."""
-    offsets = agent_cells.grid_offsets(
-        20, demo_grid.DEFAULT_GAP, demo_grid.columns_layout(5)
-    )
-    pose = agent_cells.compare_camera_pose(offsets)
+    offsets = grid_offsets(20, demo_grid.DEFAULT_GAP, demo_grid.columns_layout(5))
+    pose = compare_camera_pose(offsets)
     fov = demo_grid.grid_fov(offsets, pose[0], pose[1], 16 / 9)
     assert 0.2 < fov < 0.9  # radians: a long lens, not a fisheye
     # The grid's own box is what it frames: padded, and centred on it.
@@ -601,10 +604,8 @@ def test_the_overview_lens_narrows_to_fit_the_grid():
     assert centre[1] == pytest.approx(8.0 + demo_grid.SCENE_CENTRE[1])
     assert half[1] > 8.0 and half[0] > 6.0
     # One scene alone is framed more widely than twenty.
-    single = agent_cells.grid_offsets(
-        1, demo_grid.DEFAULT_GAP, demo_grid.columns_layout(1)
-    )
-    alone = demo_grid.grid_fov(single, *agent_cells.compare_camera_pose(single), 16 / 9)
+    single = grid_offsets(1, demo_grid.DEFAULT_GAP, demo_grid.columns_layout(1))
+    alone = demo_grid.grid_fov(single, *compare_camera_pose(single), 16 / 9)
     assert alone > fov
     # A taller frame needs a taller lens for the same grid.
     assert demo_grid.grid_fov(offsets, pose[0], pose[1], 4 / 3) > fov
@@ -614,7 +615,7 @@ def test_a_label_is_drawn_and_turned_so_its_text_reads():
     """The grid's plates are the compare viewer's: same drawing, same turn."""
     anchor = (0.0, 0.0, 2.0)
     camera = (-5.0, 0.0, 2.0)
-    rotation = _quat_matrix(agent_cells.facing_wxyz(anchor, camera))
+    rotation = _quat_matrix(facing_wxyz(anchor, camera))
     # viser's image plane shows its picture on the local -z side with the
     # top along local -y: the picture looks at the camera, text upright.
     assert rotation[:, 2] == pytest.approx([1.0, 0.0, 0.0], abs=1e-6)
@@ -627,7 +628,7 @@ def test_a_label_is_drawn_and_turned_so_its_text_reads():
     built["scenes"][0]["pelvis"] = -1
     demo_grid.place_label(built["scenes"][0], camera)
     assert billboard.node.wxyz == pytest.approx(
-        agent_cells.facing_wxyz(billboard.node.position, camera)
+        facing_wxyz(billboard.node.position, camera)
     )
     # With nobody watching, the plate keeps the direction it was built with.
     billboard.node.wxyz = (1.0, 0.0, 0.0, 0.0)
@@ -644,7 +645,7 @@ class _FakeNode:
 
 
 class _FakePlate:
-    """A :class:`agent_cells.SlotBillboard` stand-in."""
+    """A :class:`SlotBillboard` stand-in."""
 
     def __init__(self):
         self.node = _FakeNode()

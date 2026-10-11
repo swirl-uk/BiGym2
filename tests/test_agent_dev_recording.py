@@ -241,9 +241,9 @@ def test_the_recording_did_not_disturb_the_session(recorded_cell):
 def test_the_viewer_discovers_a_development_batch(recorded_cell):
     """`bigym-view` treats dev/ like eval/ and replays/."""
     cell, _ = recorded_cell
-    from bigym.vr.viewer import agent_cells
+    from bigym.vr.viewer.agent import runs
 
-    found = agent_cells.batch_version(batch_of(cell))
+    found = runs.batch_version(batch_of(cell))
     assert found is not None
     where, kind, version = found
     assert where == cell

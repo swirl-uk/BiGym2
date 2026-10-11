@@ -17,7 +17,49 @@ import numpy as np
 import pytest
 
 from bigym.loco.agent.snapshots import version_dir
-from bigym.vr.viewer import agent_cells, view_demos
+from bigym.vr.viewer import view_demos
+from bigym.vr.viewer.agent.html import (
+    code_html,
+    diff_html,
+    policy_table_html,
+    progress_note_html,
+    summary_html,
+    token_cost,
+    transcript_html,
+    transcript_title,
+    vscode_link_html,
+)
+from bigym.vr.viewer.agent.jobs import (
+    AGENT_CLI_MODULE,
+    DEFAULT_EVAL_EPISODES,
+    PROGRESS_NAME,
+    AgentJob,
+    progress_fraction,
+    progress_label,
+    read_progress,
+)
+from bigym.vr.viewer.agent.panels import CellPanels
+from bigym.vr.viewer.agent.runs import (
+    batch_version,
+    default_rollout,
+    discover_cells,
+    file_digest,
+    find_cell,
+    is_agent_cell,
+    iso_seconds,
+    policy_file,
+    policy_rows,
+    read_run,
+    read_transcript,
+    rollout_counts,
+    rollout_item_label,
+    rollouts_of,
+    sessions_of,
+    tasks_of,
+    version_records,
+)
+from bigym.vr.viewer.episodes import batch_success, episode_files, episode_infos
+from bigym.vr.viewer.layout import COMPARE_LAYOUTS, COMPARE_SLOTS, LAYOUT_AUTO
 from tests.fixtures.agent_cell import TASK, make_cell, write_batch
 from tests.fixtures.viser_gui import FakeServer
 
@@ -38,10 +80,10 @@ def cell(tmp_path) -> Path:
 
 def test_cell_is_detected_and_ordinary_dirs_are_not(cell, tmp_path):
     """policies/index.json is what makes a directory a cell."""
-    assert agent_cells.is_agent_cell(cell)
+    assert is_agent_cell(cell)
     plain = tmp_path / "demos" / TASK / "20260102_030405"
     write_batch(plain, range(620000, 620003))
-    assert not agent_cells.is_agent_cell(plain.parent.parent)
+    assert not is_agent_cell(plain.parent.parent)
 
 
 def test_discovery_finds_eval_and_replay_batches(cell):
@@ -92,21 +134,21 @@ def test_ordinary_demo_dirs_keep_their_labels(tmp_path):
 def test_batch_version_rejects_non_cell_layout(tmp_path):
     """Only `<cell>/eval|replays/vNNN/batch` is treated as a version batch."""
     write_batch(tmp_path / "runs" / "v001" / "batch", (620000,))
-    assert agent_cells.batch_version(tmp_path / "runs" / "v001" / "batch") is None
+    assert batch_version(tmp_path / "runs" / "v001" / "batch") is None
     write_batch(tmp_path / "eval" / "latest" / "batch", (620000,))
-    assert agent_cells.batch_version(tmp_path / "eval" / "latest" / "batch") is None
+    assert batch_version(tmp_path / "eval" / "latest" / "batch") is None
 
 
 def test_policy_rows_join_the_eval_summary(cell):
     """Policy versions carry train success from the index, eval from summary."""
-    rows = agent_cells.policy_rows(cell)
+    rows = policy_rows(cell)
     assert [row["version"] for row in rows] == [1, 2]
     assert rows[0]["trigger"] == "write"
     assert rows[0]["eval_success"] == pytest.approx(0.41)
     assert rows[1]["train_success"] == pytest.approx(0.5)
     assert rows[1]["eval_success"] is None
-    assert "v001" in agent_cells.policy_table_html(rows)
-    assert "no policies" in agent_cells.policy_table_html([])
+    assert "v001" in policy_table_html(rows)
+    assert "no policies" in policy_table_html([])
 
 
 def test_version_dir_tolerates_unpadded_names(tmp_path):
@@ -132,8 +174,8 @@ def test_pick_batch_by_index_and_substring(tmp_path):
 
 def test_agent_job_command_and_output_dir(cell):
     """Replay/evaluate run the bigym-agent CLI module with the cell and version."""
-    replay = agent_cells.AgentJob("replay", cell, 7, "620000-620004")
-    assert replay.command[1:3] == ["-m", agent_cells.AGENT_CLI_MODULE]
+    replay = AgentJob("replay", cell, 7, "620000-620004")
+    assert replay.command[1:3] == ["-m", AGENT_CLI_MODULE]
     assert replay.command[3:] == [
         "replay",
         str(cell),
@@ -145,7 +187,7 @@ def test_agent_job_command_and_output_dir(cell):
     assert replay.out_dir == cell / "replays" / "v007"
     assert replay.progress() == "replay v007: 1 episodes written"
 
-    evaluate = agent_cells.AgentJob("evaluate", cell, 1)
+    evaluate = AgentJob("evaluate", cell, 1)
     assert evaluate.command[3:] == ["evaluate", str(cell), "--version", "1"]
     assert evaluate.out_dir == cell / "eval" / "v001"
     assert evaluate.progress() == "evaluate v001: 2 episodes scored"
@@ -154,38 +196,36 @@ def test_agent_job_command_and_output_dir(cell):
 def test_the_progress_label_says_where_a_job_has_got_to():
     """`s2 · v002 · seed 500 · 812/3523`, and what each part is dropped for."""
     one = {"seed": 500, "step": 812, "max_steps": 3523, "episode": 0, "episodes": 1}
-    assert agent_cells.progress_label("s2 · v002 · seed 500", one) == (
+    assert progress_label("s2 · v002 · seed 500", one) == (
         "s2 · v002 · seed 500 · 812/3523"
     )
-    assert agent_cells.progress_fraction(one) == pytest.approx(812 / 3523)
+    assert progress_fraction(one) == pytest.approx(812 / 3523)
     # Several episodes: the bar crosses the whole run, not each episode.
     many = {"seed": 620002, "step": 150, "max_steps": 300, "episode": 2, "episodes": 5}
-    assert agent_cells.progress_label("replay v007", many) == (
+    assert progress_label("replay v007", many) == (
         "replay v007 · 150/300 · 2/5 episodes"
     )
-    assert agent_cells.progress_fraction(many) == pytest.approx(0.5)
+    assert progress_fraction(many) == pytest.approx(0.5)
     # An evaluation reports no steps at all: its episodes run in workers.
     scored = {"seed": 0, "step": 0, "max_steps": 0, "episode": 37, "episodes": 100}
-    assert agent_cells.progress_label("evaluate v007", scored) == (
+    assert progress_label("evaluate v007", scored) == (
         "evaluate v007 · 37/100 episodes"
     )
-    assert agent_cells.progress_fraction(scored) == pytest.approx(0.37)
+    assert progress_fraction(scored) == pytest.approx(0.37)
     # Nothing written yet.
-    assert agent_cells.progress_label("evaluate v007", None) == (
-        "evaluate v007 · starting…"
-    )
-    assert agent_cells.progress_fraction(None) == 0.0
-    assert "812/3523" in agent_cells.progress_note_html("x · 812/3523")
+    assert progress_label("evaluate v007", None) == ("evaluate v007 · starting…")
+    assert progress_fraction(None) == 0.0
+    assert "812/3523" in progress_note_html("x · 812/3523")
 
 
 def test_a_job_reads_the_progress_file_its_subprocess_writes(cell):
     """The bar follows .progress.json, then the files the job finished."""
-    job = agent_cells.AgentJob("replay", cell, 7, "620000-620004")
-    assert agent_cells.read_progress(job.out_dir) is None
+    job = AgentJob("replay", cell, 7, "620000-620004")
+    assert read_progress(job.out_dir) is None
     assert job.progress_state() == (0.0, "replay v007 · starting…", True)
 
     job.out_dir.mkdir(parents=True, exist_ok=True)
-    (job.out_dir / agent_cells.PROGRESS_NAME).write_text(
+    (job.out_dir / PROGRESS_NAME).write_text(
         json.dumps(
             {
                 "seed": 620001,
@@ -204,22 +244,22 @@ def test_a_job_reads_the_progress_file_its_subprocess_writes(cell):
     assert animated is False
 
     # An evaluation with no progress file falls back to its scored rows.
-    evaluation = agent_cells.AgentJob("evaluate", cell, 1)
-    assert evaluation.episodes == agent_cells.DEFAULT_EVAL_EPISODES
+    evaluation = AgentJob("evaluate", cell, 1)
+    assert evaluation.episodes == DEFAULT_EVAL_EPISODES
     assert evaluation.csv_rows() == 2
     assert evaluation.progress_state() == (
         0.02,
         "evaluate v001 · 2/100 episodes",
         False,
     )
-    asked = agent_cells.AgentJob("evaluate", cell, 1, extra=("--episodes", "20"))
+    asked = AgentJob("evaluate", cell, 1, extra=("--episodes", "20"))
     assert asked.episodes == 20
     assert asked.progress_state()[0] == pytest.approx(0.1)
 
 
 def test_agent_job_reports_a_missing_subcommand(cell):
     """A CLI without the subcommand becomes a readable panel message."""
-    job = agent_cells.AgentJob("replay", cell, 1)
+    job = AgentJob("replay", cell, 1)
     job.log_path.parent.mkdir(parents=True, exist_ok=True)
     job.log_path.write_text(
         "usage: bigym-agent ...\nbigym-agent: error: argument command: "
@@ -237,7 +277,7 @@ def test_agent_job_reports_a_missing_subcommand(cell):
 
 def test_agent_job_start_failure_is_captured(cell):
     """A job that cannot even be launched leaves a message, not an exception."""
-    job = agent_cells.AgentJob("replay", cell, 1)
+    job = AgentJob("replay", cell, 1)
     job.log_path.parent.mkdir(parents=True, exist_ok=True)
     job.log_path.mkdir()  # opening this for writing fails
     job.start()
@@ -287,22 +327,22 @@ def test_dev_batches_are_discovered_and_labelled(cell):
     """`dev/vNNN_<stamp>/batch` reads `dev/v006 · 3 eps · success 0.33`."""
     batch = cell / "dev" / "v006_20260921_010203" / "batch"
     write_batch(batch, range(620000, 620003), (1.0, 0.0, 0.0))
-    assert agent_cells.batch_version(batch) == (cell, "dev", 6)
+    assert batch_version(batch) == (cell, "dev", 6)
     labels = view_demos.batch_labels(cell, view_demos.discover_batches(cell))
     assert "dev/v006 · 3 eps · success 0.33" in labels
-    assert agent_cells.batch_success(batch) == pytest.approx(1 / 3)
+    assert batch_success(batch) == pytest.approx(1 / 3)
 
 
 def test_policy_file_batches_are_labelled_by_their_digest(cell):
     """`bigym-agent replay --policy` batches live under `policy_<sha8>`."""
     batch = cell / "replays" / "policy_ab12cd34" / "batch"
     write_batch(batch, (620000,))
-    assert agent_cells.batch_version(batch) == (cell, "replays", None)
+    assert batch_version(batch) == (cell, "replays", None)
     labels = view_demos.batch_labels(cell, view_demos.discover_batches(cell))
     assert "replays/policy_ab12cd34 · 1 eps" in labels
     # A directory that is not `vNNN` and not a digest is not a version batch.
     write_batch(cell / "replays" / "policy_zz" / "batch", (620000,))
-    assert agent_cells.batch_version(cell / "replays" / "policy_zz" / "batch") is None
+    assert batch_version(cell / "replays" / "policy_zz" / "batch") is None
 
 
 def test_follow_rescan_picks_up_a_new_batch(cell):
@@ -331,7 +371,7 @@ def test_episode_option_labels_and_list(tmp_path):
     """Episode options read `620003 ✓ 1599` / `620002 ✗ 1700 timeout`."""
     batch = tmp_path / "dev" / "v001_stamp" / "batch"
     write_batch(batch, (620003, 620002), (1.0, 0.0))
-    infos = agent_cells.episode_infos(batch)
+    infos = episode_infos(batch)
     assert view_demos.episode_labels(infos) == [
         "620002 ✗ 1700 timeout",
         "620003 ✓ 1599",
@@ -364,7 +404,7 @@ def test_summary_card_from_run_json(cell):
             }
         )
     )
-    card = agent_cells.summary_html(agent_cells.read_run(cell))
+    card = summary_html(read_run(cell))
     for fragment in (
         "codex",
         "gpt-6-astra",
@@ -378,7 +418,7 @@ def test_summary_card_from_run_json(cell):
         "$35.27",
     ):
         assert fragment in card, fragment
-    assert "no run.json" in agent_cells.summary_html({})
+    assert "no run.json" in summary_html({})
 
 
 def test_summary_card_computes_cost_when_the_run_did_not(tmp_path):
@@ -391,9 +431,9 @@ def test_summary_card_computes_cost_when_the_run_did_not(tmp_path):
     }
     price = MODEL_PRICES["gpt-6-astra"]
     expected = price["input"] + price["output"] * 0.1
-    assert agent_cells.token_cost(run["usage"], price) == pytest.approx(expected)
-    assert f"${expected:,.2f}" in agent_cells.summary_html(run)
-    assert agent_cells.token_cost(None, price) is None
+    assert token_cost(run["usage"], price) == pytest.approx(expected)
+    assert f"${expected:,.2f}" in summary_html(run)
+    assert token_cost(None, price) is None
 
 
 def index_with_provenance(cell: Path) -> None:
@@ -417,24 +457,22 @@ def index_with_provenance(cell: Path) -> None:
 
 def test_policy_table_shows_provenance_when_it_is_there(cell):
     """Command index, budget, tokens and cost appear only when recorded."""
-    plain = agent_cells.policy_table_html(agent_cells.policy_rows(cell))
+    plain = policy_table_html(policy_rows(cell))
     assert "cmd" not in plain and "tokens" not in plain
-    assert agent_cells.policy_rows(cell)[0]["ts"] == pytest.approx(
-        agent_cells.iso_seconds("2026-01-02T01:00:00+00:00")
+    assert policy_rows(cell)[0]["ts"] == pytest.approx(
+        iso_seconds("2026-01-02T01:00:00+00:00")
     )
 
     index_with_provenance(cell)
-    rows = agent_cells.policy_rows(cell)
+    rows = policy_rows(cell)
     assert rows[0]["command_index"] == 0 and rows[1]["command_index"] == 2
     assert rows[1]["ts"] == pytest.approx(1_790_000_600.0)
-    table = agent_cells.policy_table_html(
-        rows, {"input": 10.0, "cached": 1.0, "output": 50.0}
-    )
+    table = policy_table_html(rows, {"input": 10.0, "cached": 1.0, "output": 50.0})
     assert "cmd" in table and "budget" in table
     assert "0.6M/105k" in table and "1.2M/105k" in table
     assert "$11.20" in table  # 0.59364M in + 0.105312M out at 10/50 per M
     # Without a price table the cost column degrades to a dash.
-    assert "—" in agent_cells.policy_table_html(rows, None)
+    assert "—" in policy_table_html(rows, None)
 
 
 def test_transcript_slices_between_version_timestamps(cell):
@@ -454,72 +492,72 @@ def test_transcript_slices_between_version_timestamps(cell):
     (cell / "transcript.jsonl").write_text(
         "\n".join(json.dumps(r) for r in records) + "\n{ broken\n"
     )
-    assert agent_cells.read_transcript(cell) == records
+    assert read_transcript(cell) == records
 
-    rows = agent_cells.policy_rows(cell)
-    first = agent_cells.version_records(records, rows, 0)
+    rows = policy_rows(cell)
+    first = version_records(records, rows, 0)
     assert [r["text"] for r in first if r["kind"] == "message"] == ["first"]
     assert len(first) == 2
-    last = agent_cells.version_records(records, rows, 1)
+    last = version_records(records, rows, 1)
     assert [r["text"] for r in last if "text" in r] == ["later"]
-    assert "v002" in agent_cells.transcript_title(rows, 0)
-    assert "no later version" in agent_cells.transcript_title(rows, 1)
+    assert "v002" in transcript_title(rows, 0)
+    assert "no later version" in transcript_title(rows, 1)
 
-    body = agent_cells.transcript_html(first)
+    body = transcript_html(first)
     assert "first" in body and "ls" in body
-    assert "nothing in this slice" in agent_cells.transcript_html([])
+    assert "nothing in this slice" in transcript_html([])
 
 
 def test_transcript_without_timestamps_falls_back_to_command_index(cell):
     """An older transcript is sliced by how many commands had run."""
     index_with_provenance(cell)
-    rows = agent_cells.policy_rows(cell)
+    rows = policy_rows(cell)
     records = [
         {"kind": "command", "role": "agent", "command": "a", "exit_code": 0},
         {"kind": "command", "role": "agent", "command": "b", "exit_code": 0},
         {"kind": "message", "role": "agent", "text": "after two commands"},
         {"kind": "command", "role": "agent", "command": "c", "exit_code": 0},
     ]
-    first = agent_cells.version_records(records, rows, 0)
+    first = version_records(records, rows, 0)
     assert [r.get("command") for r in first if r["kind"] == "command"] == ["a", "b"]
-    second = agent_cells.version_records(records, rows, 1)
+    second = version_records(records, rows, 1)
     assert [r.get("text") for r in second if r["kind"] == "message"] == [
         "after two commands"
     ]
     # Long command blocks are clipped to 20 lines in the panel.
     long_command = {"kind": "command", "role": "agent", "command": "\n".join("l" * 40)}
-    assert "more lines" in agent_cells.transcript_html([long_command])
+    assert "more lines" in transcript_html([long_command])
 
 
 def test_transcript_without_any_timestamps_or_index_shows_everything(cell):
     """An old cell with no provenance at all still shows its transcript."""
-    rows = agent_cells.policy_rows(cell)
+    rows = policy_rows(cell)
     records = [{"kind": "message", "role": "agent", "text": "hello"}]
-    assert agent_cells.version_records(records, rows, 0) == records
+    assert version_records(records, rows, 0) == records
 
 
 def test_code_panel_and_diff(cell):
     """The code panel shows the version's source, its path and a diff."""
-    rows = agent_cells.policy_rows(cell)
-    first = agent_cells.policy_file(cell, rows[0])
-    second = agent_cells.policy_file(cell, rows[1])
+    rows = policy_rows(cell)
+    first = policy_file(cell, rows[0])
+    second = policy_file(cell, rows[1])
     first.write_text("def act(obs):\n    return 0\n")
     second.write_text("def act(obs):\n    return 1\n")
     assert first == cell / "policies" / "v001" / "policy.py"
 
-    code = agent_cells.code_html(first)
+    code = code_html(first)
     assert "act" in code and "2 lines" in code
-    assert "cannot" in agent_cells.code_html(cell / "nope.py") or "No such" in (
-        agent_cells.code_html(cell / "nope.py")
+    assert "cannot" in code_html(cell / "nope.py") or "No such" in (
+        code_html(cell / "nope.py")
     )
-    link = agent_cells.vscode_link_html(second)
+    link = vscode_link_html(second)
     assert f"vscode://file{second}" in link
 
-    diff = agent_cells.diff_html(first.read_text(), second.read_text(), "v001", "v002")
+    diff = diff_html(first.read_text(), second.read_text(), "v001", "v002")
     assert "+1 / -1" in diff
     assert "#16a34a" in diff and "#dc2626" in diff
     assert "return 1" in diff and "return 0" in diff
-    same = agent_cells.diff_html("x\n", "x\n", "v001", "v002")
+    same = diff_html("x\n", "x\n", "v001", "v002")
     assert "identical" in same
 
 
@@ -538,8 +576,8 @@ def test_agent_job_replays_a_loose_policy_file(cell, tmp_path):
     """ "Replay this file" runs `replay --policy` into `replays/policy_<sha8>`."""
     policy = tmp_path / "my_policy.py"
     policy.write_text("def act(obs):\n    return 0\n")
-    digest = agent_cells.file_digest(policy)
-    job = agent_cells.AgentJob("replay", cell, 0, "620000", policy=str(policy))
+    digest = file_digest(policy)
+    job = AgentJob("replay", cell, 0, "620000", policy=str(policy))
     assert job.command[3:] == [
         "replay",
         str(cell),
@@ -551,7 +589,7 @@ def test_agent_job_replays_a_loose_policy_file(cell, tmp_path):
     assert job.out_dir == cell / "replays" / f"policy_{digest[:8]}"
     assert job.label == f"policy_{digest[:8]}"
     assert job.progress() == f"replay policy_{digest[:8]}: 0 episodes written"
-    assert agent_cells.file_digest(tmp_path / "missing.py") == ""
+    assert file_digest(tmp_path / "missing.py") == ""
 
 
 def test_files_being_written_are_not_counted(tmp_path):
@@ -560,7 +598,7 @@ def test_files_being_written_are_not_counted(tmp_path):
     write_batch(batch, (620000,), (1.0,))
     for name in (".w0_1234.npz", "seed620009.npz.tmp", ".seed620009.npz.part"):
         (batch / name).write_bytes(b"half a file")
-    assert [p.name for p in agent_cells.episode_files(batch)] == ["seed620000.npz"]
+    assert [p.name for p in episode_files(batch)] == ["seed620000.npz"]
     assert view_demos.batch_labels(tmp_path, view_demos.discover_batches(tmp_path)) == [
         "dev/v001 · 1 eps · success 1.00"
     ]
@@ -592,28 +630,28 @@ def test_discover_cells_accepts_a_cell_a_root_and_a_parent(tmp_path):
     make_session_root(tmp_path / "runs", "s1", (TASK, "move_plate"))
     make_session_root(tmp_path / "runs", "s2", (TASK,))
 
-    one = agent_cells.discover_cells([tmp_path / "runs" / "s1" / TASK])
+    one = discover_cells([tmp_path / "runs" / "s1" / TASK])
     assert [(c.session, c.task) for c in one] == [("s1", TASK)]
 
-    root = agent_cells.discover_cells([tmp_path / "runs" / "s1"])
+    root = discover_cells([tmp_path / "runs" / "s1"])
     assert [(c.session, c.task) for c in root] == [("s1", "move_plate"), ("s1", TASK)]
 
-    parent = agent_cells.discover_cells([tmp_path / "runs"])
+    parent = discover_cells([tmp_path / "runs"])
     assert [(c.session, c.task) for c in parent] == [
         ("s1", "move_plate"),
         ("s1", TASK),
         ("s2", TASK),
     ]
-    assert agent_cells.tasks_of(parent) == ["move_plate", TASK]
-    assert agent_cells.sessions_of(parent) == ["s1", "s2"]
-    assert agent_cells.sessions_of(parent, "move_plate") == ["s1"]
+    assert tasks_of(parent) == ["move_plate", TASK]
+    assert sessions_of(parent) == ["s1", "s2"]
+    assert sessions_of(parent, "move_plate") == ["s1"]
 
 
 def test_discover_cells_merges_several_demo_dirs_without_duplicates(tmp_path):
     """--demo-dir r1 r2 is two sessions; the same path twice is still one."""
     make_session_root(tmp_path / "runs", "s1", (TASK,))
     make_session_root(tmp_path / "runs", "s2", (TASK,))
-    cells = agent_cells.discover_cells(
+    cells = discover_cells(
         [
             tmp_path / "runs" / "s1",
             tmp_path / "runs" / "s2",
@@ -621,23 +659,23 @@ def test_discover_cells_merges_several_demo_dirs_without_duplicates(tmp_path):
         ]
     )
     assert [(c.session, c.task) for c in cells] == [("s1", TASK), ("s2", TASK)]
-    found = agent_cells.find_cell(cells, TASK, "s2")
+    found = find_cell(cells, TASK, "s2")
     assert found is not None and found.path.name == TASK
-    assert agent_cells.find_cell(cells, "nope", "s2") is None
+    assert find_cell(cells, "nope", "s2") is None
 
 
 def test_sessions_with_the_same_name_keep_their_parent(tmp_path):
     """Two roots called `nightly` are told apart by the directory above."""
     make_session_root(tmp_path / "a", "nightly", (TASK,))
     make_session_root(tmp_path / "b", "nightly", (TASK,))
-    cells = agent_cells.discover_cells([tmp_path / "a", tmp_path / "b"])
+    cells = discover_cells([tmp_path / "a", tmp_path / "b"])
     assert sorted(c.session for c in cells) == ["a/nightly", "b/nightly"]
 
 
 def test_plain_demo_dirs_discover_no_cells(tmp_path):
     """A collector/export tree stays in plain demo-directory mode."""
     write_batch(tmp_path / "demos" / TASK / "20260102_030405", range(620000, 620003))
-    assert agent_cells.discover_cells([tmp_path / "demos"]) == []
+    assert discover_cells([tmp_path / "demos"]) == []
 
 
 def test_rollout_labels_say_episodes_and_percentages(cell):
@@ -648,21 +686,19 @@ def test_rollout_labels_say_episodes_and_percentages(cell):
         (1.0, 0.0, 0.0),
     )
     batches = view_demos.discover_batches(cell)
-    rollouts = agent_cells.rollouts_of(cell, batches)
-    labels = {r.kind: agent_cells.rollout_item_label(r) for r in rollouts}
+    rollouts = rollouts_of(cell, batches)
+    labels = {r.kind: rollout_item_label(r) for r in rollouts}
     assert labels["eval"] == "v001 · 2 episodes · 41%"
     assert labels["dev"] == "while policy.py was v001 · 3 episodes · 33%"
     assert labels["replays"] == "v007 · 1 episodes · 0%"
-    assert agent_cells.rollout_counts(rollouts) == (
-        "evaluation 1 · development 1 · replays 1"
-    )
+    assert rollout_counts(rollouts) == ("evaluation 1 · development 1 · replays 1")
 
 
 def test_rollouts_are_grouped_by_kind_newest_version_first(cell):
     """Evaluations first, then development, then replays; versions descend."""
     write_batch(cell / "dev" / "v001_20260921_010203" / "batch", (620000,), (1.0,))
     write_batch(cell / "dev" / "v002_20260921_020304" / "batch", (620000,), (0.0,))
-    rollouts = agent_cells.rollouts_of(cell, view_demos.discover_batches(cell))
+    rollouts = rollouts_of(cell, view_demos.discover_batches(cell))
     assert [(r.kind, r.version) for r in rollouts] == [
         ("eval", 1),
         ("dev", 2),
@@ -678,44 +714,40 @@ def test_the_submission_evaluation_opens_by_default(cell):
     (cell / "eval" / "v002" / "summary.json").write_text(
         json.dumps({"version": 2, "success_rate": 0.5})
     )
-    rollouts = agent_cells.rollouts_of(cell, view_demos.discover_batches(cell))
-    opened, why = agent_cells.default_rollout(rollouts)
+    rollouts = rollouts_of(cell, view_demos.discover_batches(cell))
+    opened, why = default_rollout(rollouts)
     assert opened is not None
     assert opened.version == 2 and opened.kind == "eval" and opened.submission
     assert why == "the evaluation of the submission"
-    assert (
-        agent_cells.rollout_item_label(opened) == "v002 · 4 episodes · 50% · submission"
-    )
+    assert rollout_item_label(opened) == "v002 · 4 episodes · 50% · submission"
 
 
 def test_default_rollout_falls_back_when_the_submission_is_unscored(cell):
     """Without an evaluation of the submission, the newest evaluation opens."""
-    rollouts = agent_cells.rollouts_of(cell, view_demos.discover_batches(cell))
-    opened, why = agent_cells.default_rollout(rollouts)
+    rollouts = rollouts_of(cell, view_demos.discover_batches(cell))
+    opened, why = default_rollout(rollouts)
     assert opened is not None
     assert opened.kind == "eval" and opened.version == 1
     assert why == "the newest evaluation (no submission scored yet)"
 
     only_dev = [r for r in rollouts if r.kind != "eval"]
-    opened, why = agent_cells.default_rollout(only_dev)
+    opened, why = default_rollout(only_dev)
     assert opened is not None
     assert opened.kind == "replays"
     assert why == "no evaluation yet, so the newest replays"
-    assert agent_cells.default_rollout([]) == (None, "this cell has no rollouts yet")
+    assert default_rollout([]) == (None, "this cell has no rollouts yet")
 
 
 def build_panels(tmp_path):
     """A CellPanels over two sessions, plus the switch/compare requests."""
     make_session_root(tmp_path / "runs", "s1", ("move_plate", TASK))
     make_session_root(tmp_path / "runs", "s2", (TASK,))
-    cells = agent_cells.discover_cells([tmp_path / "runs"])
+    cells = discover_cells([tmp_path / "runs"])
     batches = view_demos.discover_all([tmp_path / "runs"])
-    opened, _ = agent_cells.default_rollout(
-        agent_cells.rollouts_of(cells[0].path, batches)
-    )
+    opened, _ = default_rollout(rollouts_of(cells[0].path, batches))
     assert opened is not None
     asked: dict = {"switch": [], "compare": []}
-    panels = agent_cells.CellPanels(
+    panels = CellPanels(
         FakeServer(),
         cell=cells[0].path,
         cells=cells,
@@ -753,7 +785,7 @@ def test_picking_another_session_opens_its_default_rollout(tmp_path):
 
     panels.session_dd.fire("s2")
     panels.tick(1.0)
-    s2 = agent_cells.find_cell(cells, TASK, "s2")
+    s2 = find_cell(cells, TASK, "s2")
     assert s2 is not None
     assert batches[asked["switch"][-1]] == s2.path / "eval" / "v002" / "batch"
 
@@ -780,7 +812,7 @@ def test_the_compare_panel_starts_with_one_slot_per_session(tmp_path):
     assert [str(r["session"].value) for r in panels.compare.rows] == ["s1", "s2"]
     assert [r["folder"].label for r in panels.compare.rows] == ["slot 0", "slot 1"]
     assert "2 policies: one submission per session" in panels.compare.note.content
-    assert f"up to {agent_cells.COMPARE_SLOTS}" in panels.compare.note.content
+    assert f"up to {COMPARE_SLOTS}" in panels.compare.note.content
 
 
 def test_add_policy_appends_a_slot_and_remove_drops_it(tmp_path):
@@ -834,12 +866,12 @@ def test_the_layout_dropdown_travels_with_the_request(tmp_path):
     panels, _, _, asked = build_panels(tmp_path)
     panels.task_dd.fire(TASK)
     panels.tick(0.0)
-    assert panels.compare.layout_dd.options == list(agent_cells.COMPARE_LAYOUTS)
-    assert panels.compare.layout_dd.value == agent_cells.LAYOUT_AUTO
+    assert panels.compare.layout_dd.options == list(COMPARE_LAYOUTS)
+    assert panels.compare.layout_dd.value == LAYOUT_AUTO
 
     panels.compare.button.fire()
     panels.tick(1.0)
-    assert asked["compare"][-1].layout == agent_cells.LAYOUT_AUTO
+    assert asked["compare"][-1].layout == LAYOUT_AUTO
 
     panels.compare.layout_dd.value = "2 columns"
     panels.compare.gap_number.value = 3.0

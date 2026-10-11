@@ -61,7 +61,7 @@ agent runs
     (Evaluation / Development / Replays, then the item), the session card
     from ``run.json``, the Policy versions / Policy code / Transcript panels
     and a **Compare** panel that puts up to four policies of the same task
-    side by side on one seed. ``bigym/vr/viewer/agent_cells.py`` holds all of it.
+    side by side on one seed. :mod:`bigym.vr.viewer.agent` holds all of it.
 
 Dataset episodes are replayed on the task's official environment
 (``make(task, camera_keys=())``), reset on the episode's seed from
@@ -132,7 +132,35 @@ from bigym.loco.demos import hub
 from bigym.loco.demos.dataset import load_task_metadata
 from bigym.loco.demos.kinematic import replay_env, run_task_hook
 from bigym.loco.objref import path_name
-from bigym.vr.viewer import agent_cells, video
+from bigym.vr.viewer import video
+from bigym.vr.viewer.agent.compare.model import (
+    CompareRequest,
+    parse_compare,
+    resolve_compare,
+)
+from bigym.vr.viewer.agent.compare.record import RECORD_LABEL_SCALE
+from bigym.vr.viewer.agent.compare.run import run_compare
+from bigym.vr.viewer.agent.panels import CellPanels
+from bigym.vr.viewer.agent.runs import (
+    EVAL_SEED_LO,
+    batch_version,
+    cell_of,
+    default_rollout,
+    describe_opening,
+    discover_cells,
+    eval_success,
+    is_agent_cell,
+    rollouts_of,
+    sessions_of,
+    tasks_of,
+)
+from bigym.vr.viewer.episodes import (
+    batch_success,
+    episode_files,
+    episode_infos,
+    is_episode_file,
+)
+from bigym.vr.viewer.layout import COMPARE_GAP, grid_note, slot_grid
 from bigym.vr.viewer.mjviser_compat import (
     hide_reach_targets,
     open_viser_scene,
@@ -207,9 +235,9 @@ class ViewConfig:
     vNNN, NNN, last or submission; session matched by name or a unique
     substring). The task is the one the viewer would open, so point
     --demo-dir at it."""
-    seed: int = agent_cells.EVAL_SEED_LO
+    seed: int = EVAL_SEED_LO
     """The seed compare mode poses every slot on."""
-    compare_gap: float = agent_cells.COMPARE_GAP
+    compare_gap: float = COMPARE_GAP
     """Metres between neighbouring compare slots along +y."""
     layout: Literal["auto", "row", "2 columns", "3 columns"] = "auto"
     """How compare mode places its slots: a column steps along +y and a row
@@ -243,7 +271,7 @@ class ViewConfig:
     """Narrow the recording lens by this factor (2 = twice as close)."""
     record_speed: float = 1.0
     """Playback speed of the recording (2 = twice real time)."""
-    record_label_scale: float = agent_cells.RECORD_LABEL_SCALE
+    record_label_scale: float = RECORD_LABEL_SCALE
     """How much bigger the billboards are drawn in a recording than live."""
 
     def __post_init__(self) -> None:
@@ -304,14 +332,12 @@ DISCOVER_PRUNE = {
 def discover_batches(root: Path) -> list[Path]:
     """Find demo batch dirs (metadata.json + at least one .npz) under root."""
     root = root.resolve()
-    if (root / "metadata.json").exists() and agent_cells.episode_files(root):
+    if (root / "metadata.json").exists() and episode_files(root):
         return [root]
     batches = []
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = sorted(d for d in dirnames if d not in DISCOVER_PRUNE)
-        if "metadata.json" in filenames and any(
-            map(agent_cells.is_episode_file, filenames)
-        ):
+        if "metadata.json" in filenames and any(map(is_episode_file, filenames)):
             batches.append(Path(dirpath))
             dirnames[:] = []  # a batch has no nested batches
     return sorted(batches)
@@ -407,7 +433,7 @@ def _local_source(roots: list[Path]) -> DatasetSource | BatchSource:
             roots=roots,
             batches=batches,
             labels=batch_labels(label_root, batches),
-            cells=agent_cells.discover_cells(roots),
+            cells=discover_cells(roots),
             label_root=label_root,
         )
     folders: list[Path] = []
@@ -458,7 +484,7 @@ def demo_marker(path: Path) -> bool:
     return (
         (path / "meta" / "info.json").is_file()
         or (path / "metadata.json").is_file()
-        or agent_cells.is_agent_cell(path)
+        or is_agent_cell(path)
     )
 
 
@@ -543,7 +569,7 @@ def newest_batch(batches: list[Path]) -> int | None:
     best_index, best_time = None, -1.0
     for i, batch in enumerate(batches):
         newest = -1.0
-        for path in agent_cells.episode_files(batch):
+        for path in episode_files(batch):
             try:
                 newest = max(newest, path.stat().st_mtime)
             except OSError:
@@ -636,8 +662,8 @@ def batch_labels(root: Path, batches: list[Path]) -> list[str]:
             rel = b.relative_to(root.resolve())
         except ValueError:
             rel = b
-        count = len(agent_cells.episode_files(b))
-        info = agent_cells.batch_version(b)
+        count = len(episode_files(b))
+        info = batch_version(b)
         if info is None:
             labels.append(f"{rel} · {count} eps")
             continue
@@ -645,9 +671,9 @@ def batch_labels(root: Path, batches: list[Path]) -> list[str]:
         label = f"{_batch_shown_name(rel, b, kind, version)} · {count} eps"
         rate = None
         if kind == "eval" and version is not None:
-            rate = agent_cells.eval_success(cell, version)
+            rate = eval_success(cell, version)
         elif kind == "dev":
-            rate = agent_cells.batch_success(b)
+            rate = batch_success(b)
         if rate is not None:
             label += f" · success {rate:.2f}"
         labels.append(label)
@@ -822,7 +848,7 @@ class DemoStore:
         batch without seeds shows the distinctive tail of each name, which
         already carries ``<episode>_<steps>``.
         """
-        infos = agent_cells.episode_infos(self.files[0].parent, self.files)
+        infos = episode_infos(self.files[0].parent, self.files)
         if any(info["seed"] is not None for info in infos):
             return episode_labels(infos)
         names = [f.name for f in self.files]
@@ -831,7 +857,7 @@ class DemoStore:
 
     def episode_infos(self) -> list[dict]:
         """Per-episode seed, outcome and length read from the batch."""
-        return agent_cells.episode_infos(self.files[0].parent.resolve(), self.files)
+        return episode_infos(self.files[0].parent.resolve(), self.files)
 
     def after_forward(self, frame: int) -> None:
         """Nothing: a batch episode is fully posed by its stored qpos."""
@@ -1927,7 +1953,7 @@ class ViserViewer:
 
     With ``cell`` (the agent cell the batch belongs to) the flat batch
     dropdown gives way to the agent panels of
-    :class:`~bigym.vr.viewer.agent_cells.CellPanels`, whose Task and Session
+    :class:`~bigym.vr.viewer.agent.panels.CellPanels`, whose Task and Session
     dropdowns offer ``cells``. With --follow (batches only) the main loop
     rescans every --follow-seconds: new batches, policy versions, a grown
     run.json or transcript, new episodes in the open batch. The batch on
@@ -1981,7 +2007,7 @@ class ViserViewer:
         self.dirty = True
         self.wanted_episode: int | None = None
         self.wanted_batch: int | None = None
-        self.wanted_compare: agent_cells.CompareRequest | None = None
+        self.wanted_compare: CompareRequest | None = None
         self.wanted_source: DatasetSource | BatchSource | None = None
         self.card_at = 0.0
         self.card_reward: float | None = None
@@ -2026,13 +2052,13 @@ class ViserViewer:
 
     def _add_cell_panels(
         self, args: ViewConfig, cell: Path | None, cells: list
-    ) -> agent_cells.CellPanels | None:
+    ) -> CellPanels | None:
         """The agent panels (Session, Rollouts, Policy, Transcript, Compare)."""
         if cell is None:
             return None
-        infos = agent_cells.episode_infos(self.open_batch, self.store.files)
+        infos = episode_infos(self.open_batch, self.store.files)
         seeds = [i["seed"] for i in infos if i["seed"]]
-        return agent_cells.CellPanels(
+        return CellPanels(
             self.server,
             cell=cell,
             cells=list(cells),
@@ -2041,7 +2067,7 @@ class ViserViewer:
             request_switch=self._request_batch,
             request_compare=self._request_compare,
             follow=self.follow_seconds > 0.0,
-            seed_hint=seeds[0] if seeds else agent_cells.EVAL_SEED_LO,
+            seed_hint=seeds[0] if seeds else EVAL_SEED_LO,
             compare_gap=args.compare_gap,
             compare_layout=args.layout,
         )
@@ -2082,7 +2108,7 @@ class ViserViewer:
     def _request_batch(self, index: int) -> None:
         self.wanted_batch = index
 
-    def _request_compare(self, request: agent_cells.CompareRequest) -> None:
+    def _request_compare(self, request: CompareRequest) -> None:
         self.wanted_compare = request
 
     def _request_source(self, source: DatasetSource | BatchSource) -> None:
@@ -2139,7 +2165,7 @@ class ViserViewer:
     def _refresh_open_batch(self) -> bool:
         """Pick up episodes added to the batch on screen; True when it grew."""
         store, files = self.store, self.store.files
-        fresh = agent_cells.episode_files(self.open_batch)
+        fresh = episode_files(self.open_batch)
         if [f.name for f in fresh] == [f.name for f in files]:
             return False
         here = files[store.ep].name if 0 <= store.ep < len(files) else ""
@@ -2272,12 +2298,12 @@ class ViserViewer:
 
     def run(
         self,
-    ) -> int | agent_cells.CompareRequest | DatasetSource | BatchSource | None:
+    ) -> int | CompareRequest | DatasetSource | BatchSource | None:
         """Serve until the viewer is asked for another scene.
 
         Returns:
             The index of another batch (or task) to open, the
-            :class:`~bigym.vr.viewer.agent_cells.CompareRequest` the Compare
+            :class:`~bigym.vr.viewer.agent.compare.model.CompareRequest` the Compare
             button made, the :class:`DatasetSource` / :class:`BatchSource`
             the "Demo directory" field loaded, or None once
             --exit-after-seconds elapsed. Ctrl-C is the other way out.
@@ -2344,11 +2370,11 @@ def _open_batch(
 
     Returns another batch index to switch to (the Rollouts dropdowns, the
     "Demo batch" one or the native frontend's ``[`` / ``]``), a
-    :class:`~vr.viewer.agent_cells.CompareRequest` when the Compare button
+    :class:`~bigym.vr.viewer.agent.compare.model.CompareRequest` when the Compare button
     was pressed, a source when the "Demo directory" field loaded another
     directory, or None when the viewer exits.
     """
-    files = agent_cells.episode_files(demo_dir)
+    files = episode_files(demo_dir)
     if not files:
         raise FileNotFoundError(f"No .npz demos in {demo_dir}")
     metadata = load_metadata(demo_dir)
@@ -2445,8 +2471,8 @@ def _print_discovery(roots: list[Path], cells: list) -> None:
     """The first lines of the startup log: what --demo-dir turned out to be."""
     if not cells:
         return
-    sessions = agent_cells.sessions_of(cells)
-    tasks = agent_cells.tasks_of(cells)
+    sessions = sessions_of(cells)
+    tasks = tasks_of(cells)
     if len(cells) == 1:
         print(f"[viewer] agent cell {cells[0].path}")
         return
@@ -2464,9 +2490,7 @@ def _opening_index(
     if args.batch is not None:
         return pick_batch(labels, args.batch)
     if cells:
-        rollout, _ = agent_cells.default_rollout(
-            agent_cells.rollouts_of(cells[0].path, batches)
-        )
+        rollout, _ = default_rollout(rollouts_of(cells[0].path, batches))
         if rollout is not None and rollout.batch in batches:
             return batches.index(rollout.batch)
     return 0
@@ -2493,11 +2517,11 @@ def _run_compare(args: ViewConfig, request, back_to: int) -> int:
         return back_to
     print(
         f"[viewer] compare: layout {request.layout} — "
-        f"{agent_cells.grid_note(len(request.slots), request.gap, request.layout)}",
+        f"{grid_note(len(request.slots), request.gap, request.layout)}",
         flush=True,
     )
     for i, slot in enumerate(request.slots):
-        place = agent_cells.slot_grid(len(request.slots), request.layout)[i]
+        place = slot_grid(len(request.slots), request.layout)[i]
         print(
             f"[viewer] compare slot {i}: {slot.session} {slot.version_name} "
             f"seed {request.seed} at row {place[0]} column {place[1]} "
@@ -2519,7 +2543,7 @@ def _run_compare(args: ViewConfig, request, back_to: int) -> int:
             "(evaluation batches hold every hidden seed) — no replay needed",
             flush=True,
         )
-    agent_cells.run_compare(
+    run_compare(
         request,
         port=args.port,
         build_env=build_env,
@@ -2533,7 +2557,7 @@ def _run_compare(args: ViewConfig, request, back_to: int) -> int:
 
 
 def record_request(args: ViewConfig) -> dict | None:
-    """What ``--record`` asks :func:`agent_cells.run_compare` to write."""
+    """What ``--record`` asks :func:`run_compare` to write."""
     if not args.record:
         return None
     return {
@@ -2558,12 +2582,12 @@ def _cli_compare(args: ViewConfig, cells: list, batches: list[Path], idx: int):
         raise SystemExit("--compare needs --viewer viser")
     if not cells:
         raise SystemExit("--compare needs agent cells under --demo-dir")
-    here = agent_cells.cell_of(cells, batches[idx]) or cells[0]
+    here = cell_of(cells, batches[idx]) or cells[0]
     try:
-        specs = agent_cells.parse_compare(args.compare)
+        specs = parse_compare(args.compare)
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
-    request = agent_cells.resolve_compare(cells, here.task, specs, args.seed)
+    request = resolve_compare(cells, here.task, specs, args.seed)
     request.gap = args.compare_gap
     request.layout = args.layout
     request.back_to = idx
@@ -2688,13 +2712,13 @@ def _run_batches(args: ViewConfig, source: BatchSource):
         return labels
 
     idx = _opening_index(args, cells, batches, labels)
-    here = agent_cells.cell_of(cells, batches[idx])
+    here = cell_of(cells, batches[idx])
     if here is not None and args.viewer != "viser":
         # The viser frontend prints this from the panels it builds; the
         # native one has no panels, so say it here.
-        rollouts = agent_cells.rollouts_of(here.path, batches)
-        opened, reason = agent_cells.default_rollout(rollouts)
-        for line in agent_cells.describe_opening(here, rollouts, opened, reason):
+        rollouts = rollouts_of(here.path, batches)
+        opened, reason = default_rollout(rollouts)
+        for line in describe_opening(here, rollouts, opened, reason):
             print(line, flush=True)
     if not cells and len(batches) > 1 and args.batch is None:
         # No picker: list the batches once, open the first, and let the
@@ -2717,7 +2741,7 @@ def _run_batches(args: ViewConfig, source: BatchSource):
             if args.record and not args.record_then_stay:
                 return None  # the file is written; that is what was asked for
             continue
-        here = agent_cells.cell_of(cells, batches[idx])
+        here = cell_of(cells, batches[idx])
         result = _open_batch(
             args,
             batches[idx],
@@ -2731,7 +2755,7 @@ def _run_batches(args: ViewConfig, source: BatchSource):
         )
         if result is None or isinstance(result, (DatasetSource, BatchSource)):
             return result
-        if isinstance(result, agent_cells.CompareRequest):
+        if isinstance(result, CompareRequest):
             result.back_to = idx
             compare = result
             continue

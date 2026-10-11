@@ -195,7 +195,7 @@ def test_the_evaluation_seed_block_is_pinned_everywhere_it_is_used():
     from bigym.loco.agent import evaluate, replay
     from bigym.loco.agent.inloop import run_inloop
     from bigym.loco.eval import protocol
-    from bigym.vr.viewer import agent_cells
+    from bigym.vr.viewer.agent import panels, runs
 
     assert protocol.EVAL_SEED_BASE == 620000
     assert protocol.EVAL_EPISODES == 100
@@ -205,8 +205,8 @@ def test_the_evaluation_seed_block_is_pinned_everywhere_it_is_used():
     assert evaluate.EVAL_SEED_BASE == protocol.EVAL_SEED_BASE
     assert cli.EvaluateConfig.seed_base == protocol.EVAL_SEED_BASE
     assert run_inloop.EVAL_SEED_BASE == protocol.EVAL_SEED_BASE
-    assert agent_cells.EVAL_SEED_LO == protocol.EVAL_SEED_BASE
-    assert cli.ReplayConfig.seeds == agent_cells.DEFAULT_REPLAY_SEEDS
+    assert runs.EVAL_SEED_LO == protocol.EVAL_SEED_BASE
+    assert cli.ReplayConfig.seeds == panels.DEFAULT_REPLAY_SEEDS
     assert replay.parse_seeds(cli.ReplayConfig.seeds) == protocol.eval_seeds(5)
 
 

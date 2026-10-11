@@ -371,7 +371,8 @@ def test_replay_writes_a_batch_the_viewer_opens(cell):
     """Two short episodes of the template policy, read back by bigym-view."""
     pytest.importorskip("cv2")
     pytest.importorskip("scipy")
-    from bigym.vr.viewer import agent_cells, view_demos
+    from bigym.vr.viewer import view_demos
+    from bigym.vr.viewer.agent import runs
 
     assert (
         replay.main(
@@ -402,8 +403,8 @@ def test_replay_writes_a_batch_the_viewer_opens(cell):
 
     # the viewer's own loader: discovery, labels, metadata, env, episode store
     assert view_demos.discover_batches(cell) == [batch]
-    assert agent_cells.batch_version(batch) == (cell, "replays", 1)
-    rows = agent_cells.policy_rows(cell)
+    assert runs.batch_version(batch) == (cell, "replays", 1)
+    rows = runs.policy_rows(cell)
     assert [row["version"] for row in rows] == [1]
     assert rows[0]["trigger"] == "submission"
     assert rows[0]["eval_success"] is None
@@ -500,7 +501,7 @@ def no_simulator(monkeypatch) -> None:
 def read_rejected_cell(cell: Path, episodes: int) -> dict:
     """Check the rejected record of version 1 and return its summary."""
     from bigym.loco.agent import evaluate, launch, registry
-    from bigym.vr.viewer import agent_cells
+    from bigym.vr.viewer.agent import runs
 
     out = cell / "eval" / "v001"
     with (out / "episodes.csv").open() as handle:
@@ -518,7 +519,7 @@ def read_rejected_cell(cell: Path, episodes: int) -> dict:
     assert not (out / "batch").exists()
     # The readers of an evaluation take a rejected one as a score of 0.
     assert f"0.00 ({episodes} eps)" in snapshots.policy_table(cell)
-    assert agent_cells.eval_success(cell, 1) == 0.0
+    assert runs.eval_success(cell, 1) == 0.0
     state = registry.cell_state(cell.parent, cell.name)
     assert "SCORE 0" in state and "REJECTED" in state
     assert launch.rejection(out / "summary.json") == summary["rejected"]

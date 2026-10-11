@@ -92,7 +92,7 @@ class CollectConfig:
     resolution: Literal["lq", "mq", "hq"] = "lq"
     """Headset render resolution."""
     mujoco_gl: Literal["glfw", "egl", "osmesa"] = "glfw"
-    """MUJOCO_GL, set before MuJoCo is imported."""
+    """MUJOCO_GL for the session."""
     openxr_log_level: Literal["trace", "debug", "info", "warn", "error"] = "error"
     """OpenXR runtime log level."""
     spectator: Literal["none", "mujoco", "viser", "both"] = "none"

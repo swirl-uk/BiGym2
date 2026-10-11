@@ -6,18 +6,24 @@ import os
 import shlex
 import shutil
 import subprocess
+import sys
 from pathlib import Path
-from typing import Sequence
+from typing import TYPE_CHECKING, Sequence
 
-from bigym.loco.objref import path_name
-from bigym.vr.collect.config import CollectConfig, default_out_dir, parse_cli
+if TYPE_CHECKING:
+    from bigym.vr.collect.config import CollectConfig
 
 
 def main(argv: Sequence[str] | None = None) -> None:
     """Parse the collector CLI, run one session, then post-process the batch."""
-    config = parse_cli(argv)
+    args = list(sys.argv[1:] if argv is None else argv)
+    # MuJoCo picks its GL backend when it is first imported, and the config
+    # module imports it, so --mujoco-gl is applied before the config is read.
+    os.environ["MUJOCO_GL"] = _flag_value(args, "--mujoco-gl") or "glfw"
+    from bigym.vr.collect.config import default_out_dir, parse_cli
+
+    config = parse_cli(args)
     os.environ.setdefault("MKL_SERVICE_FORCE_INTEL", "1")
-    os.environ["MUJOCO_GL"] = str(config.mujoco_gl)
     from bigym.vr.collect.runtime import (
         abort_on_foreign_vr_server,
         configure_openxr_logging,
@@ -51,6 +57,16 @@ def main(argv: Sequence[str] | None = None) -> None:
             )
 
 
+def _flag_value(args: list[str], flag: str) -> str | None:
+    """The value of ``flag`` (``--flag X`` or ``--flag=X``) in ``args``, if given."""
+    for i, arg in enumerate(args):
+        if arg == flag and i + 1 < len(args):
+            return args[i + 1]
+        if arg.startswith(flag + "="):
+            return arg.split("=", 1)[1]
+    return None
+
+
 def _post_process(
     config: CollectConfig,
     out_dir: Path,
@@ -64,6 +80,7 @@ def _post_process(
     prints the command to finish by hand.
     """
     from bigym.loco.demos import success_hold
+    from bigym.loco.objref import path_name
 
     cut_cmd = [
         "python",

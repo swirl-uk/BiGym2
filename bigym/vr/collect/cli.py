@@ -49,7 +49,7 @@ def main(argv: Sequence[str] | None = None) -> None:
             shutil.rmtree(out_dir, ignore_errors=True)
             print(f"[cleanup] no episodes saved, removed session dir: {out_dir}")
         elif (out_dir / "metadata.json").exists():
-            _post_process(
+            post_process(
                 config,
                 out_dir,
                 collection_hold=float(collector.env_config.success_hold_seconds),
@@ -67,7 +67,7 @@ def _flag_value(args: list[str], flag: str) -> str | None:
     return None
 
 
-def _post_process(
+def post_process(
     config: CollectConfig,
     out_dir: Path,
     *,

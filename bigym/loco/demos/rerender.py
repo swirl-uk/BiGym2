@@ -13,7 +13,7 @@ writes ``bigym-g1-native60-224/move_plate``. ``--root`` writes elsewhere.
 A replay-format npz batch is exported to LeRobot v3 instead, with the
 same output as ``bigym.loco.demos.lerobot_export`` in every respect — state, action,
 per-step extras, action alignment v2, ``meta/episode_init_states.json``,
-``meta/alignment.json``, the root ``metadata.json`` copy — EXCEPT that the
+``meta/alignment.json``, the root ``metadata.json`` copy — except that the
 three camera features are re-rendered at an arbitrary resolution instead of
 being copied from the recorded 84x84 ``rgb_obs``.  VLA stacks (pi0.5 / openpi)
 want 224x224; the recorded demos are 84x84.
@@ -25,18 +25,18 @@ Every frame of a full-state replay-format demo stores ``data.qpos`` (key
 The frame loop writes that vector and calls ``mj_forward`` without physics
 integration or lower-body policy inference, as in ``bigym-view``.
 Environment construction/reset still runs the configured controller warmup.
-Two pieces of scene state are NOT in qpos:
+Two pieces of scene state are not in qpos:
 
 * reach-target spheres are static bodies moved through ``model.body_pos`` by
-  ``_ReachTargetEnv._on_reset`` from the GLOBAL numpy RNG, which
+  ``ReachTargetEnv._on_reset`` from the global numpy RNG, which
   ``BiGymEnv.reset(seed=...)`` seeds — so each episode's stored ``seed`` is
   replayed before its frames;
 * the target highlight colour lives in ``model.geom_rgba`` and is written by
-  the task's ``_on_step`` hook, which the real ``BiGymEnv.step`` runs BEFORE
+  the task's ``_on_step`` hook, which the real ``BiGymEnv.step`` runs before
   ``get_observation``; the loop below does the same (with the step cache
   cleaned first, so ``_success()`` is not answered from the previous frame).
 
-Images come from the env's own ``BiGymEnv._get_visual_obs`` with
+Images come from the env's own ``BiGymEnv.get_visual_obs`` with
 ``camera_shape`` set to the requested size, so shadow map, visual flags,
 camera intrinsics and the ``(3, H, W)`` uint8 channel-first layout are exactly
 the recording path's — only bigger.  Camera identity/order also comes from the
@@ -50,7 +50,7 @@ module's ``np.load`` redirected so that ``rgb_obs`` (and only ``rgb_obs``)
 comes back re-rendered.  Fidelity gate: re-render at 84x84 and compare
 against the stored pixels.
 
-An npz batch (needs bigym AND lerobot in one process; the project venv is
+An npz batch (needs bigym and lerobot in one process; the project venv is
 3.12 and already has bigym, so layer lerobot in ephemerally)::
 
     CUDA_VISIBLE_DEVICES=2 MUJOCO_GL=egl \
@@ -152,7 +152,7 @@ class BatchRenderer:
             # Same order as the real step(): pose, then the task's _on_step
             # (reach-target highlight), then the observation.
             pose(self.inner, qpos[t], qvel[t] if qvel is not None else None)
-            obs = self.inner._get_visual_obs()
+            obs = self.inner.get_visual_obs()
             for i, camera in enumerate(self.camera_keys):
                 out[t, i] = obs[f"rgb_{camera}"]
         if self._verbose:
@@ -228,11 +228,7 @@ class EpisodeArrays:
     """
 
     def __init__(self, arrays: dict):
-        """Wrap a mapping of array name to array.
-
-        Args:
-            arrays: The arrays to serve.
-        """
+        """Wrap a mapping of array name to array."""
         self._arrays = dict(arrays)
 
     @property

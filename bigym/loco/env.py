@@ -106,7 +106,7 @@ class BiGym:
         self._episode_fell = False
         self._episode_succeeded = False
         self._last_truncation: Optional[str] = None
-        # Identity of the compiled model BEFORE any reset: task randomization
+        # Identity of the compiled model before any reset: task randomization
         # writes body poses into mjModel at reset, so hashing live would give
         # a per-episode nonce instead of a substrate identity.
         self._compiled_model_sha256: Optional[str] = None
@@ -1203,8 +1203,7 @@ class BiGym:
 
         The numbers here are read from the COMPILED MjModel (not from config
         tables), so they are what the physics ran with. Complements
-        ``substrate_fingerprint()`` (identity) with the human-readable values
-        a paper's appendix needs.
+        ``substrate_fingerprint()`` (identity) with human-readable values.
         """
         return fingerprint.describe_model(self)
 

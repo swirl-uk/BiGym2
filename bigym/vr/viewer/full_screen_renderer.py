@@ -99,7 +99,7 @@ class VRFullScreenRenderer:
         Args:
             side: The side of the headset to render the pixels to.
             pixels: The FULL stereo pixel buffer (height x 2*eye_width x 3,
-                bottom-up rows as returned by mjr_readPixels, NOT flipped).
+                bottom-up rows as returned by mjr_readPixels, not flipped).
         """
         GL.glClear(
             GL.GL_COLOR_BUFFER_BIT  # ty: ignore[unsupported-operator]

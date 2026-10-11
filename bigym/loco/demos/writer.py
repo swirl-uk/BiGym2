@@ -59,7 +59,7 @@ class ReplayBufferStorage:
         # ~0.5-1s compressed write would freeze the VR loop at every save).
         # Single worker keeps writes ordered; success validation and episode
         # counters stay synchronous, only the disk write is deferred. Callers
-        # MUST call flush() before relying on the files (and before exit).
+        # must call flush() before relying on the files (and before exit).
         self._async_write = bool(async_write)
         self._write_executor = None
         self._write_futures = []

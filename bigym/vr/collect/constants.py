@@ -7,7 +7,7 @@ DEMO_PIPELINE_VERSION = "2026-08-26-success-hold-training-view-v1"
 # The official GROOT-WBC wrapper selects Balance below 0.05 m/s command norm
 # and Walk otherwise. Keep a small margin above that boundary so leaving the
 # VR stick deadzone can never produce a non-zero command that still runs the
-# Balance network. This shaping is GROOT-specific: it exists because of the
+# Balance network. This shaping is GR00T-specific: it exists because of the
 # Balance/Walk switch, not as a generic stick deadzone.
 GROOT_WBC_POLICY_WALK_THRESHOLD = 0.05
 GROOT_WBC_MIN_WALK_SPEED = 0.055

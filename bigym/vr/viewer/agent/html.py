@@ -146,11 +146,11 @@ def policy_table_html(rows: list[dict], price: dict | None = None) -> str:
     Always: version, time, trigger, the agent's own training score and the
     hidden-seed evaluation. The provenance columns (command index, budget
     used, ``input+output`` tokens, cost) are added only when at least one
-    version carries them, so an older cell's table looks exactly as before.
+    version carries them.
 
     ``train`` and ``eval`` say what is absent rather than dashing it out
     (``no dev episodes``, ``not evaluated``): those two blanks have a
-    meaning, where a missing token count is simply unknown and stays "—".
+    meaning, where a missing token count is unknown and stays "—".
 
     Args:
         rows: Rows from :func:`~bigym.vr.viewer.agent.runs.policy_rows`.

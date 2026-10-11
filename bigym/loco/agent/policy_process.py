@@ -15,8 +15,8 @@ step is one round trip::
 and every tool call the policy makes in between is forwarded to the parent,
 which runs it on the real environment and sends the result back. The episode
 loop, the reward, the termination and the success test stay in the parent:
-:func:`episode.run_episode` is unchanged, a :class:`PolicyProcess` is simply
-the ``policy`` it is handed.
+:func:`episode.run_episode` is unchanged, a :class:`PolicyProcess` is the
+``policy`` it is handed.
 
 Nothing the child sends is unpickled. Its messages are JSON whose only
 extensions are tuples and plain numeric arrays (dtype, shape, raw bytes), so a

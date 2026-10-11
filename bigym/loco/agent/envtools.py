@@ -161,14 +161,14 @@ class EnvTools:
         self._base_idx = {
             dof: i for i, dof in enumerate(self.outer.outer_action_floating_dofs)
         }
-        self._slot = {
+        self.base_slot = {
             "vx": self._base_idx[PelvisDof.X],
             "vy": self._base_idx[PelvisDof.Y],
             "height": self._base_idx[PelvisDof.Z],
             "wz": self._base_idx[PelvisDof.RZ],
         }
         if PelvisDof.RY in self._base_idx:  # torso-pitch command slot (21-dim layout)
-            self._slot["pitch"] = self._base_idx[PelvisDof.RY]
+            self.base_slot["pitch"] = self._base_idx[PelvisDof.RY]
         self.n_base = len(self._base_idx)
         self.limb_names = [
             _basename(n) for n in (self.outer.outer_limb_actuator_names or ())
@@ -190,7 +190,7 @@ class EnvTools:
         self._sites = {}
         self.step_count = 0
         self.last_timestep = None
-        # Command rate limiter, OFF by default: the learned baselines' actions reach the
+        # Command rate limiter, off by default: the learned baselines' actions reach the
         # position controller unfiltered (no slew anywhere in bigym.loco for the G1
         # adapter), so the agent's do too. When on, the numbers are the teleoperator's
         # (arm joints 6 rad/s, base command slew 0.7/s, both recorded in the demo
@@ -344,9 +344,9 @@ class EnvTools:
     def hold_action(self) -> np.ndarray:
         """Return the physical action that holds the current pose, zero velocity."""
         raw = self.outer.raw_hold_action().astype(np.float32)
-        raw[self._slot["vx"]] = 0.0
-        raw[self._slot["vy"]] = 0.0
-        raw[self._slot["wz"]] = 0.0
+        raw[self.base_slot["vx"]] = 0.0
+        raw[self.base_slot["vy"]] = 0.0
+        raw[self.base_slot["wz"]] = 0.0
         return raw
 
     def to_normalized(self, raw: np.ndarray) -> np.ndarray:
@@ -506,7 +506,7 @@ class EnvTools:
             self._recorder_process.stdin.write(
                 np.ascontiguousarray(img, dtype=np.uint8).tobytes()
             )
-        except Exception:
+        except Exception:  # a failed recording must not end the episode
             self.stop_recording()
 
     def stop_recording(self):
@@ -516,7 +516,7 @@ class EnvTools:
                 assert self._recorder_process.stdin is not None
                 self._recorder_process.stdin.close()
                 self._recorder_process.wait(timeout=60)
-            except Exception:
+            except (OSError, subprocess.TimeoutExpired):
                 pass
             self._recorder_process = None
 
@@ -682,7 +682,7 @@ class EnvTools:
         return np.asarray(inner.render()).copy()
 
     def _cam_id(self, name: str) -> int:
-        return int(self.inner._cameras_map[name][0])
+        return int(self.inner.cameras_map[name][0])
 
     def image(
         self, camera: str = "head", width: int = 84, height: int = 84
@@ -705,7 +705,7 @@ class EnvTools:
         # The cap is the policy-facing resolution ceiling, not a property of the camera:
         # a MuJoCo camera carries only a vertical fovy (60 deg here) and takes its aspect
         # ratio from the render buffer, so there is no "native" size. 84x84 is what the
-        # learned baselines are rendered at; a 4:3 cap would also widen the HORIZONTAL
+        # learned baselines are rendered at; a 4:3 cap would also widen the horizontal
         # field of view by 25% (60.0 -> 75.2 deg), a square cap does not.
         cw, ch = self.image_cap
         width, height = int(width), int(height)
@@ -861,8 +861,8 @@ class EnvTools:
         return {
             "task": self.task,
             "action_dim": self.action_dim,
-            "base_slots": sorted(self._slot, key=lambda k: self._slot[k]),
-            "pitch_enabled": "pitch" in self._slot,
+            "base_slots": sorted(self.base_slot, key=lambda k: self.base_slot[k]),
+            "pitch_enabled": "pitch" in self.base_slot,
             "arm_slice": [self.n_base, self.n_base + len(self.limb_names)],
             "gripper_slice": [self.n_base + len(self.limb_names), self.action_dim],
             "limb_names": list(self.limb_names),

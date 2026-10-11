@@ -45,7 +45,7 @@ from .cli import ReportConfig, parse_command
 
 # USD per million tokens, per model: uncached input / cache read / output.
 # These are list prices on the date below, quoted so a session can be priced
-# without a network call; they are NOT read from any vendor API and go stale.
+# without a network call; they are not read from any vendor API and go stale.
 # Edit them (or add your own model) to price a run at today's rates.
 PRICING_DATE = "2026-10-08"
 MODEL_PRICES: dict[str, dict[str, float]] = {

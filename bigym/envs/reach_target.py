@@ -32,7 +32,7 @@ class Target:
         """Add the target body to the simulation's spec."""
         self.simulation = simulation
         self._robot = robot
-        self._config = config
+        self.config = config
         self.body = simulation.spec.worldbody.add_body()
         self.geom = self.body.add_geom(
             type=mujoco.mjtGeom.mjGEOM_SPHERE,
@@ -48,7 +48,7 @@ class Target:
     def reset_position(self, offset: np.ndarray):
         """Reset position of the target."""
         set_body_position(
-            self.simulation.model, self.body, self._config.reset_position + offset
+            self.simulation.model, self.body, self.config.reset_position + offset
         )
 
     def get_position(self) -> np.ndarray:
@@ -61,7 +61,7 @@ class Target:
 
     def is_reached(self, tolerance: float) -> bool:
         """Check if target is reached."""
-        for side in self._config.target_hands:
+        for side in self.config.target_hands:
             if side not in self._robot.grippers:
                 continue
             hand_pos = self._robot.get_hand_pos(side)
@@ -74,11 +74,11 @@ class Target:
     def set_highlight(self, highlight: bool):
         """Toggle target highlight."""
         self.simulation.model.bind(self.geom).rgba = (
-            self._config.color_highlight if highlight else self._config.color_default
+            self.config.color_highlight if highlight else self.config.color_default
         )
 
 
-class _ReachTargetEnv(BiGymEnv, ABC):
+class ReachTargetEnv(BiGymEnv, ABC):
     """Base reach target environment."""
 
     TARGET_CONFIGS = [
@@ -131,7 +131,7 @@ class _ReachTargetEnv(BiGymEnv, ABC):
         self._success()
 
 
-class ReachTarget(_ReachTargetEnv):
+class ReachTarget(ReachTargetEnv):
     """Reach the target with either left or right wrist."""
 
     def _get_task_privileged_obs_space(self):
@@ -162,7 +162,7 @@ class ReachTargetSingle(ReachTarget):
     ]
 
 
-class ReachTargetDual(_ReachTargetEnv):
+class ReachTargetDual(ReachTargetEnv):
     """Reach 2 targets, one with each arm."""
 
     TARGET_CONFIGS = [

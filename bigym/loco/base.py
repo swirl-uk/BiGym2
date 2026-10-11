@@ -164,7 +164,7 @@ class LowerBodyBase:
     # base tilted past ~53 degrees — backend-independent (fallen is fallen).
     _FAILED_MAX_PROJ_G_Z = -0.6
     # Height backstop: a commanded squat at the bottom of the backend's
-    # declared height bounds is NOT a failure, so the threshold derives from
+    # declared height bounds is not a failure, so the threshold derives from
     # command_spec (height.low - margin) rather than one fixed constant.
     # The margin absorbs pelvis-vs-commanded-height tracking slack; an
     # actually fallen robot is far below it and also trips the tilt check.

@@ -515,7 +515,7 @@ class CollectorSession:
 
         Debug/look-around sessions leave behind a dir whose complete
         metadata.json makes it indistinguishable from a real batch. Deleting
-        is double-guarded: the success counter must be zero AND the dir must
+        is double-guarded: the success counter must be zero and the dir must
         contain no episode npz files.
         """
         if self.config.keep_empty_session:
@@ -774,7 +774,7 @@ class CollectorSession:
     def _step_for_frame(self, frame_state: Any, action: np.ndarray) -> None:
         # The launch/pending screens are frozen previews. The first real
         # attempt starts with left X, which performs a fresh reset + recenter.
-        # Drain a pending settle BEFORE the recording check: the session's
+        # Drain a pending settle before the recording check: the session's
         # initial reset() happens on the preview screen (recording=False),
         # and the preview should show a settled robot, not the pre-warmup
         # spawn pose. During an attempt the drain also gates engage (the
@@ -1076,8 +1076,8 @@ class CollectorSession:
         elif hud == "minimal":
             # Compact, up-and-right of the recentered forward gaze (~20 deg
             # azimuth and elevation): readable at a glance, out of the way.
-            # Marker labels render at a FIXED pixel size while the anchors
-            # sit ~2.8 m away, so line spacing must be set by ANGLE, not
+            # Marker labels render at a fixed pixel size while the anchors
+            # sit ~2.8 m away, so line spacing must be set by angle, not
             # meters: 0.14 m at 2.9 m ~= 2.8 deg/line.
             self._renderer.show_stats(
                 {

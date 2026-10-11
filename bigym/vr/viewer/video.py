@@ -43,8 +43,8 @@ def hide_gui_chrome(server) -> None:
 
     The logo and the share button go, the page turns dark (a black sky
     wants a dark page behind it) and the control panel is minimised to its
-    title bar — the Playback folder is still one click away, it is simply
-    not in the shot.
+    title bar — the Playback folder is still one click away, just not in
+    the shot.
 
     Args:
         server: The viser server.
@@ -209,7 +209,7 @@ def chrome_command(binary: str, url: str, size: tuple[int, int]) -> list[str]:
     SwiftShader rather than a real GPU: the machine that runs the grid is
     already holding twenty MuJoCo scenes, the page is a handful of meshes,
     and a software rasteriser needs no display, no X server and no GPU
-    sandbox. The window does NOT cap the capture — ``get_render`` renders
+    sandbox. The window does not cap the capture — ``get_render`` renders
     offscreen at whatever size it is asked for, measured here: a 1280x720
     headless window returns a true 3840x2160 frame — so the window is
     :func:`browser_window`, the recording's aspect ratio at a size a

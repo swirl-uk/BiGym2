@@ -402,16 +402,8 @@ class VRActionMapper:
         )
         self._write_arm_solution(raw, conditioned_solution)
 
-        raw[-2] = self._gripper_from_vr_buttons(
-            "left",
-            left_state.trigger_value,
-            left_state.grip_value,
-        )
-        raw[-1] = self._gripper_from_vr_buttons(
-            "right",
-            right_state.trigger_value,
-            right_state.grip_value,
-        )
+        raw[-2] = self._gripper_from_vr_buttons("left", left_state.trigger_value)
+        raw[-1] = self._gripper_from_vr_buttons("right", right_state.trigger_value)
         raw = np.clip(raw, self._raw_low, self._raw_high)
         action = self._outer.normalize_action(raw)
         return np.clip(action, -1.0, 1.0).astype(np.float32, copy=False)
@@ -426,18 +418,13 @@ class VRActionMapper:
         value = float(np.clip(value, -1.0, 1.0))
         return value if abs(value) >= self._stick_deadzone else 0.0
 
-    def _gripper_from_vr_buttons(
-        self,
-        side: str,
-        trigger_value: float,
-        grip_value: float,
-    ) -> float:
+    def _gripper_from_vr_buttons(self, side: str, trigger_value: float) -> float:
         # Hysteresis latch instead of round(trigger): an analog trigger held
         # near 0.5 makes a rounded command flip 0/1 every frame, which would
         # sweep the fingers open/close continuously (chatter).
         trigger = self._latched_hand_button(side, "trigger", trigger_value)
         # The G1 Dex1-1 is a one-scalar open/close gripper: the latched
-        # trigger IS the command (the grip button drives pitch mode instead).
+        # trigger is the command (the grip button drives pitch mode instead).
         return trigger
 
     def _latched_hand_button(self, side: str, name: str, value: float) -> float:

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import numpy as np
 import trimesh
 import viser.transforms as vtf
@@ -22,10 +24,10 @@ def rotation_z_to(direction: np.ndarray) -> vtf.SO3:
     return vtf.SO3.exp(axis * np.arccos(c))
 
 
-def rgb255(colour) -> tuple[int, ...]:
+def rgb255(colour) -> tuple[int, int, int]:
     """A MuJoCo rgba (0-1 floats) as viser's 0-255 integers."""
     values = np.asarray(colour, dtype=float).reshape(-1)[:3]
-    return tuple(int(round(255 * v)) for v in values)
+    return cast(tuple[int, int, int], tuple(int(round(255 * float(v))) for v in values))
 
 
 class VelocityArrows:
@@ -154,19 +156,19 @@ class TargetSpheres:
         self.targets = targets
         self.balls, self.glows = [], []
         for i, target in enumerate(targets):
-            radius = float(np.asarray(target._config.size).reshape(-1)[0])
+            radius = float(np.asarray(target.config.size).reshape(-1)[0])
             self.balls.append(
                 server.scene.add_icosphere(
                     f"/targets/{i}/ball",
                     radius=radius,
-                    color=rgb255(target._config.color_default),
+                    color=rgb255(target.config.color_default),
                 )
             )
             self.glows.append(
                 server.scene.add_icosphere(
                     f"/targets/{i}/glow",
                     radius=radius * 1.35,
-                    color=rgb255(target._config.color_highlight),
+                    color=rgb255(target.config.color_highlight),
                     opacity=0.5,
                     visible=False,
                 )

@@ -6,13 +6,10 @@ One definition shared by every leaderboard entry:
 - fixed seed block starting at 620000, reserved for evaluation by convention
   (episode i uses ``seed_base + i``; training-seed overlap is not checked here);
 - checkpoints every 5k training steps, each evaluated on the same block;
-  the reported number is the MEAN OF THE LAST 5 CHECKPOINTS (80k..100k of a
-  101k budget) +- standard error.
-  ``peak_final_selection`` serves the appendix tables. Selecting
-  the maximum on the same test block introduces selection bias; do not use
-  it as the main-table result or treat correlated checkpoints as independent
-  training seeds. This module records individual checkpoints, not that
-  aggregate; disclose checkpoint/seed/episode aggregation when reporting it;
+  the reported number is the mean of the last 5 checkpoints (80k..100k of a
+  101k budget) +- standard error. :func:`peak_final_selection` picks the
+  peak and final checkpoints; the peak is chosen on the test block, so it is
+  biased upward;
 - an episode is a success when the task reported success and the robot
   never fell (:func:`is_success`). Evaluation must keep reward shaping off.
 """

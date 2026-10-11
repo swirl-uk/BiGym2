@@ -22,7 +22,7 @@ import json
 import sys
 from pathlib import Path
 
-from bigym.loco.agent import transcript as _transcript
+from bigym.loco.agent import transcript
 from bigym.loco.agent.audit import find_cells
 from bigym.loco.agent.cli import UsageConfig, parse_command
 
@@ -65,10 +65,10 @@ def session_row(cell: Path) -> dict | None:
             run = json.loads(run_json.read_text())
         except json.JSONDecodeError:
             run = {}
-    harness, records = _transcript.read_records(cell)
+    harness, records = transcript.read_records(cell)
     if harness is None:
         return None
-    summary = _transcript.usage_summary(records, run.get("model"))
+    summary = transcript.usage_summary(records, run.get("model"))
     tokens = summary["tokens"]
     verdict = (run.get("verdict") or {}).get("state", "")
     return {
@@ -171,8 +171,8 @@ def main(argv: list[str] | UsageConfig | None = None) -> int:
         + ("none (no harness stream under any eval/)" if not stray else str(stray))
     )
     print(
-        f"prices: {_transcript.MODEL_PRICES} USD per million tokens, list prices on "
-        f"{_transcript.PRICING_DATE}; edit MODEL_PRICES to reprice"
+        f"prices: {transcript.MODEL_PRICES} USD per million tokens, list prices on "
+        f"{transcript.PRICING_DATE}; edit MODEL_PRICES to reprice"
     )
     if args.csv:
         args.csv.parent.mkdir(parents=True, exist_ok=True)

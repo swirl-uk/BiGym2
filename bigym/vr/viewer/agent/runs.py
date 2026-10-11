@@ -11,7 +11,7 @@ replay-format batch:
     620000-620099).
 ``dev/vNNN_<stamp>/``
     The episodes the agent itself ran while it worked. They are grouped by
-    the ``policy.py`` version that was current at the time, which is NOT the
+    the ``policy.py`` version that was current at the time, which is not the
     same as "episodes of that version": agents often develop in other files
     while ``policy.py`` still holds the template, so the labels say
     "while policy.py was v001".

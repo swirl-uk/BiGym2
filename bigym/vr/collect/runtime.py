@@ -49,7 +49,7 @@ def abort_on_foreign_vr_server() -> None:
             text=True,
             timeout=5,
         ).stdout
-    except Exception:
+    except (OSError, subprocess.SubprocessError):
         return
     me = getpass.getuser()
     foreign = [line.split() for line in out.splitlines() if line.split()]

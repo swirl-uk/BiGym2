@@ -34,9 +34,9 @@ Policy contract: a callable ``policy(timestep) -> np.ndarray`` (action for
 ``env.action_spec()``); if it has a ``reset()`` method it is called between
 episodes (stateful policies: action chunking, RNNs).
 
-Protocol parameters are deliberately NOT configurable. Running fewer
+Protocol parameters are not configurable. Running fewer
 episodes (``episodes=N``) is supported for smoke-testing the plumbing, but
-such runs return a summary WITHOUT a leaderboard record — a number produced
+such runs return a summary without a leaderboard record — a number produced
 off-protocol should never look like a benchmark number. The same holds for
 an env built with result-affecting overrides
 (``bigym.loco.eval.protocol_violations``): the summary is returned, the

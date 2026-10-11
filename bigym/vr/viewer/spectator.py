@@ -214,7 +214,7 @@ def run_mujoco_viewer_process(argv: list[str]) -> int:
 
     def parent_alive() -> bool:
         # We are the collector's direct child, so its death reparents us and
-        # getppid() stops matching. os.kill(pid, 0) is NOT a valid liveness
+        # getppid() stops matching. os.kill(pid, 0) is not a valid liveness
         # probe here: once the pid is recycled by any same-user process it
         # reports alive forever.
         return os.getppid() == args.parent_pid

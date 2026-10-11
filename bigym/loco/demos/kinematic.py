@@ -28,12 +28,6 @@ def replay_env(task: str):
     them and the success predicate that paints the reach-target highlight is
     the real one. ``camera_keys=()`` skips the onboard renderers: a player
     that draws the scene itself never reads a camera observation.
-
-    Args:
-        task: The task name.
-
-    Returns:
-        The environment.
     """
     return make(task, camera_keys=())
 

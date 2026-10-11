@@ -20,7 +20,7 @@ from mjviser import ViserMujocoScene
 from PIL import Image
 
 from bigym.bigym_env import BiGymEnv
-from bigym.envs.reach_target import Target, _ReachTargetEnv
+from bigym.envs.reach_target import ReachTargetEnv, Target
 
 
 def _geom_alpha(mj_model: Any, geom_id: int) -> float:
@@ -447,7 +447,7 @@ def tint_robot_geoms(model: Any, factor: float = 0.35) -> int:
 
 def reach_targets(inner_env: BiGymEnv) -> list[Target]:
     """The target spheres of a reach task; empty for every other task."""
-    if isinstance(inner_env, _ReachTargetEnv):
+    if isinstance(inner_env, ReachTargetEnv):
         return list(inner_env.targets)
     return []
 
@@ -461,7 +461,7 @@ def hide_reach_targets(inner_env: BiGymEnv) -> list[Target]:
     """
     targets = reach_targets(inner_env)
     for target in targets:
-        colour = np.asarray(target._config.color_default, dtype=float)
+        colour = np.asarray(target.config.color_default, dtype=float)
         inner_env.model.bind(target.geom).rgba = np.append(colour[:3], 0.0)
     return targets
 
@@ -490,7 +490,7 @@ def patch_mjviser() -> None:
     patch_mjviser_floor()
 
 
-def patch_mjviser_track_body_ids(model: Any, dynamic_body_ids: tuple[int, ...]) -> None:
+def patch_mjviser_track_body_ids(dynamic_body_ids: tuple[int, ...]) -> None:
     """Make selected bodies dynamic in mjviser's scene conversion."""
     dynamic_bodies = set(map(int, dynamic_body_ids))
     orig = getattr(conversions, "_orig_is_fixed_body", conversions.is_fixed_body)
@@ -512,13 +512,13 @@ def patch_mjviser_track_props(model: Any, inner_env: Any) -> None:
 
     Props (racks, tables ...) are welded to the world, so mjviser's
     is_fixed_body() bakes them into the static world mesh at scene build.
-    But the env's reset(seed) RANDOMIZES prop placement at the model level,
+    But the env's reset(seed) randomizes prop placement at the model level,
     so after the first episode load every static prop renders at a stale
     position. Un-fix all prop bodies — and reach
     targets, which randomize the same way — so mjviser gives them per-body
     dynamic nodes, updated from data.xpos on every frame like the robot.
     """
-    patch_mjviser_track_body_ids(model, find_dynamic_body_ids(model, inner_env))
+    patch_mjviser_track_body_ids(find_dynamic_body_ids(model, inner_env))
 
 
 def open_viser_scene(
@@ -539,12 +539,12 @@ def open_viser_scene(
     server on the same port needs a moment to release the socket — the
     demo viewer hits this on every batch switch), and returns
     ``(server, scene)`` with camera tracking off. Callers that need to hide
-    geoms from the baked static mesh (e.g. reach targets) must do so BEFORE
+    geoms from the baked static mesh (e.g. reach targets) must do so before
     calling this.
     """
     patch_mjviser()
     if dynamic_body_ids is not None:
-        patch_mjviser_track_body_ids(model, dynamic_body_ids)
+        patch_mjviser_track_body_ids(dynamic_body_ids)
     elif inner_env is not None:
         patch_mjviser_track_props(model, inner_env)
     server = None

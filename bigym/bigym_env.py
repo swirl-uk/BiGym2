@@ -32,7 +32,7 @@ PHYSICS_DT = 0.002
 
 
 def control_sub_steps(control_frequency: float, compiled_timestep: float) -> int:
-    """Physics substeps per control step at the COMPILED model timestep.
+    """Physics substeps per control step at the compiled model timestep.
 
     Attached robot XMLs can override the scene's ``<option timestep>`` (the G1
     ships 0.001 s against the nominal ``PHYSICS_DT``), so the substep count,
@@ -173,7 +173,7 @@ class BiGymEnv(gym.Env):
 
         # Attached robot XMLs can override <option> attributes of the scene
         # (the G1 XML ships timestep=0.001). Derive the substep count from the
-        # COMPILED timestep so control_frequency means true Hz, which the
+        # compiled timestep so control_frequency means true Hz, which the
         # 50 Hz-trained lower-body policy depends on.
         compiled_timestep = float(self.simulation.model.opt.timestep)
         true_sub_steps = control_sub_steps(self._control_frequency, compiled_timestep)
@@ -215,7 +215,7 @@ class BiGymEnv(gym.Env):
             assert camera_config.name in available_cameras
 
         # Mapping original camera names to full identifiers
-        self._cameras_map = self._initialize_cameras()
+        self.cameras_map = self._initialize_cameras()
 
         self.mujoco_renderer: Optional[BiGymRenderer] = None
         self.obs_renderers: dict[tuple[int, int], mujoco.Renderer] = {}
@@ -457,7 +457,7 @@ class BiGymEnv(gym.Env):
         if self._observation_config.proprioception:
             obs |= self._get_proprioception_obs()
         if self._use_pixels:
-            obs |= self._get_visual_obs()
+            obs |= self.get_visual_obs()
         if self._observation_config.privileged_information:
             obs |= self._get_task_privileged_obs()
         return obs
@@ -499,7 +499,7 @@ class BiGymEnv(gym.Env):
         pairs serialise the GPU work (~25% slower per control tick with three
         84x84 cameras).
 
-        OPT-IN (``BIGYM_RENDER_STRIP=1``): the strip is NOT bit-identical to
+        Opt-in (``BIGYM_RENDER_STRIP=1``): the strip is not bit-identical to
         the per-camera path. Viewport-offset rasterisation changes a few dozen
         edge pixels per image, within the per-camera path's own
         frame-to-frame nondeterminism, but it is a different draw of the same
@@ -541,7 +541,7 @@ class BiGymEnv(gym.Env):
         if renderer._gl_context:  # ty: ignore[unresolved-attribute]
             renderer._gl_context.make_current()  # ty: ignore[unresolved-attribute]
         for index, camera_config in enumerate(cameras):
-            renderer.update_scene(self.data, self._cameras_map[camera_config.name][0])
+            renderer.update_scene(self.data, self.cameras_map[camera_config.name][0])
             mujoco.mjr_render(
                 mujoco.MjrRect(index * width, 0, width, height),
                 renderer._scene,  # ty: ignore[unresolved-attribute]
@@ -561,7 +561,7 @@ class BiGymEnv(gym.Env):
             for index, camera_config in enumerate(cameras)
         }
 
-    def _get_visual_obs(self) -> dict[str, Any]:
+    def get_visual_obs(self) -> dict[str, Any]:
         """Get the visual observation."""
         strip = self._strip_renderer()
         if strip is not None:
@@ -570,7 +570,7 @@ class BiGymEnv(gym.Env):
         for camera_config in self._observation_config.cameras:
             obs_renderer = self.obs_renderers[camera_config.resolution]
             obs_renderer.update_scene(
-                self.data, self._cameras_map[camera_config.name][0]
+                self.data, self.cameras_map[camera_config.name][0]
             )
             if camera_config.rgb:
                 rgb = obs_renderer.render()
@@ -665,7 +665,7 @@ class BiGymEnv(gym.Env):
     def _on_reset_warmup_step(self):
         """Task hook after each outer-controller reset warmup step.
 
-        Most task state should simply evolve under physics during controller
+        Most task state should evolve under physics during controller
         settling. Tasks whose sampled initial state must not be displaced by
         the robot before the episode begins can hold it here.
         """
@@ -699,7 +699,7 @@ class BiGymEnv(gym.Env):
         self._on_step()
         if self._success_hold_steps > 0:
             # Tick exactly once per env step, via the step cache. The counter
-            # must NOT live inside _success(): tasks may call _success()
+            # must not live inside _success(): tasks may call _success()
             # directly (e.g. reach-target _on_step highlighting bypasses the
             # cache), which would double-count a stateful predicate.
             if bool(self._step_cache.get(self._success)):

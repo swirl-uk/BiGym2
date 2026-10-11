@@ -64,7 +64,7 @@ class MinkUpperBodyIK:
         measured_resync_threshold: float | None = 0.5,
         fixed_joints: list[mujoco.MjsJoint] | None = None,
     ) -> None:
-        # Joints kept in the stripped model but NOT solved for: their measured
+        # Joints kept in the stripped model but not solved for: their measured
         # angles are written in before every solve (the GR00T torso-pitch
         # command moves the shoulders by up to 15 cm; without this the solver
         # places the hands for an upright torso).

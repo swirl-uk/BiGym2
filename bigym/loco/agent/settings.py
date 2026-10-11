@@ -72,7 +72,7 @@ CODEX_HOST_FLAGS = [
 def claude_settings_soft(sandbox: Path, effort: str = "high") -> dict:
     """Tool-level isolation only, for a session on the host (``--isolation soft``).
 
-    Bash network use is NOT enforced at this level; audit the transcript.
+    Bash network use is not enforced at this level; audit the transcript.
 
     Args:
         sandbox: The sandbox directory the session runs in.

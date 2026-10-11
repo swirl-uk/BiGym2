@@ -75,7 +75,7 @@ scan runs on the main loop and never switches the rollout on screen unless
 
 Threading note: env.reset() renders camera observations, and the EGL context
 belongs to the main thread — episode loads, camera renders and subprocess
-launches therefore ONLY happen on the main loop; UI/keyboard callbacks just
+launches therefore only happen on the main loop; UI/keyboard callbacks just
 set a request flag (downloads and directory scans run on a worker thread
 and then do the same).
 

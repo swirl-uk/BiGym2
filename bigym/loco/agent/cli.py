@@ -312,7 +312,7 @@ class ServeConfig:
     """Record the agent's own episodes as replay batches under
     <ledger-dir>/dev (about 1 MB per episode)."""
     allow_eval_seeds: bool = False
-    """In-the-loop evaluation: the model IS the policy, episodes run on the
+    """In-the-loop evaluation: the LLM is the policy, episodes run on the
     protocol seeds."""
 
     def run(self) -> int | None:

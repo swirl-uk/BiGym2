@@ -80,6 +80,7 @@ from bigym.vr.viewer.mjviser_compat import (
     patch_mjviser,
     patch_mjviser_track_props,
 )
+from bigym.vr.viewer.overlays import rgb255
 from bigym.vr.viewer.scene import (
     SlotBillboard,
     apply_lighting,
@@ -864,12 +865,6 @@ def measure_footprint(model, data, mujoco) -> Footprint:
     )
 
 
-def rgb255(colour) -> tuple[int, int, int]:
-    """A MuJoCo rgba (0-1 floats) as viser's 0-255 integers."""
-    values = np.asarray(colour, dtype=float).reshape(-1)[:3]
-    return cast(tuple[int, int, int], tuple(int(round(255 * float(v))) for v in values))
-
-
 def add_target_spheres(server, prefix: str, targets, offset) -> list[tuple]:
     """Draw one ball (and a highlight glow) per reach target of a scene.
 
@@ -886,18 +881,18 @@ def add_target_spheres(server, prefix: str, targets, offset) -> list[tuple]:
     """
     drawn = []
     for i, target in enumerate(targets):
-        radius = float(np.asarray(target._config.size).reshape(-1)[0])
+        radius = float(np.asarray(target.config.size).reshape(-1)[0])
         ball = server.scene.add_icosphere(
             f"/targets/{prefix}/{i}/ball",
             radius=radius,
-            color=rgb255(target._config.color_default),
+            color=rgb255(target.config.color_default),
             position=tuple(float(v) for v in offset),
             visible=False,
         )
         glow = server.scene.add_icosphere(
             f"/targets/{prefix}/{i}/glow",
             radius=radius * 1.35,
-            color=rgb255(target._config.color_highlight),
+            color=rgb255(target.config.color_highlight),
             opacity=0.5,
             position=tuple(float(v) for v in offset),
             visible=False,
@@ -1910,7 +1905,7 @@ def record_schedule(lengths, loop: str = LOOP_ALL, frames: int = 0) -> list[int]
 
     Returns:
         ``[0, 1, ... n - 1]``; :func:`loop_frame` maps each one onto each
-        scene, so a count beyond one pass simply starts the loop again.
+        scene, so a count beyond one pass starts the loop again.
     """
     total = int(frames) if int(frames or 0) > 0 else loop_length(lengths, loop)
     return list(range(max(1, total)))
@@ -1977,7 +1972,7 @@ def wait_for_page(
     the moment a client connects therefore shows a white sky and half the
     grid missing (measured: the first render of a twenty-scene page). The
     scene is static here (the playhead has not moved yet), so "loaded" is
-    simply "two renders in a row look the same".
+    "two renders in a row look the same".
 
     Args:
         client: The browser that renders.

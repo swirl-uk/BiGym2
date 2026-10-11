@@ -2,9 +2,8 @@
 
 :func:`substrate_fingerprint` is the record stamped into demo, run and eval
 metadata so results can be grouped by comparable substrate;
-:func:`describe_model` reads the compiled model's physics values for a
-paper's appendix. ``BiGym.substrate_fingerprint()`` and
-``BiGym.describe_model()`` return them.
+:func:`describe_model` reads the compiled model's physics values.
+``BiGym.substrate_fingerprint()`` and ``BiGym.describe_model()`` return them.
 """
 
 from __future__ import annotations
@@ -24,7 +23,7 @@ import bigym
 if TYPE_CHECKING:
     from bigym.loco.env import BiGym
 
-# Substrate freeze marker. Bump ONLY for result-affecting changes: obs/action
+# Substrate freeze marker. Bump only for result-affecting changes: obs/action
 # layout, reward/success semantics, physics options (solver pin, PD/armature
 # tables), or MuJoCo era. Runs are numerically comparable only within one
 # substrate version.

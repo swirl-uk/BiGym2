@@ -61,7 +61,7 @@ class CameraPanels:
     """MuJoCo-rendered image widgets for the viser sidebar.
 
     The onboard cameras come from the environment's own observation path
-    (``BiGymEnv._get_visual_obs``), at the batch's recorded resolution, so
+    (``BiGymEnv.get_visual_obs``), at the batch's recorded resolution, so
     the panels show the pixels a policy would have seen. One extra view is
     rendered from a third-person camera (a named one from the task XML if it
     has it, else a free camera orbiting the robot).
@@ -156,7 +156,7 @@ class CameraPanels:
         # is rendered. Same order as the re-renderer.
         run_task_hook(self.inner)
         try:
-            obs = self.inner._get_visual_obs()
+            obs = self.inner.get_visual_obs()
         except Exception as exc:
             self.message.content = f"<i>camera render failed: {exc}</i>"
             return

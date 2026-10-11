@@ -57,7 +57,7 @@ def progress_fraction(state: dict | None) -> float:
     the finished ones too, so the bar crosses the whole run once rather
     than snapping back to the left at every episode. An evaluation reports
     no steps at all (its episodes run in worker processes), and then the
-    fraction is simply the finished episodes over the requested ones.
+    fraction is the finished episodes over the requested ones.
 
     Args:
         state: A dict from :func:`read_progress`, or None.

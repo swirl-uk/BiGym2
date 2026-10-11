@@ -46,7 +46,7 @@ class Renderer(mujoco.Renderer):
         )
 
     def render_rgb_raw(self, out: np.ndarray) -> np.ndarray:
-        """RGB render into `out` WITHOUT the vertical flip.
+        """RGB render into `out` without the vertical flip.
 
         The stock render() flips the readback top-down in place; the eye quad
         samples the raw bottom-up mjr_readPixels row order as-is, so skipping

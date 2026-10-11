@@ -59,8 +59,8 @@ EPISODE_LEVEL_PREFIXES = ("init_", "lb_state.")
 EPISODE_LEVEL_KEYS = ("seed", "pre_engage_steps")
 
 # Alignment v2. Source npz convention: index t holds the state
-# AFTER executing action[t] (index 0 is the pre-engage slot). LeRobot frames
-# must pair an observation with the action executed FROM it, so every
+# after executing action[t] (index 0 is the pre-engage slot). LeRobot frames
+# must pair an observation with the action executed from it, so every
 # transition-scoped feature is stored shifted: frame k <- npz index k+1.
 # The final frame repeats index T-1 ("keep holding"; dropped on
 # reconstruction) and npz index 0 goes to the episode_init_states sidecar
@@ -166,7 +166,7 @@ class ExportConfig:
     """Override the LeRobot timestamp rate; only needed for batches whose
     metadata lacks control_step_seconds."""
     videos: bool = False
-    """Encode cameras as mp4 (LOSSY, for visualization variants only); default
+    """Encode cameras as mp4 (lossy, for visualization variants only); default
     is lossless embedded PNG, the canonical one-copy format."""
 
 
@@ -219,7 +219,7 @@ def main():
     assert n_cam == len(cams), (n_cam, cams)
 
     # Per-step extras are versioned: a batch only carries the ones its
-    # collector knew about. Intersect over EVERY file, not just the first --
+    # collector knew about. Intersect over every file, not just the first --
     # merged batches can mix collector eras, and probing only paths[0] would
     # KeyError partway through a long conversion.
     common = set(probe.files)
@@ -277,7 +277,7 @@ def main():
     init_states = {}
     for ep_idx, path in enumerate(paths):
         d = np.load(path)
-        # Materialize every per-step array ONCE. `np.load` on an .npz returns a
+        # Materialize every per-step array once. `np.load` on an .npz returns a
         # lazy NpzFile: each `d[key]` re-reads and re-inflates the whole member.
         # Indexing inside the frame loop would re-inflate rgb_obs several
         # times per frame; hoisting it out is a ~100x speedup.
@@ -287,7 +287,7 @@ def main():
         step_arrays = {key: d[key] for key, _ in extras}
         T = action.shape[0]
         for t in range(T):
-            tt = min(t + 1, T - 1)  # transition executed FROM this frame
+            tt = min(t + 1, T - 1)  # transition executed from this frame
             frame = {
                 "observation.state": low_dim_obs[t].astype(np.float32),
                 "action": action[tt].astype(np.float32),

@@ -157,7 +157,7 @@ def replay_seeds(
     runs, ``<out_dir>/.progress.json`` says which step it is on (see
     :class:`RunProgress`), and it is removed when the run finishes cleanly.
 
-    A version directory is **added to**, not replaced: a seed whose
+    A version directory is added to, not replaced: a seed whose
     ``seed<S>.npz`` is already in the batch is kept (``seed S: already
     recorded``) and only the missing ones are rolled out, so asking for one
     more seed of a version that has a replay costs one episode rather than

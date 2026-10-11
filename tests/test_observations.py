@@ -79,7 +79,7 @@ def test_camera_pose_config():
         ),
     )
     env.reset()
-    camera = env._cameras_map[camera_name][1]
+    camera = env.cameras_map[camera_name][1]
     assert_allclose(env.data.bind(camera).xpos, camera_pos)
     quat = np.zeros(4)
     mujoco.mju_mat2Quat(quat, env.data.bind(camera).xmat)

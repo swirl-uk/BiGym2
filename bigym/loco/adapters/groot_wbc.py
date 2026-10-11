@@ -20,10 +20,8 @@ import numpy as np
 from bigym.loco.adapters.binding import BackendBinding
 from bigym.loco.base import (
     LowerBodyBase,
+    quat_rotate_inverse_wxyz,
     yaw_from_quat_wxyz,
-)
-from bigym.loco.base import (
-    quat_rotate_inverse_wxyz as _quat_rotate_inverse_wxyz,
 )
 from bigym.loco.command import velocity_spec
 
@@ -250,7 +248,7 @@ class GrootWbcG1Controller(LowerBodyBase):
             self.controlled_qpos_addresses,
             self.controlled_dof_addresses,
         ) = self.build_joint_addresses(G1_GROOT_WBC_JOINT_NAMES)
-        # The BiGym G1 base uses slide/hinge joints, NOT a free joint.
+        # The BiGym G1 base uses slide/hinge joints, not a free joint.
         # The x/y/z/yaw stack gains passive roll/pitch when leg support and
         # passive_base_tilt are enabled (the GR00T protocol defaults).
         # Read orientation/angular velocity from the pelvis IMU sensors,
@@ -327,7 +325,7 @@ class GrootWbcG1Controller(LowerBodyBase):
             ],
             dtype=np.float32,
         )
-        gravity = _quat_rotate_inverse_wxyz(
+        gravity = quat_rotate_inverse_wxyz(
             quat, np.asarray([0.0, 0.0, -1.0], dtype=np.float32)
         )
         return base_lin, velocity[3:6].copy(), gravity

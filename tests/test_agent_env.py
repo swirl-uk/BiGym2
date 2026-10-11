@@ -57,7 +57,7 @@ def test_hold_action_shape_and_zero_base_velocity(strict_tools):
     raw = strict_tools.hold_action()
     assert raw.shape == (strict_tools.action_dim,)
     assert np.isfinite(raw).all()
-    slot = strict_tools._slot
+    slot = strict_tools.base_slot
     assert raw[slot["vx"]] == 0.0
     assert raw[slot["vy"]] == 0.0
     assert raw[slot["wz"]] == 0.0

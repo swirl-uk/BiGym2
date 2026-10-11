@@ -27,7 +27,7 @@ AUTO_ROW_MAX = 3
 
 
 # One tint per slot so the robots read apart at a glance. A tint is a
-# per-channel multiplier on the robot's geom colours and is DISPLAY ONLY: it
+# per-channel multiplier on the robot's geom colours and is display only: it
 # is written to the model only while mjviser bakes that slot's meshes, and
 # the original ``geom_rgba`` is put back before anything renders from the
 # model again -- the camera panels go through MuJoCo's renderer, which reads
@@ -89,9 +89,9 @@ def slot_offset(
 ) -> tuple[float, float, float]:
     """Where the scene of the slot at ``(row, column)`` is moved to.
 
-    A column steps along +y, so one row reads left to right exactly as it
-    always did; a row steps along -x, so the second row stands behind the
-    first rather than continuing the line off the side of the screen.
+    A column steps along +y, so one row reads left to right; a row steps
+    along -x, so the second row stands behind the first rather than
+    continuing the line off the side of the screen.
 
     Args:
         row: Its row index.

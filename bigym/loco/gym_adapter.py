@@ -101,7 +101,7 @@ class GymnasiumEnv(gymnasium.Env):
                 ),
             }
         )
-        # See the module docstring: env.action_space is the OUTER normalized
+        # See the module docstring: env.action_space is the outer normalized
         # space; action_spec() carries no bounds.
         inner_action_space = env.action_space
         self.action_space = spaces.Box(

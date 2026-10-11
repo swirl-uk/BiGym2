@@ -26,7 +26,7 @@ import re
 import sys
 from pathlib import Path
 
-from bigym.loco.agent import transcript as _transcript
+from bigym.loco.agent import transcript
 from bigym.loco.agent.cli import AuditConfig, parse_command
 
 # Paths and commands that a sandboxed session has no business naming. The
@@ -115,7 +115,7 @@ def _records(cell: Path) -> list[dict]:
             except json.JSONDecodeError:
                 continue
         return records
-    return _transcript.read_records(cell)[1]
+    return transcript.read_records(cell)[1]
 
 
 def audit_cell(cell: Path, client_root: str | None = "/work") -> tuple[int, list[str]]:

@@ -134,7 +134,7 @@ def test_the_collector_trains_on_the_latch_cut(tmp_path, monkeypatch, capsys):
     exported = []
     monkeypatch.setattr(cli.subprocess, "run", lambda cmd, check: exported.append(cmd))
     config = CollectConfig(task="move_plate", export_lerobot=True)
-    cli._post_process(config, raw, collection_hold=3.0, training_hold=1.0)
+    cli.post_process(config, raw, collection_hold=3.0, training_hold=1.0)
     assert "-m bigym.loco.demos.success_hold --demo-dir" in capsys.readouterr().out
     (cmd,) = exported
     assert cmd[cmd.index("--demo-dir") + 1] == str(cut)

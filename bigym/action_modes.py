@@ -34,7 +34,7 @@ class PelvisDof(Enum):
     Y = "pelvis_y"
     Z = "pelvis_z"
     RZ = "pelvis_rz"
-    # Torso-pitch command channel (pitch-capable lower-body backends): an ABSOLUTE
+    # Torso-pitch command channel (pitch-capable lower-body backends): an absolute
     # waist-pitch target in rad, + = lean forward. Riding in the action
     # vector keeps recorded demos replayable; tasks opt in, existing demos
     # without this slot are unaffected.

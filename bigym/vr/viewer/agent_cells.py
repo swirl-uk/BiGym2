@@ -59,7 +59,7 @@ from pygments import highlight
 from pygments.formatters.html import HtmlFormatter
 from pygments.lexers.python import PythonLexer
 
-from bigym.loco.agent.snapshots import version_dir
+from bigym.loco.agent.snapshots import submission_entry, version_dir
 from bigym.loco.agent.transcript import TOKEN_FIELDS, price_of
 from bigym.loco.eval.protocol import EVAL_SEED_BASE
 from bigym.vr.viewer import video
@@ -571,9 +571,10 @@ def template_versions(cell: Path) -> set[int]:
 
 
 def submission_version(cell: Path, rows: list[dict] | None = None) -> int | None:
-    """The version the session submitted: the last entry of the index."""
+    """The version the session submitted (see :func:`submission_entry`)."""
     rows = policy_rows(cell) if rows is None else rows
-    return rows[-1]["version"] if rows else None
+    entry = submission_entry(rows)
+    return entry["version"] if entry else None
 
 
 def read_run(cell: Path) -> dict:
@@ -1859,7 +1860,7 @@ def resolve_version(cell: Path, text: str) -> int | None:
     rows = policy_rows(cell)
     name = str(text or "").strip().lower()
     if not name or name in (VERSION_LAST, "submission"):
-        return rows[-1]["version"] if rows else None
+        return submission_version(cell, rows)
     digits = name[1:] if name.startswith("v") else name
     if digits.isdigit():
         return int(digits)

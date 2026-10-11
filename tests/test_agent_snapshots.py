@@ -215,6 +215,66 @@ def test_finalize_records_content_no_poll_ever_saw(tmp_path):
     assert (cell / "policies" / "v002" / "policy.py").read_text() == POLICY_V3
 
 
+def test_a_restored_version_is_the_submission(tmp_path):
+    """Going back to an earlier policy.py submits that earlier version."""
+    watcher, cell, sandbox = make_watcher(tmp_path)
+    for policy in (POLICY_V1, POLICY_V2, POLICY_V1):
+        (sandbox / "policy.py").write_text(policy)
+        watcher.poll()
+    entry = watcher.finalize()
+
+    versions = read_index(cell)["versions"]
+    assert [v["trigger"] for v in versions] == ["submission", "write"]
+    assert entry is not None and entry["version"] == 1
+    assert snapshots.submission_entry(versions) == versions[0]
+
+
+def test_a_changed_helper_makes_a_new_submission(tmp_path):
+    """Editing only a module policy.py imports still submits the new code."""
+    watcher, cell, sandbox = make_watcher(tmp_path)
+    (sandbox / "geom.py").write_text(GEOM)
+    (sandbox / "policy.py").write_text("from geom import clip\n" + POLICY_V1)
+    watcher.poll()
+    (sandbox / "geom.py").write_text("def clip(x):\n    return -x\n")
+    (sandbox / "scratch_probe.py").write_text(SCRATCH)
+    watcher.poll()
+    entry = watcher.finalize()
+
+    assert entry is not None and entry["version"] == 2
+    assert (cell / "policies" / "v002" / "geom.py").read_text().endswith("-x\n")
+    assert (cell / "policies" / "v001" / "geom.py").read_text() == GEOM
+
+
+def test_a_deleted_helper_makes_a_new_submission(tmp_path):
+    """A policy that falls back when its helper is gone is not scored with it."""
+    watcher, cell, sandbox = make_watcher(tmp_path)
+    (sandbox / "geom.py").write_text(GEOM)
+    (sandbox / "policy.py").write_text(POLICY_V1)
+    watcher.poll()
+    (sandbox / "geom.py").unlink()
+    entry = watcher.finalize()
+
+    assert entry is not None and entry["version"] == 2
+    assert not (cell / "policies" / "v002" / "geom.py").exists()
+
+
+def test_a_resumed_session_has_one_submission(tmp_path):
+    """Resuming and going back to v001 makes v001 the only submission."""
+    watcher, cell, sandbox = make_watcher(tmp_path)
+    for policy in (POLICY_V1, POLICY_V2):
+        (sandbox / "policy.py").write_text(policy)
+        watcher.poll()
+    watcher.finalize()
+    resumed = PolicyWatcher(sandbox, cell / "policies", task="reach_target_single")
+    (sandbox / "policy.py").write_text(POLICY_V1)
+    resumed.poll()
+    resumed.finalize()
+
+    versions = read_index(cell)["versions"]
+    assert [v["trigger"] for v in versions] == ["submission", "write"]
+    assert snapshots.submission_entry(versions) == versions[0]
+
+
 def test_finalize_also_picks_up_the_last_run(tmp_path):
     """Runs written after the last poll are still attached at shutdown."""
     watcher, cell, sandbox = make_watcher(tmp_path)

@@ -247,7 +247,8 @@ bigym-agent-runs/move_plate/
 ```
 
 The server snapshots `sandbox/policy.py` each time its content changes. The
-last version is the submission. `policies` lists every version with its
+submission is the `policy.py` the session ended with, which is an earlier
+version when the agent restored one. `policies` lists every version with its
 training and evaluation scores:
 
 ```bash

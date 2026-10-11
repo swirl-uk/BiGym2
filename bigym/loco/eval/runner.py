@@ -85,7 +85,8 @@ def evaluate(
 
     Pass either ``config`` / ``overrides`` (forwarded to
     :func:`bigym.loco.make` with ``task_name``; the env is created and
-    closed here) or a ready ``env`` (kept open).
+    closed here) or a ready ``env`` (kept open), which must run
+    ``task_name``.
 
     Returns ``{"task", "method", "episodes", "success_rate",
     "episode_rewards", "substrate", "env_config", "protocol_violations",
@@ -98,6 +99,10 @@ def evaluate(
     owns_env = env is None
     if owns_env:
         env = make(task_name, config, **dict(overrides or {}))
+    elif str(env.task_name) != str(task_name):
+        raise ValueError(
+            f"env runs task {env.task_name!r}, not task_name={task_name!r}"
+        )
     try:
         seeds = eval_seeds(episodes)
         episode_rewards: list[float] = []

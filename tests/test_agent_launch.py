@@ -177,6 +177,18 @@ def test_parallel_caps_every_session_of_every_task(tmp_path, monkeypatch):
         assert sorted(e["task"] for e in entries) == ["move_plate", "pick_box"]
 
 
+def test_a_refused_gpu_fails_every_cell(tmp_path, monkeypatch):
+    """No GPU free: each cell is recorded as failed and the exit is non-zero."""
+    monkeypatch.setattr(gpu, "gpu_free_mib", lambda: {0: 1000})
+    monkeypatch.setattr(gpu, "egl_map", lambda: {})
+    root = tmp_path / "root"
+    argv = ["--task", "move_plate", "pick_box", "--root", str(root)]
+    assert launch.main(argv + ["--harness", "custom", "--command", "true"]) == 1
+    entries = json.loads((root / "run_results.json").read_text())
+    assert sorted(e["task"] for e in entries) == ["move_plate", "pick_box"]
+    assert all("MiB free" in e["error"] for e in entries)
+
+
 def test_dry_run_custom(tmp_path, capsys):
     """A custom agent is a shell command with the session in its environment."""
     root = tmp_path / "root"
@@ -339,8 +351,26 @@ def test_env_tools_reach_sandbox_server_and_evaluation(tmp_path, capsys):
     assert rebuilt.env_tools == args.env_tools
 
 
+def test_eval_command_scores_the_submitted_version(tmp_path):
+    """The marked submission is scored even when a later version exists."""
+    args = launch.parse_run_args(
+        ["--task", "t", "--root", str(tmp_path), "--model", "m"]
+    )
+    cell = tmp_path / "t"
+    (cell / "policies").mkdir(parents=True)
+    versions = [
+        {"version": 1, "trigger": "write"},
+        {"version": 2, "trigger": "submission"},
+        {"version": 3, "trigger": "run"},
+    ]
+    (cell / "policies" / "index.json").write_text(json.dumps({"versions": versions}))
+    command, version = launch.eval_command("t", cell, args)
+    assert version == 2
+    assert command[command.index("--version") + 1] == "2"
+
+
 def test_eval_command_prefers_the_last_policy_version(tmp_path):
-    """With policies/index.json the cell mode scores the last version."""
+    """Without a marked submission the cell mode scores the last version."""
     args = launch.parse_run_args(
         ["--task", "t", "--root", str(tmp_path), "--model", "m"]
     )

@@ -1281,7 +1281,7 @@ def directory_panel(server, current: str, request) -> None:
         if isinstance(source, DatasetSource) and source.dirs[0] is None:
             note.content = _note_html(f"fetching {source.labels[0]} …")
             try:
-                hub.task_dir(source.tasks[0])
+                hub.task_files(source.tasks[0], [])
             except Exception as exc:
                 note.content = _note_html(str(exc).splitlines()[0], error=True)
                 return
@@ -1311,9 +1311,10 @@ def directory_panel(server, current: str, request) -> None:
 def _task_picker(source: DatasetSource, idx: int):
     """Build the "Task" dropdown for a dataset (a :class:`Picker`'s ``build``).
 
-    Picking a task the Hub cache does not hold yet downloads its folder on a
+    Picking a task the Hub cache does not hold yet fetches its metadata on a
     worker thread, with a status line, while the open task keeps playing;
-    the switch is requested once the files are there.
+    the switch is requested once it is there. Episodes are downloaded as
+    they are opened, as for the first task.
 
     Args:
         source: The dataset's tasks.
@@ -1334,7 +1335,7 @@ def _task_picker(source: DatasetSource, idx: int):
         def fetch(target: int) -> None:
             if source.dirs[target] is None:
                 try:
-                    hub.task_dir(source.tasks[target])
+                    hub.task_files(source.tasks[target], [])
                 except Exception as exc:
                     note.content = _note_html(str(exc).splitlines()[0], error=True)
                     return

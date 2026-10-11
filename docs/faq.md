@@ -56,7 +56,10 @@ Download once, then tell the Hub client to stay on its cache:
 ```bash
 uv run bigym-download --all
 export HF_HUB_OFFLINE=1
+uv run bigym-view --task move_plate
 ```
+
+Offline, the viewer cannot list the published tasks, so name one with `--task`.
 
 ## Evaluation
 

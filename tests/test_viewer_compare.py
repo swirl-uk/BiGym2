@@ -69,6 +69,18 @@ def test_versions_resolve_by_number_or_by_last(tmp_path):
     assert agent_cells.resolve_version(cell, "newest") is None
 
 
+def test_a_restored_version_is_the_one_marked_submission(tmp_path):
+    """A session that went back to v003 submitted v003, not its newest v008."""
+    cell = make_cell(tmp_path / "runs" / "s1" / TASK, 8)
+    index = cell / "policies" / "index.json"
+    data = json.loads(index.read_text())
+    for entry in data["versions"]:
+        entry["trigger"] = "submission" if entry["version"] == 3 else "write"
+    index.write_text(json.dumps(data))
+    assert agent_cells.submission_version(cell) == 3
+    assert agent_cells.resolve_version(cell, "submission") == 3
+
+
 def test_a_hidden_seed_needs_no_replay(tmp_path):
     """Evaluation batches hold every hidden seed, so compare reads them."""
     cells = two_sessions(tmp_path)

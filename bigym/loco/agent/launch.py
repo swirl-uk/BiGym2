@@ -114,7 +114,7 @@ from .registry import (
     stop_cells_of,
     stop_requested,
 )
-from .snapshots import version_dir
+from .snapshots import submission_entry, version_dir
 
 # The benchmark's own commands, run as subprocesses of this interpreter.
 SELF = [sys.executable, "-m", "bigym.loco.agent"]
@@ -339,11 +339,12 @@ def eval_command(
 ) -> tuple[list[str], int | None]:
     """Build the hidden-seed evaluation command for a finished cell.
 
-    The cell mode (``evaluate <cell> --version N``) scores the last policy
-    version the snapshot watcher recorded, in the environment the sandbox
-    builder recorded in the cell. A cell without ``policies/index.json`` (no
-    watcher, or a session that wrote no version) falls back to scoring the
-    sandbox's ``policy.py`` directly, with the environment given as flags.
+    The cell mode (``evaluate <cell> --version N``) scores the version the
+    session submitted (:func:`~bigym.loco.agent.snapshots.submission_entry`),
+    in the environment the sandbox builder recorded in the cell. A cell
+    without ``policies/index.json`` (no watcher, or a session that wrote no
+    version) falls back to scoring the sandbox's ``policy.py`` directly, with
+    the environment given as flags.
 
     Args:
         task: The task name.
@@ -359,8 +360,9 @@ def eval_command(
             versions = json.loads(index.read_text()).get("versions") or []
         except (json.JSONDecodeError, OSError):
             versions = []
-        if versions:
-            version = int(versions[-1]["version"])
+        entry = submission_entry(versions)
+        if entry is not None:
+            version = int(entry["version"])
             command = SELF + [
                 "evaluate",
                 str(cell),
@@ -1087,6 +1089,7 @@ def main(argv: list[str] | RunConfig | None = None) -> int:
     roots = session_roots(args.root, args.sessions)
     results: dict[Path, list[dict]] = {root: [] for root in roots}
     queue = [(root, task) for root in roots for task in tasks]
+    total = len(queue)
     lock, cancel = threading.Lock(), threading.Event()
 
     def worker() -> None:
@@ -1097,7 +1100,9 @@ def main(argv: list[str] | RunConfig | None = None) -> int:
                 root, task = queue.pop(0)
             try:
                 result = run_session(task, dataclasses.replace(args, root=root), cancel)
-            except Exception as exc:
+            except (Exception, SystemExit) as exc:
+                # SystemExit too: a refused GPU check must not end the worker
+                # silently and leave its cells unrecorded.
                 result = {"task": task, "error": f"{type(exc).__name__}: {exc}"}
             with lock:
                 results[root].append(result)
@@ -1128,9 +1133,8 @@ def main(argv: list[str] | RunConfig | None = None) -> int:
     if not args.dry_run:
         for root, entries in results.items():
             write_run_results(root, entries)
-    return (
-        1 if any("error" in r for entries in results.values() for r in entries) else 0
-    )
+    entries = [r for rows in results.values() for r in rows]
+    return 1 if len(entries) < total or any("error" in r for r in entries) else 0
 
 
 def session_roots(root: Path, sessions: int) -> list[Path]:

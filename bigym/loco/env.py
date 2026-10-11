@@ -835,12 +835,13 @@ class BiGym:
         Keys are namespaced ("ctrl." for controller fields, "env." for
         env-side fields) so they can be stored flat in a demo npz.
 
-        Deliberately NOT covered: the train-time reward-shaping progress
-        state (:class:`~bigym.loco.event_progress.EventProgress`). Restoring
-        mid-episode therefore reproduces dynamics and success bit-exactly
-        but may diverge in *shaped* reward bookkeeping — acceptable because
-        shaping is a train-only aid, never part of the frozen success
-        criterion.
+        Not covered: the episode's own bookkeeping, that is the step count,
+        the success hold counter, the success and fall latches and the
+        train-time reward-shaping progress
+        (:class:`~bigym.loco.event_progress.EventProgress`) keep the values
+        they had before the restore. Restoring therefore reproduces the
+        dynamics bit-exactly; a demo replay gets fresh bookkeeping from its
+        reset.
         """
         return self.lowerbody.get_state(self)
 

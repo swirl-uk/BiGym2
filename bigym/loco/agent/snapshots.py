@@ -23,9 +23,13 @@ the whole session. It polls the sandbox and records each new content hash of
 executed that exact content through ``run_episodes.py`` (the runner leaves
 ``runs/<stamp>.json`` and ``runs/<stamp>_policy.py`` behind, which the
 watcher matches by content hash), and ``submission`` for the content at the
-end of the session. A content hash appears exactly once: a later trigger
-updates the entry it already has, so the index is the agent's edit history
-with the score its own runs measured.
+end of the session. A content hash appears once: a later trigger updates the
+entry it already has, so the index is the agent's edit history with the score
+its own runs measured. The one exception is a submission whose ``policy.py``
+an earlier version already has but whose helper modules have changed since:
+it gets a version of its own, so the submission holds the code the session
+ended with. Only one version is the submission, even across resumed
+sessions.
 
 The training outcome of a version does not depend on the agent using the
 runner: every episode the server ran is in ``<cell>/ledger.jsonl``, and an
@@ -152,6 +156,26 @@ def write_index(policies_dir: Path, index: dict) -> Path:
     tmp.write_text(json.dumps(index, indent=1, default=str))
     os.replace(tmp, path)
     return path
+
+
+def submission_entry(versions: list[dict]) -> dict | None:
+    """Return the version the session submitted.
+
+    That is the entry marked ``submission``, which is not always the newest
+    one: an agent that restores an earlier ``policy.py`` submits that earlier
+    version. A session without the mark (one that did not finish) submits
+    its newest version.
+
+    Args:
+        versions: Index entries, oldest first.
+
+    Returns:
+        The entry, or None when there are no versions.
+    """
+    for entry in reversed(versions):
+        if entry.get("trigger") == "submission":
+            return entry
+    return versions[-1] if versions else None
 
 
 def version_dir(cell: Path, version: int, kind: str = POLICIES_DIR) -> Path:
@@ -737,6 +761,29 @@ class PolicyWatcher:
             out.append(path)
         return out
 
+    def helpers_changed(self, entry: dict) -> bool:
+        """Whether the modules beside ``policy.py`` differ from ``entry``'s copies.
+
+        Every sibling module counts, not only the ones a static scan finds
+        imported: a policy can import one dynamically, or fall back when one
+        is deleted.
+
+        Args:
+            entry: An index entry.
+
+        Returns:
+            True when a module was added, removed or changed since then.
+        """
+        stored = self.policies / entry["dir"]
+        archived = {p.name for p in stored.glob("*.py")} - {POLICY_NAME}
+        live = self.helper_files()
+        if archived != {path.name for path in live}:
+            return True
+        try:
+            return any(p.read_bytes() != (stored / p.name).read_bytes() for p in live)
+        except OSError:
+            return True
+
     def versions(self) -> list[dict]:
         """Return the recorded versions, oldest first."""
         return list(self.index["versions"])
@@ -1011,10 +1058,14 @@ class PolicyWatcher:
             entry = None
             if content:
                 entry = self.entry_for(sha256_text(content))
-                if entry is None:
+                if entry is None or self.helpers_changed(entry):
                     entry = self.add_version(content, "submission")
                 else:
                     entry["trigger"] = "submission"
+                # A resumed session's earlier submission is one no longer.
+                for other in self.index["versions"]:
+                    if other is not entry and other.get("trigger") == "submission":
+                        other["trigger"] = "run" if other.get("train_run") else "write"
                 self.current = entry
             self.read_new_ledger()
             self.attribute()

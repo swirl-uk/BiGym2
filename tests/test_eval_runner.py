@@ -21,6 +21,7 @@ class Step(NamedTuple):
 class RewardedEnv:
     """One-step episodes that earn the full reward, with set success and fall latches."""
 
+    task_name = "move_plate"
     config = None
     official_config = None
     episode_termination = BiGym.episode_termination
@@ -85,3 +86,14 @@ def test_runner_takes_success_from_the_env(succeeded, fell, success, termination
         assert record["success"] == success
         assert record["fell"] == int(fell)
         assert record["termination"] == termination
+
+
+def test_runner_refuses_an_env_of_another_task():
+    with pytest.raises(ValueError, match="move_plate"):
+        evaluate(
+            lambda timestep: np.zeros(1),
+            task_name="stack_blocks",
+            method="test",
+            env=RewardedEnv(True, False),
+            verbose=False,
+        )

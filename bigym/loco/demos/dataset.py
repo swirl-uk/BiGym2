@@ -334,7 +334,8 @@ def load_episodes(
     path, table = None, pa.table({})
     for ep in wanted:
         if rows[ep][0] != path:
-            path, table = rows[ep][0], pa.table({})  # free the previous file first
+            # Free the previous file, rows of its last episode included, first.
+            path, table, ep_rows = rows[ep][0], pa.table({}), None
             table = pq.read_table(path)
         start, num_rows = rows[ep][1:]
         ep_rows = table.slice(start, num_rows)

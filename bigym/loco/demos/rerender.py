@@ -23,7 +23,7 @@ How it stays a re-render and not a re-simulation
 Every frame of a full-state replay-format demo stores ``data.qpos`` (key
 ``full_qpos``: robot + props; its width depends on the recorded model).
 The frame loop writes that vector and calls ``mj_forward`` without physics
-integration or lower-body policy inference, as in ``bigym/vr/viewer/view_demos.py``.
+integration or lower-body policy inference, as in ``bigym-view``.
 Environment construction/reset still runs the configured controller warmup.
 Two pieces of scene state are NOT in qpos:
 

@@ -17,7 +17,7 @@ import numpy as np
 import pytest
 
 from bigym.loco.agent.snapshots import version_dir
-from bigym.vr.viewer import view_demos
+from bigym.vr.viewer import html, sources, stores, widgets
 from bigym.vr.viewer.agent.html import (
     code_html,
     diff_html,
@@ -88,7 +88,7 @@ def test_cell_is_detected_and_ordinary_dirs_are_not(cell, tmp_path):
 
 def test_discovery_finds_eval_and_replay_batches(cell):
     """Both run-layout batch dirs are discovered under the cell."""
-    found = view_demos.discover_batches(cell)
+    found = sources.discover_batches(cell)
     assert [b.relative_to(cell).as_posix() for b in found] == [
         "eval/v001/batch",
         "replays/v007/batch",
@@ -97,25 +97,25 @@ def test_discovery_finds_eval_and_replay_batches(cell):
 
 def test_labels_carry_version_and_success(cell):
     """eval/replay batches read `eval/v001 · 2 eps · success 0.41`."""
-    batches = view_demos.discover_batches(cell)
-    labels = view_demos.batch_labels(cell, batches)
+    batches = sources.discover_batches(cell)
+    labels = sources.batch_labels(cell, batches)
     assert labels == ["eval/v001 · 2 eps · success 0.41", "replays/v007 · 1 eps"]
 
 
 def test_label_without_summary_omits_success(cell):
     """An evaluation still being written has no success figure to show."""
     (cell / "eval" / "v001" / "summary.json").unlink()
-    batches = view_demos.discover_batches(cell)
-    labels = view_demos.batch_labels(cell, batches)
+    batches = sources.discover_batches(cell)
+    labels = sources.batch_labels(cell, batches)
     assert labels[0] == "eval/v001 · 2 eps"
 
 
 def test_batch_opened_directly_still_labels_as_a_version(cell):
     """--demo-dir <cell>/eval/v001/batch labels the version, not `.`."""
     batch = cell / "eval" / "v001" / "batch"
-    found = view_demos.discover_batches(batch)
+    found = sources.discover_batches(batch)
     assert found == [batch]
-    assert view_demos.batch_labels(batch, found) == ["eval/v001 · 2 eps · success 0.41"]
+    assert sources.batch_labels(batch, found) == ["eval/v001 · 2 eps · success 0.41"]
 
 
 def test_ordinary_demo_dirs_keep_their_labels(tmp_path):
@@ -123,8 +123,8 @@ def test_ordinary_demo_dirs_keep_their_labels(tmp_path):
     root = tmp_path / "demos"
     write_batch(root / TASK / "20260102_030405", range(620000, 620003))
     write_batch(root / "move_plate" / "20260102_040506", range(620000, 620002))
-    batches = view_demos.discover_batches(root)
-    labels = view_demos.batch_labels(root, batches)
+    batches = sources.discover_batches(root)
+    labels = sources.batch_labels(root, batches)
     assert labels == [
         "move_plate/20260102_040506 · 2 eps",
         f"{TASK}/20260102_030405 · 3 eps",
@@ -162,14 +162,14 @@ def test_version_dir_tolerates_unpadded_names(tmp_path):
 def test_pick_batch_by_index_and_substring(tmp_path):
     """--batch takes an index or a unique substring of the label."""
     labels = ["eval/v001 · 2 eps", "replays/v007 · 1 eps"]
-    assert view_demos.pick_batch(labels, None) == 0
-    assert view_demos.pick_batch(labels, "1") == 1
-    assert view_demos.pick_batch(labels, "replays") == 1
-    assert view_demos.pick_batch(labels, "v001") == 0
+    assert sources.pick_batch(labels, None) == 0
+    assert sources.pick_batch(labels, "1") == 1
+    assert sources.pick_batch(labels, "replays") == 1
+    assert sources.pick_batch(labels, "v001") == 0
     with pytest.raises(SystemExit):
-        view_demos.pick_batch(labels, "nothing")
+        sources.pick_batch(labels, "nothing")
     with pytest.raises(SystemExit):
-        view_demos.pick_batch(labels, "eps")
+        sources.pick_batch(labels, "eps")
 
 
 def test_agent_job_command_and_output_dir(cell):
@@ -296,7 +296,7 @@ def test_camera_panels_render_real_pixels():
         env.reset(seed=0)
         inner = env.inner_env
         server = FakeServer()
-        panels = view_demos.CameraPanels(
+        panels = widgets.CameraPanels(
             server,
             inner,
             inner.model,
@@ -328,7 +328,7 @@ def test_dev_batches_are_discovered_and_labelled(cell):
     batch = cell / "dev" / "v006_20260921_010203" / "batch"
     write_batch(batch, range(620000, 620003), (1.0, 0.0, 0.0))
     assert batch_version(batch) == (cell, "dev", 6)
-    labels = view_demos.batch_labels(cell, view_demos.discover_batches(cell))
+    labels = sources.batch_labels(cell, sources.discover_batches(cell))
     assert "dev/v006 · 3 eps · success 0.33" in labels
     assert batch_success(batch) == pytest.approx(1 / 3)
 
@@ -338,7 +338,7 @@ def test_policy_file_batches_are_labelled_by_their_digest(cell):
     batch = cell / "replays" / "policy_ab12cd34" / "batch"
     write_batch(batch, (620000,))
     assert batch_version(batch) == (cell, "replays", None)
-    labels = view_demos.batch_labels(cell, view_demos.discover_batches(cell))
+    labels = sources.batch_labels(cell, sources.discover_batches(cell))
     assert "replays/policy_ab12cd34 · 1 eps" in labels
     # A directory that is not `vNNN` and not a digest is not a version batch.
     write_batch(cell / "replays" / "policy_zz" / "batch", (620000,))
@@ -347,23 +347,23 @@ def test_policy_file_batches_are_labelled_by_their_digest(cell):
 
 def test_follow_rescan_picks_up_a_new_batch(cell):
     """A batch written between two rescans appears in the live lists."""
-    batches = view_demos.discover_batches(cell)
-    labels = view_demos.batch_labels(cell, batches)
-    assert view_demos.rescan_into(cell, batches, labels) is False
+    batches = sources.discover_batches(cell)
+    labels = sources.batch_labels(cell, batches)
+    assert sources.rescan_into(cell, batches, labels) is False
     before = len(batches)
 
     dev = cell / "dev" / "v008_20260921_020304" / "batch"
     write_batch(dev, range(620000, 620002), (1.0, 1.0))
-    assert view_demos.rescan_into(cell, batches, labels) is True
+    assert sources.rescan_into(cell, batches, labels) is True
     assert len(batches) == before + 1
     assert dev in batches
     assert "dev/v008 · 2 eps · success 1.00" in labels
     # The newest episode file is the one the auto-jump follows.
-    newest = view_demos.newest_batch(batches)
+    newest = sources.newest_batch(batches)
     assert newest is not None and batches[newest] == dev
     # Episodes added to an existing batch update its label in place.
     write_batch(cell / "replays" / "v007" / "batch", range(620000, 620003), [0.0] * 3)
-    view_demos.rescan_into(cell, batches, labels)
+    sources.rescan_into(cell, batches, labels)
     assert "replays/v007 · 4 eps" in labels
 
 
@@ -372,13 +372,13 @@ def test_episode_option_labels_and_list(tmp_path):
     batch = tmp_path / "dev" / "v001_stamp" / "batch"
     write_batch(batch, (620003, 620002), (1.0, 0.0))
     infos = episode_infos(batch)
-    assert view_demos.episode_labels(infos) == [
+    assert stores.episode_labels(infos) == [
         "620002 ✗ 1700 timeout",
         "620003 ✓ 1599",
     ]
-    listing = view_demos.episode_list_html(infos, current=1)
+    listing = html.episode_list_html(infos, current=1)
     assert "620003" in listing and "#16a34a" in listing and "#dc2626" in listing
-    assert view_demos.episode_list_html([], 0).count("no episodes") == 1
+    assert html.episode_list_html([], 0).count("no episodes") == 1
 
 
 def test_summary_card_from_run_json(cell):
@@ -563,13 +563,13 @@ def test_code_panel_and_diff(cell):
 
 def test_reward_sparkline_svg(tmp_path):
     """The reward strip is an inline SVG with a marker at the frame."""
-    svg = view_demos.sparkline_svg([0.0, 0.0, 1.0, 1.0], 2, flags="success · fell")
+    svg = html.sparkline_svg([0.0, 0.0, 1.0, 1.0], 2, flags="success · fell")
     assert svg.startswith("<div") and "<svg" in svg and "polyline" in svg
     assert "success · fell" in svg
     assert "reward 1.00 (min 0.00, max 1.00)" in svg
     # The marker stays inside the box for an out-of-range frame.
-    assert "<circle" in view_demos.sparkline_svg([1.0], 99)
-    assert "no reward" in view_demos.sparkline_svg([], 0)
+    assert "<circle" in html.sparkline_svg([1.0], 99)
+    assert "no reward" in html.sparkline_svg([], 0)
 
 
 def test_agent_job_replays_a_loose_policy_file(cell, tmp_path):
@@ -599,7 +599,7 @@ def test_files_being_written_are_not_counted(tmp_path):
     for name in (".w0_1234.npz", "seed620009.npz.tmp", ".seed620009.npz.part"):
         (batch / name).write_bytes(b"half a file")
     assert [p.name for p in episode_files(batch)] == ["seed620000.npz"]
-    assert view_demos.batch_labels(tmp_path, view_demos.discover_batches(tmp_path)) == [
+    assert sources.batch_labels(tmp_path, sources.discover_batches(tmp_path)) == [
         "dev/v001 · 1 eps · success 1.00"
     ]
     # A batch that holds nothing but a file being written is not one yet.
@@ -607,7 +607,7 @@ def test_files_being_written_are_not_counted(tmp_path):
     empty.mkdir(parents=True)
     (empty / "metadata.json").write_text("{}")
     (empty / ".w0_1234.npz").write_bytes(b"half a file")
-    assert empty not in view_demos.discover_batches(tmp_path)
+    assert empty not in sources.discover_batches(tmp_path)
 
 
 # --- roots, sessions and the Rollouts tree ----------------------------------
@@ -685,7 +685,7 @@ def test_rollout_labels_say_episodes_and_percentages(cell):
         range(620000, 620003),
         (1.0, 0.0, 0.0),
     )
-    batches = view_demos.discover_batches(cell)
+    batches = sources.discover_batches(cell)
     rollouts = rollouts_of(cell, batches)
     labels = {r.kind: rollout_item_label(r) for r in rollouts}
     assert labels["eval"] == "v001 · 2 episodes · 41%"
@@ -698,7 +698,7 @@ def test_rollouts_are_grouped_by_kind_newest_version_first(cell):
     """Evaluations first, then development, then replays; versions descend."""
     write_batch(cell / "dev" / "v001_20260921_010203" / "batch", (620000,), (1.0,))
     write_batch(cell / "dev" / "v002_20260921_020304" / "batch", (620000,), (0.0,))
-    rollouts = rollouts_of(cell, view_demos.discover_batches(cell))
+    rollouts = rollouts_of(cell, sources.discover_batches(cell))
     assert [(r.kind, r.version) for r in rollouts] == [
         ("eval", 1),
         ("dev", 2),
@@ -714,7 +714,7 @@ def test_the_submission_evaluation_opens_by_default(cell):
     (cell / "eval" / "v002" / "summary.json").write_text(
         json.dumps({"version": 2, "success_rate": 0.5})
     )
-    rollouts = rollouts_of(cell, view_demos.discover_batches(cell))
+    rollouts = rollouts_of(cell, sources.discover_batches(cell))
     opened, why = default_rollout(rollouts)
     assert opened is not None
     assert opened.version == 2 and opened.kind == "eval" and opened.submission
@@ -724,7 +724,7 @@ def test_the_submission_evaluation_opens_by_default(cell):
 
 def test_default_rollout_falls_back_when_the_submission_is_unscored(cell):
     """Without an evaluation of the submission, the newest evaluation opens."""
-    rollouts = rollouts_of(cell, view_demos.discover_batches(cell))
+    rollouts = rollouts_of(cell, sources.discover_batches(cell))
     opened, why = default_rollout(rollouts)
     assert opened is not None
     assert opened.kind == "eval" and opened.version == 1
@@ -743,7 +743,7 @@ def build_panels(tmp_path):
     make_session_root(tmp_path / "runs", "s1", ("move_plate", TASK))
     make_session_root(tmp_path / "runs", "s2", (TASK,))
     cells = discover_cells([tmp_path / "runs"])
-    batches = view_demos.discover_all([tmp_path / "runs"])
+    batches = sources.discover_all([tmp_path / "runs"])
     opened, _ = default_rollout(rollouts_of(cells[0].path, batches))
     assert opened is not None
     asked: dict = {"switch": [], "compare": []}
@@ -795,7 +795,7 @@ def test_picking_another_rollout_switches_batch(tmp_path):
     panels, cells, batches, asked = build_panels(tmp_path)
     dev = cells[0].path / "dev" / "v001_20260921_010203" / "batch"
     write_batch(dev, range(620000, 620002), (1.0, 0.0))
-    batches[:] = view_demos.discover_all([cells[0].path.parent.parent])
+    batches[:] = sources.discover_all([cells[0].path.parent.parent])
     panels.refresh_rollouts()
     assert panels.kind_dd.options == ["Evaluation", "Development"]
     panels.kind_dd.fire("Development")

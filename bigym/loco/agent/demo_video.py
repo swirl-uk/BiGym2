@@ -36,7 +36,7 @@ import numpy as np
 from .cli import DemoVideoConfig, parse_command, parse_size
 
 # Free outside cameras a scene may define, most specific first. Same list and
-# the same free-camera fallback as the demo viewer (bigym/vr/viewer/view_demos.py),
+# the same free-camera fallback as the demo viewer (bigym/vr/viewer/widgets.py),
 # so "third" means the same view in both tools.
 THIRD_PERSON_CAMERAS = ("rec_third", "third_person", "external")
 ONBOARD_VIEWS = ("head", "left_wrist", "right_wrist")

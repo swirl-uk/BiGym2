@@ -20,7 +20,7 @@ from typing import Any
 import numpy as np
 import pytest
 
-from bigym.vr.viewer import view_demos
+from bigym.vr.viewer import sources, stores, view_config, view_demos, widgets
 from bigym.vr.viewer.agent.compare import run as compare_run
 from bigym.vr.viewer.agent.compare.hud import (
     CompareLegend,
@@ -585,7 +585,7 @@ def test_the_compare_task_comes_from_the_rollout_that_would_open(tmp_path):
     make_cell(tmp_path / "runs" / "s1" / "move_plate", 3)
     make_cell(tmp_path / "runs" / "s2" / "move_plate", 3)
     cells = discover_cells([tmp_path / "runs"])
-    batches = view_demos.discover_all([tmp_path / "runs"])
+    batches = sources.discover_all([tmp_path / "runs"])
     here = cell_of(cells, batches[0])
     assert here is not None and here.task == "move_plate"
     request = resolve_compare(cells, here.task, parse_compare("s1:last,s2:last"), SEED)
@@ -910,9 +910,9 @@ def test_compare_builds_one_prefixed_scene_per_slot(tmp_path, capsys):
     built = build_compare_scene(
         request,
         port=8791,
-        build_env=view_demos.build_env,
-        load_metadata=view_demos.load_metadata,
-        lighting_prefs=view_demos._LIGHTING_PREFS,
+        build_env=stores.build_env,
+        load_metadata=stores.load_metadata,
+        lighting_prefs=widgets.LIGHTING_PREFS,
     )
     server = built["server"]
     try:
@@ -1136,9 +1136,8 @@ def test_a_compare_recording_refuses_a_resized_browser():
 
 def test_the_viewer_cli_turns_record_flags_into_a_request(monkeypatch):
     """--record and its companions become run_compare's ``record`` dict."""
-    from bigym.vr.viewer import view_demos
 
-    args = view_demos.ViewConfig(
+    args = view_config.ViewConfig(
         compare="s1:last",
         record="out.mp4",
         record_seconds=4.0,
@@ -1159,12 +1158,11 @@ def test_the_viewer_cli_turns_record_flags_into_a_request(monkeypatch):
     assert request["stay"] is True
     assert request["view"] == "oblique" and request["zoom"] == 2.0
     assert request["speed"] == 0.5 and request["label_scale"] == 3.0
-    assert view_demos.record_request(view_demos.ViewConfig()) is None
+    assert view_demos.record_request(view_config.ViewConfig()) is None
 
 
 def test_the_viewer_cli_rejects_values_it_cannot_act_on():
     """ViewConfig refuses a zero zoom, --record without --compare and so on."""
-    from bigym.vr.viewer import view_demos
 
     cases: list[dict[str, Any]] = [
         {"record": "out.mp4"},
@@ -1177,7 +1175,7 @@ def test_the_viewer_cli_rejects_values_it_cannot_act_on():
     ]
     for bad in cases:
         with pytest.raises(ValueError):
-            view_demos.ViewConfig(**bad)
+            view_config.ViewConfig(**bad)
 
 
 def test_a_recording_waits_for_the_page_to_finish_loading():

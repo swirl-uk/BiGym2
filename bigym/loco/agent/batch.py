@@ -2,8 +2,7 @@
 
 A batch is a directory of ``seed<S>.npz`` episodes plus a ``metadata.json``
 describing the environment they were produced in: the layout ``bigym-view``
-reads (``bigym/vr/viewer/view_demos.py``) and ``bigym.loco.demos.rerender``
-re-renders from. Each episode stores the full physical state of every frame
+reads and ``bigym.loco.demos.rerender`` re-renders from. Each episode stores the full physical state of every frame
 (``full_qpos``/``full_qvel``, ``T+1`` states around ``T`` actions), so it can
 be replayed and re-rendered without running the policy again. ``bigym-agent
 replay``, the evaluator and the server's development recording all write

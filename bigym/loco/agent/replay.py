@@ -4,7 +4,7 @@
 
 Writes one ``seed<S>.npz`` per episode plus a ``metadata.json`` describing the
 environment they were produced in, which is exactly the "replay batch" layout
-``bigym-view`` reads (``bigym/vr/viewer/view_demos.py``) and
+``bigym-view`` reads and
 ``bigym.loco.demos.rerender`` re-renders from. Each episode stores the full
 physical state of every frame (``full_qpos``/``full_qvel``, ``T+1`` states
 around ``T`` actions), so the rollout can be replayed and re-rendered without

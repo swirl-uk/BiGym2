@@ -302,8 +302,8 @@ def build_compare_scene(
     Args:
         request: The resolved request (every slot must have an episode).
         port: The viser port.
-        build_env: ``view_demos.build_env``.
-        load_metadata: ``view_demos.load_metadata``.
+        build_env: :func:`bigym.vr.viewer.stores.build_env`.
+        load_metadata: :func:`bigym.vr.viewer.stores.load_metadata`.
         lighting_prefs: The viewer's lighting preferences.
         server: A server already showing the Compare folder (the one the
             progress bars ran in), or None to open one on ``port``.
@@ -494,9 +494,9 @@ def run_compare(
         request: A resolved request; slots with no stored episode on the
             seed are rolled out first.
         port: The viser port.
-        build_env: ``view_demos.build_env``.
-        load_metadata: ``view_demos.load_metadata``.
-        camera_panels: ``view_demos.CameraPanels``.
+        build_env: :func:`bigym.vr.viewer.stores.build_env`.
+        load_metadata: :func:`bigym.vr.viewer.stores.load_metadata`.
+        camera_panels: :class:`bigym.vr.viewer.widgets.CameraPanels`.
         lighting_prefs: The viewer's lighting preferences.
         exit_after: Serve this many seconds, then return (0 = until the
             Leave button or Ctrl-C). It bounds the whole compare, the

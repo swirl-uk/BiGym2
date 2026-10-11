@@ -371,7 +371,7 @@ def test_replay_writes_a_batch_the_viewer_opens(cell):
     """Two short episodes of the template policy, read back by bigym-view."""
     pytest.importorskip("cv2")
     pytest.importorskip("scipy")
-    from bigym.vr.viewer import view_demos
+    from bigym.vr.viewer import sources, stores
     from bigym.vr.viewer.agent import runs
 
     assert (
@@ -402,21 +402,21 @@ def test_replay_writes_a_batch_the_viewer_opens(cell):
     assert metadata["source"]["cell"] == str(cell)
 
     # the viewer's own loader: discovery, labels, metadata, env, episode store
-    assert view_demos.discover_batches(cell) == [batch]
+    assert sources.discover_batches(cell) == [batch]
     assert runs.batch_version(batch) == (cell, "replays", 1)
     rows = runs.policy_rows(cell)
     assert [row["version"] for row in rows] == [1]
     assert rows[0]["trigger"] == "submission"
     assert rows[0]["eval_success"] is None
-    assert view_demos.batch_labels(cell, [batch]) == ["replays/v001 · 2 eps"]
+    assert sources.batch_labels(cell, [batch]) == ["replays/v001 · 2 eps"]
 
-    loaded = view_demos.load_metadata(batch)
-    env = view_demos.build_env(loaded)
+    loaded = stores.load_metadata(batch)
+    env = stores.build_env(loaded)
     try:
         env.reset(seed=0)
         inner = env.inner_env
         model = inner.model
-        store = view_demos.DemoStore(env, files)
+        store = stores.DemoStore(env, files)
         assert store.load(0) is True
         assert store.qpos is not None and store.qvel is not None
         assert store.qpos.shape[1] == model.nq

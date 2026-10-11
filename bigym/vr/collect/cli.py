@@ -39,7 +39,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     try:
         collector.run()
     finally:
-        if not any(out_dir.glob("*.npz")):
+        if not config.keep_empty_session and not any(out_dir.glob("*.npz")):
             shutil.rmtree(out_dir, ignore_errors=True)
             print(f"[cleanup] no episodes saved, removed session dir: {out_dir}")
         elif (out_dir / "metadata.json").exists():

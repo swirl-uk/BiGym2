@@ -44,14 +44,14 @@ batch (``metadata["task"]["camera_keys"]``, canonically
 ``head, right_wrist, left_wrist``); the wrist cameras ride on the robot, so
 posing qpos moves them.
 
-Nothing about the LeRobot writing is re-implemented here: ``lerobot_export``
-is imported and its ``main()`` is called with the source batch, with the
+For an npz batch nothing about the LeRobot writing is re-implemented:
+``lerobot_export`` is imported and its ``main()`` is called with the batch, with the
 module's ``np.load`` redirected so that ``rgb_obs`` (and only ``rgb_obs``)
 comes back re-rendered.  Fidelity gate: re-render at 84x84 and compare
 against the stored pixels.
 
-Usage (needs bigym AND lerobot in one process; the project venv is 3.12 and
-already has bigym, so layer lerobot in ephemerally)::
+An npz batch (needs bigym AND lerobot in one process; the project venv is
+3.12 and already has bigym, so layer lerobot in ephemerally)::
 
     CUDA_VISIBLE_DEVICES=2 MUJOCO_GL=egl \
     uv run --no-sync --with "lerobot[dataset]>=0.6" bigym-rerender-lerobot \
@@ -61,9 +61,9 @@ already has bigym, so layer lerobot in ephemerally)::
         --size 224 224 \
         --task-prompt "Move the plate between two draining racks."
 
-``--task-prompt`` is the language instruction written into the LeRobot tasks
-table (``meta/tasks.parquet`` in v3; one row, referenced per frame by
-``task_index``).  Omit it and the instruction is resolved from
+For an npz batch, ``--task-prompt`` is the language instruction written into
+the LeRobot tasks table (``meta/tasks.parquet`` in v3; one row, referenced per
+frame by ``task_index``).  Omit it and the instruction is resolved from
 ``bigym/loco/demos/task_instructions.yaml`` exactly as ``lerobot_export`` does.
 
 Resolution ceiling: MuJoCo offscreen buffers are capped by the compiled

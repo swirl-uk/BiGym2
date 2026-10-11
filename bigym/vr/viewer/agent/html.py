@@ -153,7 +153,7 @@ def policy_table_html(rows: list[dict], price: dict | None = None) -> str:
     meaning, where a missing token count is simply unknown and stays "—".
 
     Args:
-        rows: Rows from :func:`policy_rows`.
+        rows: Rows from :func:`~bigym.vr.viewer.agent.runs.policy_rows`.
         price: USD per million tokens for the session's model, or None (the
             cost column then reads "—").
 

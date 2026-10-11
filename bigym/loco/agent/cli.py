@@ -260,8 +260,8 @@ class DemoVideoConfig:
     crf: str = "24"
     """x264 quality; 0 is lossless."""
     pix_fmt: str = "yuv420p"
-    """Pixel format; yuv444p keeps full chroma (use with --crf 0 for a
-    bit-exact copy of the observation)."""
+    """Pixel format; yuv444p keeps full chroma, rgb24 with --crf 0 is a
+    bit-exact copy of the observation."""
     prefix: str = "demo_"
     """Output file name prefix."""
 
@@ -300,7 +300,7 @@ class ServeConfig:
     <ledger>/allowed_seeds.json: the seeds stored in the task's
     demonstrations). Overrides --train-seeds."""
     train_seeds: int = 60
-    """Development seeds are [0, N); the published demos cover [0, 60)."""
+    """Without --allowed-seeds, the development seeds are [0, N)."""
     client_root: str | None = None
     """Container mode: the path at which the client sees the sandbox (e.g.
     /work); render paths are mapped."""
@@ -366,8 +366,7 @@ class EvaluateConfig:
     video_views: str | None = None
     """Comma pair of recording views for --video-dir; default per task."""
     seed_base: int = EVAL_SEED_BASE
-    """First seed; 620000 = hidden protocol block, 0 = the agent's own
-    development seeds (in-distribution score)."""
+    """First seed; 620000 = hidden protocol block."""
     jobs: int = field(default_factory=default_eval_jobs)
     """Episodes split over this many processes (~2 GB RAM each); records are
     merged in seed order. Default: $BIGYM_AGENT_EVAL_JOBS, else 3."""
@@ -593,7 +592,8 @@ class RunConfig:
     """GPU to run the session on (default: the one with the most free
     memory)."""
     min_free_mib: int = 6000
-    """GPU memory a session needs free before it starts."""
+    """GPU memory a session needs free before it starts (not checked with
+    --gpu)."""
     sessions: int = 1
     """Independent sessions per task. Above 1, session k writes to the root
     <root>_s<k>."""

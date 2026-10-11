@@ -10,10 +10,6 @@ env only to be evaluated::
     # ... behaviour cloning on demos ...
     bigym.loco.eval.evaluate(policy, task_name="reach_target_single", ...)
 
-The README's gymnasium loop (``observe`` and ``update`` while acting) is the
-shape of an online method that keeps learning from its own interaction; an
-imitation method like this one has no use for it.
-
 The policy is a compact Action Chunking Transformer: a CNN per camera and a
 state MLP feed a transformer decoder that predicts the next ``chunk`` actions,
 trained with an L1 loss and executed with temporal ensembling. It leaves out
@@ -32,7 +28,7 @@ each as an mp4 and as the simulator states the 3D viewer plays::
 
 ``--out`` picks another folder, which must be empty.
 ``--load act_runs/<task>/policy.pt`` evaluates or records a saved policy
-without training it again.
+without training it again, into the policy's own folder by default.
 
 ``decode_images=False`` keeps the demonstration frames compressed in memory;
 the data loader workers decode only the frames each batch samples. torch and
@@ -303,7 +299,9 @@ def main() -> None:
     parser.add_argument("--eval-episodes", type=int, default=100)
     parser.add_argument("--record", type=int, default=0, help="episodes to record")
     parser.add_argument("--load", type=Path, help="a saved policy.pt; skips training")
-    parser.add_argument("--out", type=Path, help="default: act_runs/<task>")
+    parser.add_argument(
+        "--out", type=Path, help="default: act_runs/<task>, or the --load folder"
+    )
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
     torch.manual_seed(args.seed)

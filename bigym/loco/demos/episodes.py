@@ -1,8 +1,8 @@
 """A task's published demonstrations, checked against and shaped for an env.
 
 ``BiGym.load_demo_episodes`` / ``get_demos`` call these: :func:`load_task_episodes`
-fetches and decodes a task's episodes and returns the action statistics the
-env adopts, :func:`check_compatibility` refuses a dataset recorded under a
+fetches and decodes a task's episodes and returns the action statistics they
+were recorded in, :func:`check_compatibility` refuses a dataset recorded under a
 different embodiment or layout, and :func:`episode_to_timesteps` turns one
 stacked episode into :class:`~bigym.loco.timestep.ExtendedTimeStep` rows.
 """

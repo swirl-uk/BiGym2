@@ -8,8 +8,9 @@
   ./act hold --steps N              stand still for N steps
   ./act gripper left VALUE [--steps N]     gripper command 0 (open) .. 1 (closed)
 
-Every command advances the simulation and prints the new observation. The
-episode ends by itself on success, on failure or at the time limit.
+``move_hand``, ``walk``, ``hold`` and ``gripper`` advance the simulation and
+print the new observation. The episode ends by itself on success, on
+failure or at the time limit; a fall counts as a failure but does not end it.
 
 This file is copied into an episode directory next to ``episode.json`` (which
 says which worker socket to use and what the per-episode command cap is) and

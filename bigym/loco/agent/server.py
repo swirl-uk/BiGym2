@@ -57,8 +57,8 @@ from .snapshots import (
 if TYPE_CHECKING:
     from multiprocessing.sharedctypes import SynchronizedString
 
-# Development seeds are [0, MAX_TRAIN_SEED): the 60 seeds the demonstrations were
-# collected on, i.e. exactly the placements the learned baselines train on.
+# Development seeds when no explicit set (allowed_seeds.json, the seeds the
+# demonstrations were collected on) is given: [0, MAX_TRAIN_SEED).
 MAX_TRAIN_SEED = 60
 ONBOARD_CAMERAS = ("head", "right_wrist", "left_wrist")
 # Outside views; only reachable under --allow-external-cameras.

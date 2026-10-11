@@ -2,7 +2,7 @@
 
 Every concrete backend deals with the same plumbing: resolving joint
 addresses by name, reading the floating base and IMU-style quantities,
-applying an anchor pose at reset, clipping commands to training ranges, and
+applying an anchor pose at reset, clipping commands to declared bounds, and
 snapshotting mutable state for bit-exact demo replay. This class implements
 all of it so a new backend only provides:
 

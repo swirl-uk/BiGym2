@@ -91,9 +91,9 @@ Check every cell under every root:
 - `run.json`: `verdict.state` and `verdict.reason`. Apply the rule from
   step 1; list every excluded cell in the notes with its reason, and rerun
   it in its root with `--force`. `void` means no submission and no score.
-- `eval/vNNN/summary.json` exists. `status --all` shows the cell as
-  `EVAL FAILED (unscored)` otherwise; score it with
-  `uv run bigym-agent evaluate <cell> --version <n>`.
+- `eval/vNNN/summary.json` exists; if it does not, score the cell with
+  `uv run bigym-agent evaluate <cell> --version <n>`. `status --all` shows
+  `EVAL FAILED (unscored)` only for an evaluation `run` waited for.
 - `summary.json`: `episodes` is 100, `protocol_violations` is empty,
   `spotcheck_identical` is true.
 - `uv run bigym-agent usage <roots> --csv <name>_usage.csv` for tokens and

@@ -55,8 +55,8 @@ class LowerBody:
         self.prev_cmd = np.zeros((3,), dtype=np.float32)
         self.last_control_info: dict[str, Any] = {}
 
-        # A floating-base env still names a backend for validation; no adapter
-        # module is imported without a controller.
+        # A floating-base env still names a backend for validation; no policy
+        # runtime is loaded without a controller.
         self.enabled = controller is not None
         self.config = controller or ControllerConfig()
         self.backend = resolve_backend_name(self.config.backend)
@@ -67,7 +67,7 @@ class LowerBody:
                 f"requires robot_model={'/'.join(self.binding.robot_models)}"
             )
         # Height/pitch bounds left as None are filled from the backend's
-        # declared training range (command_spec) after the controller is
+        # declared command bounds (command_spec) after the controller is
         # built; see resolve_command_bounds. These bounds feed the outer
         # action space, so the VR collector's stick clamp inherits them too.
         self.height_cmd_min = _or_default(self.config.height_cmd_min, 0.4)
@@ -133,7 +133,7 @@ class LowerBody:
     def resolve_command_bounds(self) -> None:
         """Fill unset height/pitch bounds from the backend's command spec.
 
-        The values come from the backend's declared training ranges
+        The values come from the backend's declared command bounds
         (``LowerBodyController.command_spec``).
 
         Precedence: explicitly configured values always win — the outer

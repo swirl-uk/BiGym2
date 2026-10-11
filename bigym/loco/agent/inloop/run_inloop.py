@@ -2,12 +2,12 @@
 
     # 1) start the env server with the protocol seeds allowed:
     #    bigym-agent serve --task T --sandbox ROOT/sandbox --ledger-dir ROOT/ledger \
-    #        --workers 8 --budget-steps 100000000 --allow-eval-seeds
+    #        --workers 8 --budget-steps 100000000 --allow-eval-seeds --interface tools
     # 2) run:
     #    bigym-agent inloop --task T --root ROOT --episodes 100 --workers 8
 
 Each episode i gets its own directory ``ROOT/sandbox/episodes/ep_<i>`` with the
-``act`` command bound to worker ``i mod workers``, a fixed prompt, and the
+``act`` command bound to the worker that took the episode, a fixed prompt, and the
 agent harness's isolation settings. The orchestrator resets the worker to seed
 ``EVAL_SEED_BASE + i``, launches the agent session, and reads the outcome back from the
 server.

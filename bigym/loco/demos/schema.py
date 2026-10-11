@@ -44,12 +44,12 @@ Written once per collection dir by the collector. Required keys:
 - ``format``: ``"bigym_replay_npz"``
 - ``pipeline_version``: collector pipeline version (string, e.g.
   ``"2026-08-26-success-hold-training-view-v1"``)
-- ``task``: the flat env settings (must include ``episode_length`` and
-  ``demo_down_sample_rate`` — training MUST match these), plus the
-  collection and training success holds
+- ``task``: the flat env settings (must include ``episode_length``, the
+  collector's cap, and ``demo_down_sample_rate``, which training must
+  match), plus the collection and training success holds
 - ``lowerbody_policy``: the lower-body controller settings, flat
-- optional ``env_config``: the full ``EnvConfig`` the batch was recorded in;
-  ``EnvConfig.from_metadata`` reads it, and needs it
+- ``env_config``: the full ``EnvConfig`` the batch was recorded in; not
+  checked here, but ``EnvConfig.from_metadata`` needs it
 - ``reset_semantics``: init keyframe / pelvis z / warmup steps
 - ``action_semantics``: robot model, backend, base_action_mode, stick map
 - optional ``action_stats``: per-dim min/max for [-1,1] rescaling

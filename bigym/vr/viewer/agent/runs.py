@@ -718,8 +718,8 @@ def template_policy_path(cell: Path) -> Path:
 def is_template_version(cell: Path, row: dict) -> bool:
     """True when this version's ``policy.py`` is still the untouched template.
 
-    Every session's v001 is a snapshot taken before the agent wrote
-    anything, so a compare of three v001s is a compare of one policy with
+    A session's first snapshot (v000, or v001 in older cells) is taken before
+    the agent wrote anything, so a compare of three v001s is a compare of one policy with
     itself; saying so on the label costs nothing and explains three
     identical robots.
 

@@ -16,8 +16,9 @@ through mink differential IK {cite:p}`zakka2024mink`.
 `bigym-collect` records in the task's official environment,
 `bigym.loco.make(task)`, with the G1 legs under `groot_wbc_g1`. Every
 released demonstration was recorded this way. The collector's env differs
-from the official one in two settings: a longer success hold (below) and an
-episode cap of at least 2 min that never binds.
+from the official one in three settings: a longer success hold (below), an
+episode cap of at least 2 min that never binds, and event progress recorded
+per step.
 
 ```bash
 uv run --no-sync bigym-collect --task move_plate

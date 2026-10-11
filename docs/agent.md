@@ -36,8 +36,8 @@ score; [Reading results](#reading-results) says what else is in it.
 ## Reproducing the paper's results
 
 Leave every setting that changes a result at its default: `--interface
-strict`, `--image-cap 84x84`, the default demonstration (no `--demo`,
-`--demo-episode` or `--demo-episodes`), `--isolation container`, the
+strict`, `--image-cap 84x84`, the default demonstration (no `--demo` or
+`--demo-episodes`), `--isolation container`, the
 101,000-step budget, the 3-hour session limit and the 100 evaluation
 episodes. Do not pass `--slew`, `--tier privileged` or
 `--allow-external-cameras`.
@@ -170,14 +170,13 @@ for Anthropic), and `run` refuses a mismatch before anything starts.
 The demonstration videos are published with the dataset (`agent_demos/` in
 [SWIRL-Lab/bigym-g1-native60](https://huggingface.co/datasets/SWIRL-Lab/bigym-g1-native60)):
 every session gets the same files the benchmark sessions got. With any other
-`--image-cap`, `--demo-episode` or `--demo-episodes`, the run renders the
-video on your machine, downloading only the data file that holds the
+`--image-cap` or `--demo-episodes`, the run renders the video on your machine, downloading only the data file that holds the
 demonstration it shows. A local render can differ from the published videos
 in a few pixels.
 
 Each session takes the GPU with the most free memory and refuses to start if
 it has less than 6000 MiB free (`--min-free-mib`). `--gpu` picks a GPU by its
-`nvidia-smi` index.
+`nvidia-smi` index instead, without that check.
 
 ### Watch
 
@@ -201,8 +200,7 @@ the checks on every cell and the report.
 ## After the run
 
 A session whose `policy.py` is still the untouched template is `void` and is
-not scored. Otherwise `run` scores the last policy version on the hidden
-seeds. An interrupted session is scored and marked `interrupted`. A cell
+not scored. Otherwise `run` scores the submission on the hidden seeds. An interrupted session is scored and marked `interrupted`. A cell
 stopped with `bigym-agent kill` is marked `interrupted` (reason `killed`) and
 is not scored.
 
@@ -211,7 +209,8 @@ and `--eval-episodes N` shortens it for a smoke test. Reported numbers use
 100 episodes.
 
 If the evaluation dies, `bigym-agent status` shows the cell as
-`EVAL FAILED (unscored)`. Score it by hand:
+`EVAL FAILED (unscored)`; a detached evaluation is not watched, so check its
+`eval.log`. Score it by hand:
 
 ```bash
 uv run bigym-agent evaluate bigym-agent-runs/move_plate --version <n>

@@ -375,7 +375,7 @@ class G1Dex1(Robot):
         finger actuators from the source MJCF. Damping goes on the joint,
         not actuator kv: joint damping is integrated implicitly under the
         Euler integrator and stays stable on very light finger links at a
-        500 Hz physics step, actuator kv does not. The source MJCF ships arm
+        1 ms physics step, actuator kv does not. The source MJCF ships arm
         actuators with their own kv (11-25), which would add to the joint
         damping and overdamp the wrists ~10x, so kv is zeroed.
         """

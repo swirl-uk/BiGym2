@@ -91,9 +91,7 @@ def sanitize_published_metadata(meta: dict) -> dict:
     a published copy carries someone's home directory to every downloader and
     tells them nothing: what identifies the controller is the
     ``lowerbody_weights`` sha256 recorded beside it, which is machine
-    independent. Training and evaluation never read these fields; the demo
-    viewer does, and falls back to a local checkout when the recorded path is
-    absent.
+    independent. Nothing reads these fields back.
 
     ``collection.operator`` and ``host`` (and the same two keys inside
     ``sessions``) are dropped: a login name and a hostname identify a

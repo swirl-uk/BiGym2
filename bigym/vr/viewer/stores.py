@@ -188,7 +188,10 @@ class DatasetStore:
     COLUMNS = ("full_qpos", "full_qvel", "reward", "lowerbody_command")
 
     def __init__(self, env, inner, demos):
-        """Bind the store to a replay env and a task's :class:`TaskDemos`."""
+        """Bind the store to a replay env and a task's demos.
+
+        ``demos`` is a :class:`~bigym.loco.agent.demo_video.TaskDemos`.
+        """
         self.env = env
         self.inner = inner
         self.demos = demos

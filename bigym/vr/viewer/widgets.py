@@ -232,8 +232,8 @@ def directory_panel(server, current: str, request) -> None:
     Args:
         server: The viser server.
         current: What the path starts with.
-        request: Called with the :class:`DatasetSource` or
-            :class:`BatchSource` to open.
+        request: Called with the :class:`~bigym.vr.viewer.sources.DatasetSource`
+            or :class:`~bigym.vr.viewer.sources.BatchSource` to open.
     """
     jump, open_sub = "jump to …", "open a subfolder …"
     hint = "empty: the published dataset · several: separate with spaces"
@@ -565,9 +565,7 @@ class LightingPanel:
 class FigureCapture:
     """The "Figure capture" folder: the current view as a PNG at print size.
 
-    Frame a pose by dragging, then grab it. viser renders in the browser, so
-    the capture is capped by the window: open it wide. Only the velocity
-    arrows (a debug overlay) are hidden for the shot; the target balls and
+    Frame a pose by dragging, then grab it. Only the velocity arrows (a debug overlay) are hidden for the shot; the target balls and
     their glow stay, as MuJoCo shows the reached state too.
     """
 

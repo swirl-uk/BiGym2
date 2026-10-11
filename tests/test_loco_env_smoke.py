@@ -7,8 +7,7 @@ research env (``make(task, controller=None)``), so it needs no controller
 and runs anywhere the MJCF assets do.
 
 One further test builds the official env, with the GR00T lower-body
-controller in the loop, and asserts the task registry is realised; it skips unless the policy runtime is reachable
-(vendored in ``bigym.loco.adapters._groot``, always available).
+controller in the loop, and asserts the task registry is realised.
 """
 
 import os

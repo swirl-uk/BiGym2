@@ -3,7 +3,7 @@
 The generic viewer calls into this package for everything that knows the
 run layout.
 
-Threading: every function here is called from the viewer's main loop. GUI
-callbacks only set request flags (env builds, renders and subprocess
-launches belong to the main thread, which owns the EGL context).
+Threading: GUI callbacks only set request flags; env builds, renders and
+subprocess launches belong to the viewer's main loop, whose thread owns the
+EGL context. Directory scans may read cells on a worker thread.
 """

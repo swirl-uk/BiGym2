@@ -357,7 +357,8 @@ def record_compare_session(
         fps: Frame rate of the file (0 = ``scene_fps``, real time).
         browser: ``headless``, ``none`` (wait for a person's browser) or a
             browser executable.
-        stay: Unused here; :func:`run_compare` reads it.
+        stay: Unused here; :func:`~bigym.vr.viewer.agent.compare.run.run_compare`
+            reads it.
         view: ``overview`` or ``oblique`` (:func:`compare_record_pose`).
         zoom: Narrows the lens (2 = twice as close-looking).
         speed: Playback speed (2 = twice real time).

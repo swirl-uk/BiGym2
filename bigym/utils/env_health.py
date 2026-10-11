@@ -19,7 +19,7 @@ class EnvHealth:
     """Tracks the stability of the simulation.
 
     This class catches and counts PhysicsError from a Mujoco environment.
-    If more than 10 consecutive PhysicsError instances occur, an exception is raised.
+    After 10 consecutive PhysicsError instances, an exception is raised.
     """
 
     CONSECUTIVE_WARNINGS_THRESHOLD = 10

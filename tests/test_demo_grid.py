@@ -717,7 +717,7 @@ def test_recording_steps_the_playhead_and_fills_the_pipe():
 
 
 def test_the_recording_takes_the_size_the_browser_actually_returned():
-    """A window smaller than --record-size caps get_render; the file follows."""
+    """A browser that returns another size than asked: the file follows it."""
     built = _fake_grid(lengths=(3,))
     client = _FakeClient(size=(640, 360))
     sinks: list[_StubSink] = []
@@ -743,7 +743,7 @@ def test_the_recording_takes_the_size_the_browser_actually_returned():
     assert client.calls[0] == (2160, 3840)
 
 
-def test_a_window_resized_mid_recording_is_an_error():
+def test_a_frame_size_change_mid_recording_is_an_error():
     """No encoder can take a frame size that changes; say so and stop."""
     built = _fake_grid(lengths=(4,))
     client = _FakeClient(size=(64, 48), resize_at=2)
@@ -753,7 +753,7 @@ def test_a_window_resized_mid_recording_is_an_error():
         sinks.append(_StubSink(real))
         return sinks[-1]
 
-    with pytest.raises(RuntimeError, match="resize the browser"):
+    with pytest.raises(RuntimeError, match="cannot change"):
         demo_grid.record_frames(
             built,
             client,

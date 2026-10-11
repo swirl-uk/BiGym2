@@ -46,8 +46,8 @@ which tasks do.
 The loader compares the dataset's robot, backend, downsample rate, cameras and
 observation and action dimensions with the env. A camera override such as
 `camera_keys=("head",)` is the usual cause. Build the env with
-`make(task)` or `make_gym(task)`, or re-render the dataset for another camera
-setup with `bigym-rerender-lerobot`.
+`make(task)` or `make_gym(task)`. For another camera resolution, re-render the
+dataset with `bigym-rerender-lerobot`.
 
 ### How do I work offline?
 

@@ -76,7 +76,9 @@ not:
 ```bash
 docker run --rm --network bigym-agent-internal \
   -e HTTPS_PROXY=http://bigym-agent-proxy:8888 bigym-agent-codex \
-  node -e "fetch('https://api.openai.com/v1/models').then(r=>console.log(r.status))"
+  python -c "import urllib.request as u, urllib.error as e
+try: print(u.urlopen('https://api.openai.com/v1/models').status)
+except e.HTTPError as r: print(r.code)"
 ```
 
 A refused host returns a tinyproxy error page (HTTP 403), not a connection

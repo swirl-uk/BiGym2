@@ -37,8 +37,9 @@ declares benchmark clips. A command inside them may still be outside the
 training distribution.
 
 The env derives the outer height and pitch bounds from this spec unless the
-config overrides them. Both change action normalization, so the resolved
-bounds must match the demonstration metadata.
+config overrides them. Both change action normalization. The resolved
+bounds must contain the demonstrations' recorded action range, and
+`get_demos()` re-expresses demo actions in them.
 
 ## Configuration reference
 

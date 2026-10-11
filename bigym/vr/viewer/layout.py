@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-# Compare mode: up to six environments in a grid. A column steps along +y
-# and a row steps along -x, so several rows stand behind one another rather
-# than side by side for ever. The panel starts with one slot per session
-# that holds the task (its submission) and "Add policy" fills the rest.
+# Up to six environments in a grid. A column steps along +y and a row steps
+# along -x, so several rows stand behind one another rather than side by
+# side for ever.
 COMPARE_SLOTS = 6
 
 
@@ -174,13 +173,13 @@ def focus_pose(
 ) -> tuple[tuple[float, float, float], tuple[float, float, float]]:
     """Where a camera stands to watch one slot on its own.
 
-    In front of that robot (the -x side, the face every other view uses),
+    On the -x side of that robot (the side every other view watches from),
     looking at its pelvis a little above the hips.
 
     Args:
         offset: The slot's grid offset.
         pelvis: Its pelvis position inside its own model.
-        distance: Metres in front of the pelvis.
+        distance: Metres from the pelvis along -x.
         height: Eye height above the floor.
 
     Returns:

@@ -256,7 +256,8 @@ def billboard_anchor(
 
     Args:
         pelvis: The pelvis world position inside the slot's own model.
-        offset: The slot's grid offset (see :func:`slot_offset`).
+        offset: The slot's grid offset (see
+            :func:`~bigym.vr.viewer.layout.slot_offset`).
         z_offset: How far above the pelvis the billboard hangs.
 
     Returns:

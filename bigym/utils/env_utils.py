@@ -49,14 +49,14 @@ def get_random_points_on_plane(
 
     Example:
         Get 2 random points within a 0.2 x 1.0 rectangular space.
-        Points will be at least 0.05 apart from each other.
+        Points lie on a grid 0.05 apart before the random offset.
         Picked positions are randomized in a range of +-0.01 along all axes.
 
         ```python
         spawn_points = get_random_points_on_plane(
         amount=2, origin=[0, 0, 0,],
         extents=[0.1, 0.5], spacing=0.05,
-        random_offset_bounds=[0.01, 0.01, 0.01])
+        random_offset_bounds=np.array([0.01, 0.01, 0.01]))
         ```
 
     Args:

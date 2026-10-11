@@ -286,7 +286,7 @@ class BiGymEnv(gym.Env):
 
     @property
     def fail(self) -> bool:
-        """Check if current step is successful."""
+        """Check if current step is a failure."""
         return bool(self._step_cache.get(self._fail))
 
     @property

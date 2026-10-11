@@ -10,15 +10,14 @@ Kinematic playback: each frame poses the scene from the demo's stored
     directory" field at the top opens another directory (or, left empty, the
     published dataset) without restarting; it browses the folders of the
     machine running the viewer, ● marking those with demos. The "Figure
-    capture" panel grabs the current view at an explicit pixel size (viser
-    renders in the browser, so the window caps it) with the target spheres
-    and velocity arrows hidden, and writes it to --figure-dir. Target spheres
+    capture" panel grabs the current view at an explicit pixel size with the
+    velocity arrows hidden, and writes it to --figure-dir. Target spheres
     are drawn by the viewer itself (the in-model geoms are hidden from
     mjviser, whose meshes are baked once at build time and would go stale
     when an episode reset moves the target), with a glow when reached. The
     per-frame stored reward is shown in the Playback panel. "Camera panels"
-    shows MuJoCo's own pixels for the current frame: the robot's onboard
-    cameras through the environment's observation path, plus one
+    shows MuJoCo's own pixels for the current frame: for a batch, the robot's
+    onboard cameras through the environment's observation path, plus one
     third-person view.
 
 --viewer mujoco
@@ -28,7 +27,8 @@ Kinematic playback: each frame poses the scene from the demo's stored
     Task visuals (e.g. the reach-target highlight) work natively because the
     renderer reads live geom colors. ``--batch`` / ``--task`` and
     ``--episode`` pick what opens first; with several batches and no
-    ``--batch`` the list is printed once and the first one opens. The native
+    ``--batch`` the list is printed once and the first one opens (in agent
+    runs, the submission's evaluation). The native
     frontend has no compare mode, but ``--demo-dir <root>`` still opens the
     first cell's evaluation in it.
 
@@ -97,6 +97,7 @@ Usage:
     # compare three sessions' policies on one hidden seed, from the shell
     MUJOCO_GL=egl bigym-view \
         --demo-dir <runs>/s1/move_plate <runs>/s2/move_plate \
+        <runs>/s3/move_plate \
         --compare "s1:v008,s2:v007,s3:last" --seed 620003
 
     # headless smoke: serve for 20 s, then exit

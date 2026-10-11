@@ -40,7 +40,8 @@ class ViewConfig:
     """viser only: where the Figure capture button writes its PNGs."""
     batch: str | None = None
     """Which discovered batch to open first: an index into the printed list,
-    or a substring of its label (default: the first)."""
+    or a substring of its label (default: the first; in agent runs, the
+    submission's evaluation)."""
     task: str | None = None
     """Which dataset task to open first (published or a local copy; default:
     the first)."""

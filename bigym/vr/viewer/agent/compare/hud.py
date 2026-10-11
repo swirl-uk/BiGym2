@@ -72,7 +72,8 @@ def legend_html(slots, statuses, building: str = "") -> str:
     policy and where its playhead is no matter what the 3D view does.
 
     Args:
-        slots: The request's :class:`CompareSlot` list.
+        slots: The request's
+            :class:`~bigym.vr.viewer.agent.compare.model.CompareSlot` list.
         statuses: One live status string per slot (short lists are padded).
         building: A line to show above the rows while the scene is still
             being built, e.g. ``building 2/3 …``.

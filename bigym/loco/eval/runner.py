@@ -172,10 +172,10 @@ def evaluate(
                 substrate_fingerprint=fingerprint,
                 seeds=seeds,
             )
-        elif verbose:
+        elif verbose and episodes != EVAL_EPISODES:
             print(
-                f"[eval] {episodes} episodes < protocol {EVAL_EPISODES}: "
-                "smoke run, NO leaderboard record produced."
+                f"[eval] {episodes} episodes, not the protocol's {EVAL_EPISODES}: "
+                "NO leaderboard record produced."
             )
         return result
     finally:

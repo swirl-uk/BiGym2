@@ -709,7 +709,7 @@ def test_rollouts_are_grouped_by_kind_newest_version_first(cell):
 
 
 def test_the_submission_evaluation_opens_by_default(cell):
-    """The default rollout is the evaluation of the last policy version."""
+    """The default rollout is the evaluation of the submission."""
     write_batch(cell / "eval" / "v002" / "batch", range(620000, 620004))
     (cell / "eval" / "v002" / "summary.json").write_text(
         json.dumps({"version": 2, "success_rate": 0.5})

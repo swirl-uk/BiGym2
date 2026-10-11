@@ -1266,7 +1266,7 @@ def grid_fov(
     sky above and empty floor below (measured: 37% of the frame width).
     Rather than dragging the camera closer — which would foreshorten the
     near row — the lens is narrowed to what the grid actually subtends from
-    where :func:`compare_camera_pose` stands.
+    where :func:`~bigym.vr.viewer.layout.compare_camera_pose` stands.
 
     Args:
         offsets: Every scene's offset.
@@ -2069,8 +2069,8 @@ def record_frames(
         ``(frames written, the size they were written at)``.
 
     Raises:
-        RuntimeError: The browser changed the frame size mid-recording
-            (the window was resized), which no encoder can take.
+        RuntimeError: The browser changed the frame size mid-recording,
+            which no encoder can take.
     """
     width, height = int(size[0]), int(size[1])
     playheads = list(playheads)
@@ -2102,8 +2102,8 @@ def record_frames(
             elif got != actual:
                 raise RuntimeError(
                     f"frame {index} came back {got[0]}x{got[1]} after "
-                    f"{actual[0]}x{actual[1]}: do not resize the browser "
-                    "window while recording"
+                    f"{actual[0]}x{actual[1]}; the frame size cannot change "
+                    "mid-recording"
                 )
             sink.write(frame)
             written += 1
@@ -2290,8 +2290,8 @@ def recording_client(built: dict, url: str, size: tuple[int, int], args):
     """Find the browser that will render: somebody's, or one we start.
 
     A human who already has the page open is used as is; otherwise a
-    headless Chrome is started on the page, sized to the recording (the
-    window is what caps ``get_render``).
+    headless Chrome is started on the page, with the recording's aspect
+    ratio.
 
     Args:
         built: What :func:`build_grid` returned.
@@ -2467,9 +2467,8 @@ class GridConfig:
     file is smooth at --record-fps whatever the live rate is; it starts once a
     client is connected to the printed URL."""
     record_size: str = video.RECORD_SIZE
-    """Frame size WxH of the recording and the screenshot. The headless
-    browser renders offscreen, so this is not capped by its window; a human's
-    browser may return its own size, which is then logged and used."""
+    """Frame size WxH of the recording and the screenshot. A browser that
+    returns another size is logged and its size used."""
     record_fps: float = DEFAULT_FPS
     """Frame rate written into the file (50 plays the demonstrations at their
     recorded speed)."""

@@ -4,9 +4,9 @@ Two isolation levels are offered:
 
 - :func:`claude_settings` is written for a session inside the agent container,
   which is the isolation; the harness's own sandbox is left off there.
-- :func:`claude_settings_soft` is the fallback for hosts where that sandbox
-  cannot start (unprivileged user namespaces disabled, for instance): tool-level
-  rules only, so the transcript has to be audited afterwards.
+- :func:`claude_settings_soft` is for a session on the host
+  (``--isolation soft``, development only): tool-level rules only, so the
+  transcript has to be audited afterwards.
 
 Both are plain dictionaries serialised to JSON, so a caller can add or drop
 entries before writing them.
@@ -70,7 +70,7 @@ CODEX_HOST_FLAGS = [
 
 
 def claude_settings_soft(sandbox: Path, effort: str = "high") -> dict:
-    """Tool-level isolation only, for hosts where the full sandbox cannot start.
+    """Tool-level isolation only, for a session on the host (``--isolation soft``).
 
     Bash network use is NOT enforced at this level; audit the transcript.
 

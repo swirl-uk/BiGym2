@@ -142,8 +142,8 @@ wheel-exclude = ["**/.DS_Store"]
 
 # Type checking: `uv run ty check`. It resolves imports from the repo's .venv.
 # "." is the repository root, where bigym lives; typings/ holds generated
-# stubs for mujoco's C++ bindings (typings/generate_mujoco_stubs.sh). The vendored NVIDIA runtime is kept
-# byte-identical to upstream, so it is not checked.
+# stubs for mujoco's C++ bindings (typings/generate_mujoco_stubs.sh). The vendored NVIDIA runtime stays
+# close to upstream (changes in its PROVENANCE.md), so it is not checked.
 [tool.ty.environment]
 python = ".venv"
 python-version = "3.10"
@@ -160,8 +160,8 @@ exclude = ["bigym/loco/adapters/_groot"]
 allowed-unresolved-imports = ["torch.**", "unitree_sdk2py.**", "imageio_ffmpeg"]
 
 # Lint and format: `uv run ruff check --fix` and `uv run ruff format` (the
-# pre-commit hooks run the same). The vendored NVIDIA runtime is kept
-# byte-identical to upstream and typings/ is generated, so neither is touched.
+# pre-commit hooks run the same). The vendored NVIDIA runtime stays close to
+# upstream and typings/ is generated, so neither is touched.
 [tool.ruff]
 extend-exclude = ["bigym/loco/adapters/_groot", "typings"]
 

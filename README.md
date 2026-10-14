@@ -14,6 +14,7 @@
   <a href="https://github.com/astral-sh/uv"><img alt="uv" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json"></a>
   <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/python-3.10%2B-3776ab.svg?logo=python&logoColor=white"></a>
   <a href="https://github.com/swirl-uk/BiGym2/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache_2.0-blue.svg"></a>
+  <a href="https://bigym2.github.io/readme/wechat.png"><img alt="WeChat group" src="https://img.shields.io/badge/WeChat-%E4%BA%A4%E6%B5%81%E7%BE%A4-07c160.svg?logo=wechat&logoColor=white"></a>
 </p>
 
 BiGym 2.0 brings [BiGym](https://github.com/NeuracoreAI/bigym) to a walking humanoid. A Unitree G1 performs household tasks while NVIDIA's frozen GR00T-WBC policy keeps it balanced and walking inside every environment step. The same controller runs during VR data collection, training and evaluation.

@@ -3,8 +3,20 @@ name: build
 on:
   push:
     branches: [main, master]
+    # Prose-only changes don't touch the code; docs.yaml covers docs/.
+    # `*.md` matches top-level files only, so bigym/**/templates/*.md still build.
+    paths-ignore:
+      - "*.md"
+      - "docs/**"
+      - ".agents/**"
+      - "LICENSE"
   pull_request:
     branches: [main, master]
+    paths-ignore:
+      - "*.md"
+      - "docs/**"
+      - ".agents/**"
+      - "LICENSE"
 
 jobs:
   lint:

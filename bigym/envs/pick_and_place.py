@@ -35,6 +35,9 @@ class PutCups(BiGymEnv):
         self.cups = [Mug(self.simulation) for _ in range(self._CUPS_COUNT)]
 
     def _success(self) -> bool:
+        # Contact with the bottom shelf is the whole placement test: a cup
+        # touching the shelf from outside the cabinet also passes. Frozen
+        # with the substrate, so tightening it starts a new result generation.
         for cup in self.cups:
             if not cup.is_colliding(self.cabinet_wall.shelf_bottom):
                 return False
@@ -342,6 +345,10 @@ class RemoveSandwich(FlipSandwich):
     _TOASTED = True
 
     def _success(self) -> bool:
+        # Does not test that the spatula was used or that the sandwich has
+        # left the pan; only _fail (a gripper on the sandwich) rules out
+        # picking it up by hand. Frozen with the substrate, so tightening it
+        # starts a new result generation.
         up = np.array([0, 0, 1])
         sandwich_up = Quaternion(self.sandwich.get_quaternion()).rotate(up)
         angle_to_up = np.arccos(np.clip(np.dot(sandwich_up, up), -1.0, 1.0))

@@ -376,7 +376,9 @@ forward, which puts the bottom shelf at about 1.15 m and the handles at about
 
 - **Goal**: put the two cups from the counter into the wall cabinet.
 - **Success**: both cups touch the bottom shelf of the wall cabinet and are
-  not held. The glass doors start closed and need not be closed again.
+  not held. The glass doors start closed and need not be closed again. The
+  check does not test that a cup is inside the cabinet: any contact with the
+  bottom shelf counts.
 - **Reset**: the cups take 2 of 3 spots 0.15 m apart across the counter, each
   moved ±0.03 m in x and y, with yaw 180° ± 30°.
 - **vs. BiGym**: lowered wall cabinet.
@@ -397,8 +399,8 @@ forward, which puts the bottom shelf at about 1.15 m and the handles at about
 - **Goal**: use the spatula to move the sandwich from the frying pan onto the
   chopping board.
 - **Success**: the sandwich lies flat within 10°, either face up, and touches
-  the board. Fail-fast: a gripper touches the sandwich, so the spatula is
-  required.
+  the board. Fail-fast: a gripper touches the sandwich. The check does not
+  test that the spatula was used or that the sandwich has left the pan.
 - **Reset**: the pan sits on the hob, moved ±0.02 m, with yaw ±15°. The
   spatula keeps a fixed offset from the pan. The sandwich lies on the pan,
   moved ±0.01 m, with random yaw. The board has yaw ±5°.

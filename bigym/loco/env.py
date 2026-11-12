@@ -829,9 +829,12 @@ class BiGym:
 
         Restoring MuJoCo qpos/qvel alone does not reproduce a mid-episode
         moment: the controller keeps observation histories, last actions and
-        rate-limiter anchors, and the env keeps the previous base command
-        and the upper-delta target. VR demo collection snapshots this
-        at the engage moment so replay can restore the full control state.
+        rate-limiter anchors, the env keeps the previous base command and
+        the upper-delta target, and each G1 gripper keeps the target its slew
+        limiter last sent (``env.gripper_target.<side>``; absent from
+        snapshots recorded before it was added). VR demo collection
+        snapshots this at the engage moment so replay can restore the full
+        control state.
         Keys are namespaced ("ctrl." for controller fields, "env." for
         env-side fields) so they can be stored flat in a demo npz.
 

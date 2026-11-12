@@ -34,7 +34,10 @@ Per-episode scalars / snapshots:
   (env.get_lowerbody_state(): ``ctrl.*`` controller fields per
   LowerBodyController.get_state(), ``env.*`` env-side fields). Restoring
   MuJoCo state + ``lb_state.*`` reproduces the episode bit-exactly on the
-  Newton-pinned scenes.
+  Newton-pinned scenes. ``lb_state.env.gripper_target.<side>`` (the gripper
+  slew limiter's last targets) is absent from episodes recorded before it
+  was added; those replay bit-exactly when the grippers had not left their
+  reset command at the engage moment.
 
 metadata.json
 -------------

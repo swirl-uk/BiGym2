@@ -129,6 +129,17 @@ class Gripper:
         previous episode's targets.
         """
 
+    def get_state(self) -> np.ndarray | None:
+        """What the gripper keeps between control steps, None if nothing.
+
+        Part of ``BiGym.get_lowerbody_state()``, with ``set_state`` as its
+        inverse. The base gripper is stateless.
+        """
+        return None
+
+    def set_state(self, state: np.ndarray) -> None:
+        """Restore what ``get_state`` returned."""
+
     def set_control(self, ctrl: float):
         """Set state of the gripper."""
         ctrl = np.interp(ctrl, self._config.range, self._NORMAL_RANGE)

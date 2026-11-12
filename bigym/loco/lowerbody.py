@@ -475,7 +475,7 @@ class LowerBody:
     # ------------------------------------------------------------------
 
     def get_state(self, env: BiGym) -> dict[str, np.ndarray]:
-        """Controller fields under ``ctrl.*``, env-side command state under ``env.*``."""
+        """Controller fields under ``ctrl.*``, env-side state under ``env.*``."""
         if self.controller is None:
             return {}
         state = {
@@ -495,6 +495,10 @@ class LowerBody:
             and env.upper_delta_accumulator.initialized
         ):
             state["env.upper_delta_target"] = env.upper_delta_accumulator.target
+        for side, gripper in env.inner_env.robot.grippers.items():
+            gripper_state = gripper.get_state()
+            if gripper_state is not None:
+                state[f"env.gripper_target.{side.value.lower()}"] = gripper_state
         return state
 
     def set_state(self, env: BiGym, state: dict[str, np.ndarray]) -> None:
@@ -523,6 +527,12 @@ class LowerBody:
                 env.upper_delta_accumulator.set_state(state["env.upper_delta_target"])
             else:
                 env.reset_action_representation_state()
+        # Snapshots recorded before these keys existed leave the grippers as
+        # they are, which is how those snapshots have always been restored.
+        for side, gripper in env.inner_env.robot.grippers.items():
+            key = f"env.gripper_target.{side.value.lower()}"
+            if key in state:
+                gripper.set_state(state[key])
 
 
 def yaw_from_floating_qpos(qpos: np.ndarray) -> float:

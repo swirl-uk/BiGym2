@@ -8,7 +8,8 @@ trajectory to the last bit.
 - The G1 scenes use the Newton solver. PGS warmstarts from contact-dependent
   state that cannot be saved.
 - A snapshot holds the full controller state: commands, last action, gait
-  phase and the policy's observation history.
+  phase, the policy's observation history and the target each gripper's slew
+  limiter last sent.
 - The env runs `mj_forward` after every control step and after a restore, so
   kinematics, contacts and sensors match.
 
@@ -16,6 +17,17 @@ Each demonstration stores its engage snapshot: `init_qpos`, `init_qvel`,
 `init_ctrl`, `init_qacc_warmstart` and the controller state (`lb_state.*`).
 Replay resets the env on the episode's seed, restores the snapshot and applies
 the recorded actions.
+
+Snapshots recorded before the gripper targets were added do not hold them.
+Restoring one is bit-exact when the grippers were still at their reset command
+at the snapshot, as they are at the engage moment of every released G1
+demonstration, and departs from the original run when they had moved.
+
+`get_lowerbody_state()` does not cover the simulation time or the episode's
+bookkeeping (step count, success hold counter, success and fall latches).
+The bookkeeping does not enter the dynamics. The time is read in one place:
+the gripper's slew limiter starts over when time runs backwards, and a
+restored limiter ignores the time of the restore.
 
 ## Deterministic reset
 

@@ -492,6 +492,33 @@ class G1Dex1Gripper(Gripper):
         self._target_qpos = None
         self._target_qpos_time = None
 
+    def get_state(self) -> np.ndarray:
+        """The slew limiter's last targets, one per actuated joint.
+
+        Empty before the first command after a reset.
+        """
+        if self._target_qpos is None:
+            return np.empty(0, dtype=np.float64)
+        return np.array(
+            [self._target_qpos[joint.name] for joint in self._actuated_joints],
+            dtype=np.float64,
+        )
+
+    def set_state(self, state: np.ndarray) -> None:
+        """Continue slewing from the targets ``get_state`` returned."""
+        targets = np.asarray(state, dtype=np.float64)
+        if targets.size == 0:
+            self.reset()
+            return
+        targets = targets.reshape(len(self._actuated_joints))
+        self._target_qpos = {
+            joint.name: float(target)
+            for joint, target in zip(self._actuated_joints, targets, strict=True)
+        }
+        # A restore usually moves physics time backwards, which the limiter
+        # reads as a new episode. No time is earlier than this one.
+        self._target_qpos_time = -np.inf
+
     def _slew_limited_joint_target(self, name: str, target_cmd: float) -> float:
         now = float(self.simulation.data.time)
         targets = self._target_qpos
